@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abdallah | Official</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="entry-screen"><span id="enter-btn">ENTER</span></div>
+
+    <div id="main-content" class="hidden">
+        <video id="bg-video" loop playsinline muted>
+            <source id="video-src" src="" type="video/mp4">
+        </video>
+        <div class="fog-overlay"></div>
+        
+        <div class="profile-info">
+            <h1 id="user-name">Loading...</h1>
+            <p id="user-bio"></p>
+            <div id="social-links"></div>
+        </div>
+        
+        <audio id="bg-music" loop>
+            <source id="audio-src" src="" type="audio/mpeg">
+        </audio>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    
+    <script src="config.js"></script>
+    <script src="security.js"></script>
+    <script>
+        // جلب البيانات من فايربيس
+        db.collection('siteData').doc('config').onSnapshot((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                document.getElementById('user-name').innerText = data.name || "zeiox";
+                document.getElementById('user-bio').innerText = data.bio || "";
+                
+                // تشغيل الفيديو والصوت
+                if(data.video) document.getElementById('bg-video').src = data.video;
+                if(data.audio) document.getElementById('bg-music').src = data.audio;
+                
+                document.getElementById('bg-video').load();
+                document.getElementById('bg-music').load();
+            }
+        });
+
+        // اختفاء شاشة الدخول وتشغيل الميديا
+        document.getElementById('entry-screen').addEventListener('click', function() {
+            this.classList.add('fade-out');
+            setTimeout(() => {
+                this.style.display = 'none';
+                document.getElementById('main-content').classList.remove('hidden');
+                document.getElementById('bg-video').play();
+                document.getElementById('bg-music').play();
+            }, 800);
+        });
+    </script>
+</body>
+</html>
