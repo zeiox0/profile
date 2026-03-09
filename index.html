@@ -1,155 +1,173 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="موقع شخصي احترافي">
+    <meta name="google-site-verification" content="zeiox0.github.io">
+    
+    <!-- Google Search Console - تحديد النطاق -->
+    <link rel="canonical" href="https://zeiox0.github.io">
+    
     <title>Abdallah | Official</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        #media-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -2;
-            background: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        #bg-video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-        
-        #bg-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: none;
-        }
-    </style>
 </head>
 <body>
     <div id="entry-screen"><span id="enter-btn">ENTER</span></div>
 
     <div id="main-content" class="hidden">
-        <!-- حاوية الوسائط (فيديو أو صورة) -->
-        <div id="media-container">
-            <video id="bg-video" loop playsinline muted autoplay></video>
-            <img id="bg-image" src="" alt="Background">
-        </div>
-        
+        <!-- فيديو الخلفية مع عرض متجاوب -->
+        <video id="bg-video" loop playsinline muted preload="metadata">
+            <source id="video-src" src="" type="video/mp4">
+        </video>
         <div class="fog-overlay"></div>
         
+        <!-- معلومات الملف الشخصي -->
         <div class="profile-info">
             <h1 id="user-name">Loading...</h1>
             <p id="user-bio"></p>
             <div id="social-links"></div>
         </div>
         
-        <audio id="bg-music" loop muted>
+        <!-- صوت الخلفية -->
+        <audio id="bg-music" loop preload="metadata">
             <source id="audio-src" src="" type="audio/mpeg">
         </audio>
+        
+        <!-- أدوات التحكم في الفيديو والصوت (للهواتف والكمبيوتر) -->
+        <div class="media-controls">
+            <!-- التحكم في الفيديو -->
+            <div class="control-group">
+                <button id="video-toggle" class="control-btn" title="تشغيل/إيقاف الفيديو">
+                    <i class="fas fa-video"></i>
+                </button>
+                <input type="range" id="video-brightness" class="control-slider" min="0" max="200" value="100" title="سطوع الفيديو">
+            </div>
+            
+            <!-- التحكم في الصوت -->
+            <div class="control-group">
+                <button id="audio-toggle" class="control-btn" title="تشغيل/إيقاف الصوت">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+                <input type="range" id="audio-volume" class="control-slider" min="0" max="100" value="50" title="مستوى الصوت">
+            </div>
+        </div>
     </div>
 
+    <!-- Firebase Scripts -->
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
     
+    <!-- FFmpeg للضغط (في صفحة الإدارة فقط) -->
+    <script async src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js"></script>
+    
+    <!-- Config و Security -->
     <script src="config.js"></script>
     <script src="security.js"></script>
+    
+    <!-- Main Script -->
     <script>
-        const video = document.getElementById('bg-video');
-        const image = document.getElementById('bg-image');
-        const audio = document.getElementById('bg-music');
-        const socialLinksContainer = document.getElementById('social-links');
-
-        // جلب البيانات من فايربيس
+        // متغيرات التحكم
+        let videoPlaying = true;
+        let audioPlaying = true;
+        
+        // جلب البيانات من Firebase
         db.collection('siteData').doc('config').onSnapshot((doc) => {
-            if (!doc.exists) return;
-            
-            const data = doc.data();
-            
-            // تحديث البيانات الشخصية
-            document.getElementById('user-name').innerText = data.name || "zeiox";
-            document.getElementById('user-bio').innerText = data.bio || "";
-            
-            // تحديث الخلفية (فيديو أو صورة)
-            if(data.backgroundType === 'video' && data.video) {
-                video.style.display = 'block';
-                image.style.display = 'none';
-                if(video.src !== data.video) {
-                    video.src = data.video;
-                    video.load();
+            if (doc.exists) {
+                const data = doc.data();
+                document.getElementById('user-name').innerText = data.name || "zeiox";
+                document.getElementById('user-bio').innerText = data.bio || "";
+                
+                // تحديث الفيديو والصوت
+                const videoElement = document.getElementById('bg-video');
+                const audioElement = document.getElementById('bg-music');
+                
+                if(data.video) {
+                    videoElement.src = data.video;
+                    videoElement.load();
                 }
-                if(data.videoSpeed) video.playbackRate = data.videoSpeed;
-                if(data.videoFit) video.style.objectFit = data.videoFit;
-            } 
-            else if(data.backgroundType === 'image' && data.image) {
-                video.style.display = 'none';
-                image.style.display = 'block';
-                image.src = data.image;
-            }
-            else if(data.backgroundType === 'gif' && data.gif) {
-                video.style.display = 'none';
-                image.style.display = 'block';
-                image.src = data.gif;
-            }
-
-            // تحديث الصوت
-            if(data.audio) {
-                if(audio.src !== data.audio) {
-                    audio.src = data.audio;
-                    audio.load();
+                if(data.audio) {
+                    audioElement.src = data.audio;
+                    audioElement.load();
                 }
-                if(data.bgVolume !== undefined) audio.volume = data.bgVolume;
-            }
-
-            // تحديث الروابط الاجتماعية
-            if (data.socialLinks && Array.isArray(data.socialLinks)) {
-                socialLinksContainer.innerHTML = '';
-                data.socialLinks.forEach(link => {
-                    if(link.url && link.icon) {
-                        const a = document.createElement('a');
-                        a.href = link.url;
-                        a.target = '_blank';
-                        a.rel = 'noopener noreferrer';
-                        a.innerHTML = `<i class="${link.icon}"></i>`;
-                        a.title = link.label || '';
-                        socialLinksContainer.appendChild(a);
-                    }
-                });
             }
         });
 
-        // دخول الموقع وتشغيل الميديا
+        // اختفاء شاشة الدخول وتشغيل الميديا
         document.getElementById('entry-screen').addEventListener('click', function() {
             this.classList.add('fade-out');
             setTimeout(() => {
                 this.style.display = 'none';
                 document.getElementById('main-content').classList.remove('hidden');
                 
-                // تشغيل الفيديو أو الصوت
-                if(video.style.display !== 'none' && video.src) {
-                    video.play().catch(e => console.log("Video error:", e));
-                }
-                if(audio.src) {
-                    audio.play().catch(e => console.log("Audio error:", e));
-                }
+                const videoElement = document.getElementById('bg-video');
+                const audioElement = document.getElementById('bg-music');
+                
+                videoElement.play().catch(e => console.log('Video play failed:', e));
+                audioElement.play().catch(e => console.log('Audio play failed:', e));
             }, 800);
         });
 
-        // دعم الضغط على مفتاح Enter للدخول
-        document.addEventListener('keydown', function(event) {
-            if(event.key === 'Enter' && document.getElementById('entry-screen').style.display !== 'none') {
-                document.getElementById('entry-screen').click();
+        // التحكم في الفيديو
+        document.getElementById('video-toggle').addEventListener('click', function() {
+            const video = document.getElementById('bg-video');
+            if (videoPlaying) {
+                video.pause();
+                this.style.opacity = '0.5';
+            } else {
+                video.play();
+                this.style.opacity = '1';
             }
+            videoPlaying = !videoPlaying;
         });
+
+        // التحكم في سطوع الفيديو
+        document.getElementById('video-brightness').addEventListener('input', function(e) {
+            const brightness = e.target.value;
+            const video = document.getElementById('bg-video');
+            video.style.filter = `brightness(${brightness}%)`;
+        });
+
+        // التحكم في الصوت
+        document.getElementById('audio-toggle').addEventListener('click', function() {
+            const audio = document.getElementById('bg-music');
+            if (audioPlaying) {
+                audio.pause();
+                this.style.opacity = '0.5';
+            } else {
+                audio.play();
+                this.style.opacity = '1';
+            }
+            audioPlaying = !audioPlaying;
+        });
+
+        // التحكم في مستوى الصوت
+        document.getElementById('audio-volume').addEventListener('input', function(e) {
+            const volume = e.target.value / 100;
+            document.getElementById('bg-music').volume = volume;
+        });
+
+        // دعم الشاشات المختلفة (متجاوب)
+        function adjustForScreen() {
+            const width = window.innerWidth;
+            const profileInfo = document.querySelector('.profile-info');
+            
+            if (width < 768) {
+                // للهواتف
+                profileInfo.style.padding = '10px';
+                document.querySelector('#user-name').style.fontSize = '1.8rem';
+                document.querySelector('#user-bio').style.fontSize = '0.9rem';
+            } else {
+                // للكمبيوتر
+                profileInfo.style.padding = '20px';
+                document.querySelector('#user-name').style.fontSize = '3rem';
+                document.querySelector('#user-bio').style.fontSize = '1.2rem';
+            }
+        }
+
+        window.addEventListener('resize', adjustForScreen);
+        window.addEventListener('load', adjustForScreen);
     </script>
 </body>
 </html>

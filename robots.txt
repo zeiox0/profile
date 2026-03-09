@@ -1,0 +1,19 @@
+# robots.txt - تحديد النطاق والسماح للزحافات
+
+# السماح لجميع الزحافات بالوصول
+User-agent: *
+Allow: /
+
+# تحديد النطاق الأساسي
+Host: https://zeiox0.github.io
+
+# ملف Sitemap
+Sitemap: https://zeiox0.github.io/sitemap.xml
+
+# تحديد معدل الزحف
+Crawl-delay: 1
+
+# منع الزحف إلى الملفات الحساسة
+Disallow: /admin.html
+Disallow: /config.js
+Disallow: /.htaccess

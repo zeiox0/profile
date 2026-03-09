@@ -3,175 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم المتقدمة</title>
+    <title>لوحة التحكم - Abdallah</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        .admin-section { margin-bottom: 30px; }
-        .control-group { margin-bottom: 15px; }
-        .control-label { display: block; margin-bottom: 5px; color: #ccc; font-size: 0.9rem; }
-        .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; margin-top: 15px; max-height: 350px; overflow-y: auto; padding: 10px; background: #1a1a1a; border-radius: 8px; }
-        .media-item { position: relative; background: #222; border-radius: 5px; overflow: hidden; border: 2px solid transparent; cursor: pointer; transition: 0.3s; }
-        .media-item:hover { border-color: #007bff; }
-        .media-item.active { border-color: #28a745; box-shadow: 0 0 10px #28a745; }
-        .media-item img, .media-item video { width: 100%; height: 80px; object-fit: cover; }
-        .media-info { padding: 5px; font-size: 0.7rem; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .search-box { width: 100%; padding: 10px; background: #222; border: 1px solid #444; color: #fff; border-radius: 5px; margin-bottom: 10px; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; overflow-x: auto; }
-        .tab-btn { background: none; border: none; color: #888; cursor: pointer; padding: 8px 15px; font-size: 0.9rem; transition: 0.3s; white-space: nowrap; }
-        .tab-btn.active { color: #fff; border-bottom: 2px solid #007bff; }
-        .range-val { float: left; color: #007bff; }
-        .library-section { display: none; }
-        .library-section.active { display: block; }
-        .online-links-list { background: #1a1a1a; border-radius: 5px; padding: 10px; max-height: 300px; overflow-y: auto; margin-top: 10px; }
-        .link-item { background: #222; padding: 10px; margin-bottom: 8px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
-        .link-item.active { background: #28a745; }
-        .link-item button { background: #d9534f; color: #fff; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; }
-    </style>
+    <!-- FFmpeg.js للضغط -->
+    <script async src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js"></script>
 </head>
 <body class="admin-body">
 
+    <!-- شاشة تسجيل الدخول -->
     <div id="login-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:100; display:flex; justify-content:center; align-items:center;">
         <div class="admin-card">
-            <h2 style="text-align:center; margin-bottom:20px;">تسجيل الدخول للإدارة</h2>
-            <input type="email" id="email" class="admin-input" placeholder="البريد الإلكتروني">
+            <h2 style="text-align:center; margin-bottom:20px; color:#00bfff;">🔐 تسجيل الدخول للإدارة</h2>
+            <input type="email" id="email" class="admin-input" placeholder="البريد الإلكتروني" autofocus>
             <input type="password" id="password" class="admin-input" placeholder="كلمة المرور">
-            <button onclick="attemptLogin()" class="admin-btn">دخول</button>
-            <p id="error-msg" style="color:red; display:none; margin-top:10px;"></p>
+            <button onclick="attemptLogin()" class="admin-btn">🔓 دخول</button>
+            <p id="error-msg" style="color:#ff6b6b; display:none; margin-top:10px; text-align:center;"></p>
         </div>
     </div>
 
-    <h1 style="text-align:center; margin-top: 20px; margin-bottom:30px;">لوحة التحكم المتقدمة</h1>
+    <!-- محتوى لوحة التحكم -->
+    <h1>⚙️ لوحة تحكم الموقع</h1>
 
+    <!-- قسم البيانات الشخصية -->
     <div class="admin-card">
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('settings', event)">الإعدادات</button>
-            <button class="tab-btn" onclick="switchTab('videos', event)">مكتبة الفيديوهات</button>
-            <button class="tab-btn" onclick="switchTab('images', event)">مكتبة الصور</button>
-            <button class="tab-btn" onclick="switchTab('gifs', event)">مكتبة GIF</button>
-            <button class="tab-btn" onclick="switchTab('audio', event)">مكتبة الصوت</button>
-            <button class="tab-btn" onclick="switchTab('online', event)">روابط خارجية</button>
+        <h2><i class="fas fa-user"></i> 👤 البيانات الشخصية</h2>
+        <input type="text" id="admin-name" class="admin-input" placeholder="الاسم (مثال: zeiox)">
+        <input type="text" id="admin-bio" class="admin-input" placeholder="الوصف (Bio)">
+        <button onclick="saveData()" class="admin-btn">💾 حفظ البيانات</button>
+    </div>
+
+    <!-- قسم الفيديو -->
+    <div class="admin-card">
+        <h2><i class="fas fa-video"></i> 🎬 خلفية الفيديو</h2>
+        <p style="color: #888; font-size: 0.9rem; margin-bottom: 10px;">
+            💡 الفيديو سيتم ضغطه تلقائياً قبل الرفع للحفاظ على الجودة وتقليل الحجم
+        </p>
+        
+        <input type="text" id="video-link" class="admin-input" placeholder="ضع رابط مباشر للفيديو هنا (اختياري)">
+        <div class="divider">--- أو ارفع ملف من جهازك ---</div>
+        
+        <input type="file" id="video-file" class="admin-input" accept="video/*" onchange="displayFileInfo('video')">
+        <div id="video-info"></div>
+        
+        <button onclick="handleMediaAction('video')" class="admin-btn">🚀 تحديث الفيديو</button>
+        
+        <!-- شريط التقدم -->
+        <div id="video-progress-container" class="progress-bar-container">
+            <div id="video-progress-bar" class="progress-bar" style="width: 0%;">0%</div>
         </div>
+        
+        <p id="video-status" style="margin-top:10px; color:#00ff00; text-align: center; font-weight: bold;"></p>
+    </div>
 
-        <!-- قسم الإعدادات -->
-        <div id="tab-settings" class="library-section active">
-            <div class="admin-section">
-                <h3><i class="fas fa-user"></i> البيانات الشخصية</h3>
-                <input type="text" id="admin-name" class="admin-input" placeholder="الاسم">
-                <input type="text" id="admin-bio" class="admin-input" placeholder="الوصف (Bio)">
-            </div>
-
-            <div class="admin-section">
-                <h3><i class="fas fa-cog"></i> إعدادات الوسائط</h3>
-                
-                <div class="control-group">
-                    <label class="control-label">نوع الخلفية</label>
-                    <select id="background-type" class="admin-input" onchange="updateBackgroundType()">
-                        <option value="video">فيديو</option>
-                        <option value="image">صورة</option>
-                        <option value="gif">GIF</option>
-                    </select>
-                </div>
-
-                <div class="control-group">
-                    <label class="control-label">سرعة تشغيل الفيديو <span id="speed-val" class="range-val">1x</span></label>
-                    <input type="range" id="video-speed" class="admin-input" min="0.5" max="2" step="0.1" value="1" oninput="updateRangeVal('speed', this.value)">
-                </div>
-
-                <div class="control-group">
-                    <label class="control-label">مستوى الصوت <span id="volume-val" class="range-val">50%</span></label>
-                    <input type="range" id="bg-volume" class="admin-input" min="0" max="1" step="0.1" value="0.5" oninput="updateRangeVal('volume', Math.round(this.value*100)+'%')">
-                </div>
-
-                <div class="control-group">
-                    <label class="control-label">طريقة عرض الخلفية</label>
-                    <select id="video-fit" class="admin-input">
-                        <option value="cover">تغطية كاملة (Cover)</option>
-                        <option value="contain">احتواء كامل (Contain)</option>
-                        <option value="fill">ملء المساحة (Fill)</option>
-                    </select>
-                </div>
-            </div>
-
-            <button onclick="saveAllSettings()" class="admin-btn"><i class="fas fa-save"></i> حفظ الإعدادات</button>
+    <!-- قسم الصوت -->
+    <div class="admin-card">
+        <h2><i class="fas fa-music"></i> 🎵 خلفية الصوت</h2>
+        <p style="color: #888; font-size: 0.9rem; margin-bottom: 10px;">
+            💡 الصوت سيتم ضغطه تلقائياً قبل الرفع مع الحفاظ على جودة عالية
+        </p>
+        
+        <input type="text" id="audio-link" class="admin-input" placeholder="ضع رابط مباشر للصوت هنا (اختياري)">
+        <div class="divider">--- أو ارفع ملف من جهازك ---</div>
+        
+        <input type="file" id="audio-file" class="admin-input" accept="audio/*" onchange="displayFileInfo('audio')">
+        <div id="audio-info"></div>
+        
+        <button onclick="handleMediaAction('audio')" class="admin-btn">🚀 تحديث الصوت</button>
+        
+        <!-- شريط التقدم -->
+        <div id="audio-progress-container" class="progress-bar-container">
+            <div id="audio-progress-bar" class="progress-bar" style="width: 0%;">0%</div>
         </div>
+        
+        <p id="audio-status" style="margin-top:10px; color:#00ff00; text-align: center; font-weight: bold;"></p>
+    </div>
 
-        <!-- مكتبة الفيديوهات -->
-        <div id="tab-videos" class="library-section">
-            <h3><i class="fas fa-video"></i> مكتبة الفيديوهات</h3>
-            <input type="text" id="search-videos" class="search-box" placeholder="بحث في الفيديوهات..." oninput="filterLibrary('videos')">
-            <input type="file" id="upload-video" class="admin-input" accept="video/*">
-            <button onclick="uploadMedia('video')" class="admin-btn" style="background: #28a745;"><i class="fas fa-upload"></i> رفع فيديو</button>
-            <p id="upload-status-video" style="margin-top:5px; font-size:0.8rem;"></p>
-            <div id="library-videos" class="media-grid"></div>
-            <button onclick="useSelectedMedia('video')" class="admin-btn" style="margin-top: 15px;">استخدام كخلفية</button>
-        </div>
-
-        <!-- مكتبة الصور -->
-        <div id="tab-images" class="library-section">
-            <h3><i class="fas fa-image"></i> مكتبة الصور</h3>
-            <input type="text" id="search-images" class="search-box" placeholder="بحث في الصور..." oninput="filterLibrary('images')">
-            <input type="file" id="upload-image" class="admin-input" accept="image/*">
-            <button onclick="uploadMedia('image')" class="admin-btn" style="background: #28a745;"><i class="fas fa-upload"></i> رفع صورة</button>
-            <p id="upload-status-image" style="margin-top:5px; font-size:0.8rem;"></p>
-            <div id="library-images" class="media-grid"></div>
-            <button onclick="useSelectedMedia('image')" class="admin-btn" style="margin-top: 15px;">استخدام كخلفية</button>
-        </div>
-
-        <!-- مكتبة GIF -->
-        <div id="tab-gifs" class="library-section">
-            <h3><i class="fas fa-film"></i> مكتبة GIF</h3>
-            <input type="text" id="search-gifs" class="search-box" placeholder="بحث في GIF..." oninput="filterLibrary('gifs')">
-            <input type="file" id="upload-gif" class="admin-input" accept="image/gif">
-            <button onclick="uploadMedia('gif')" class="admin-btn" style="background: #28a745;"><i class="fas fa-upload"></i> رفع GIF</button>
-            <p id="upload-status-gif" style="margin-top:5px; font-size:0.8rem;"></p>
-            <div id="library-gifs" class="media-grid"></div>
-            <button onclick="useSelectedMedia('gif')" class="admin-btn" style="margin-top: 15px;">استخدام كخلفية</button>
-        </div>
-
-        <!-- مكتبة الصوت -->
-        <div id="tab-audio" class="library-section">
-            <h3><i class="fas fa-music"></i> مكتبة الصوت</h3>
-            <input type="text" id="search-audio" class="search-box" placeholder="بحث في الملفات الصوتية..." oninput="filterLibrary('audio')">
-            <input type="file" id="upload-audio" class="admin-input" accept="audio/*">
-            <button onclick="uploadMedia('audio')" class="admin-btn" style="background: #28a745;"><i class="fas fa-upload"></i> رفع صوت</button>
-            <p id="upload-status-audio" style="margin-top:5px; font-size:0.8rem;"></p>
-            <div id="library-audio" class="media-grid"></div>
-            <button onclick="useSelectedMedia('audio')" class="admin-btn" style="margin-top: 15px;">استخدام كصوت خلفية</button>
-        </div>
-
-        <!-- روابط خارجية -->
-        <div id="tab-online" class="library-section">
-            <h3><i class="fas fa-link"></i> روابط خارجية</h3>
-            
-            <div class="control-group">
-                <label class="control-label">اختر نوع الرابط</label>
-                <select id="online-type" class="admin-input">
-                    <option value="video">فيديو</option>
-                    <option value="image">صورة</option>
-                    <option value="gif">GIF</option>
-                    <option value="audio">صوت</option>
+    <!-- قسم الإعدادات المتقدمة -->
+    <div class="admin-card">
+        <h2><i class="fas fa-sliders-h"></i> ⚙️ إعدادات الضغط المتقدمة</h2>
+        
+        <div style="background: #222; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
+            <h3 style="color: #00bfff; margin-bottom: 10px;">📊 إعدادات الفيديو</h3>
+            <label style="display: block; margin: 8px 0;">
+                <span style="color: #ccc;">جودة الفيديو (CRF):</span>
+                <input type="range" id="video-crf" min="18" max="28" value="23" style="width: 100%; margin-top: 5px;">
+                <small style="color: #888;">18 = أفضل جودة | 28 = أصغر حجم</small>
+            </label>
+            <label style="display: block; margin: 8px 0;">
+                <span style="color: #ccc;">معدل البت (Bitrate):</span>
+                <select id="video-bitrate" style="width: 100%; padding: 8px; background: #333; color: #fff; border: 1px solid #555; border-radius: 3px;">
+                    <option value="1500k">1500k - جودة منخفضة</option>
+                    <option value="2500k" selected>2500k - جودة متوسطة (موصى به)</option>
+                    <option value="4000k">4000k - جودة عالية</option>
+                    <option value="6000k">6000k - جودة عالية جداً</option>
                 </select>
-            </div>
-
-            <div class="control-group">
-                <label class="control-label">أضف رابط جديد</label>
-                <input type="text" id="online-url" class="admin-input" placeholder="ضع الرابط الكامل هنا (مثال: https://example.com/video.mp4)">
-                <input type="text" id="online-name" class="admin-input" placeholder="اسم الملف (اختياري)">
-                <button onclick="addOnlineLink()" class="admin-btn" style="background: #28a745;"><i class="fas fa-plus"></i> إضافة الرابط</button>
-            </div>
-
-            <h4>الروابط المحفوظة:</h4>
-            <div id="online-links-list" class="online-links-list"></div>
+            </label>
+        </div>
+        
+        <div style="background: #222; padding: 15px; border-radius: 5px;">
+            <h3 style="color: #00bfff; margin-bottom: 10px;">🎵 إعدادات الصوت</h3>
+            <label style="display: block; margin: 8px 0;">
+                <span style="color: #ccc;">جودة الصوت (Bitrate):</span>
+                <select id="audio-bitrate" style="width: 100%; padding: 8px; background: #333; color: #fff; border: 1px solid #555; border-radius: 3px;">
+                    <option value="128k">128k - جودة منخفضة</option>
+                    <option value="192k" selected>192k - جودة عالية (موصى به)</option>
+                    <option value="256k">256k - جودة عالية جداً</option>
+                    <option value="320k">320k - أفضل جودة</option>
+                </select>
+            </label>
         </div>
     </div>
 
+    <!-- قسم المعلومات -->
+    <div class="admin-card" style="background: rgba(0, 191, 255, 0.1); border-color: #00bfff;">
+        <h2 style="color: #00bfff;"><i class="fas fa-info-circle"></i> ℹ️ معلومات مهمة</h2>
+        <ul style="list-style: none; padding: 0;">
+            <li style="margin: 8px 0; color: #ccc;">✅ الفيديوهات والأصوات يتم ضغطها تلقائياً قبل الرفع</li>
+            <li style="margin: 8px 0; color: #ccc;">✅ يتم الحفاظ على الجودة مع تقليل حجم الملف</li>
+            <li style="margin: 8px 0; color: #ccc;">✅ الموقع يعمل بشكل متجاوب على جميع الأجهزة</li>
+            <li style="margin: 8px 0; color: #ccc;">✅ أدوات التحكم متاحة للمستخدمين (تشغيل/إيقاف، مستوى الصوت، السطوع)</li>
+            <li style="margin: 8px 0; color: #ccc;">✅ النطاق محدد على zeiox0.github.io في جوجل</li>
+            <li style="margin: 8px 0; color: #ccc;">✅ Supabase مكون بشكل صحيح وجاهز للاستخدام</li>
+        </ul>
+    </div>
+
+    <!-- Firebase Scripts -->
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
     
+    <!-- Config و Scripts -->
     <script src="config.js"></script>
+    <script src="media-compressor.js"></script>
     <script src="admin.js"></script>
 </body>
 </html>

@@ -1,0 +1,50 @@
+# تعيين النطاق في جوجل Search Console
+# يتم تحديد النطاق zeiox0.github.io فقط
+
+# إعادة توجيه جميع الطلبات إلى HTTPS
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# تحديد النطاق الأساسي
+SetEnvIf Host ^zeiox0\.github\.io$ DOMAIN_MATCH=1
+SetEnvIf Host ^www\.zeiox0\.github\.io$ DOMAIN_MATCH=1
+
+# منع الوصول من نطاقات أخرى
+Order allow,deny
+Allow from all
+
+# تحسينات الأداء والأمان
+<IfModule mod_headers.c>
+    # تحسين الأمان
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    
+    # تحسين الأداء
+    Header set Cache-Control "public, max-age=3600"
+</IfModule>
+
+# ضغط الملفات
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>
+
+# تخزين مؤقت للملفات الثابتة
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/html "access plus 1 hour"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType text/javascript "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/* "access plus 1 month"
+    ExpiresByType video/* "access plus 1 month"
+    ExpiresByType audio/* "access plus 1 month"
+</IfModule>
+
+# إعادة توجيه الملفات المفقودة
+<IfModule mod_rewrite.c>
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.html [QSA,L]
+</IfModule>
