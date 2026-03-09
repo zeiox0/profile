@@ -36,12 +36,17 @@ function attemptLogin() {
 }
 
 // تبديل التبويبات
-function switchTab(tabId) {
+function switchTab(tabId, evt) {
     document.querySelectorAll('.library-section').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
     
-    document.getElementById(`tab-${tabId}`).classList.add('active');
-    event.target.classList.add('active');
+    const tabElement = document.getElementById(`tab-${tabId}`);
+    if(tabElement) {
+        tabElement.classList.add('active');
+    }
+    if(evt && evt.target) {
+        evt.target.classList.add('active');
+    }
 }
 
 // تحديث نوع الخلفية
@@ -231,10 +236,12 @@ function renderOnlineLinks() {
         if(Array.isArray(onlineLinks[type])) {
             onlineLinks[type].forEach((link, index) => {
                 const typeLabel = { videos: 'فيديو', images: 'صورة', gifs: 'GIF', audio: 'صوت' }[type] || type;
+                const escapedUrl = (link.url || '').replace(/'/g, "\\'");
+                const displayName = link.name || link.url.substring(0, 30);
                 html += `
-                    <div class="link-item" onclick="selectOnlineLink(this, '${link.url}', '${type}')">
-                        <span>${link.name || link.url.substring(0, 30)}... (${typeLabel})</span>
-                        <button onclick="deleteOnlineLink('${type}', ${index})">حذف</button>
+                    <div class="link-item" onclick="selectOnlineLink(this, '${escapedUrl}', '${type}')">
+                        <span>${displayName}... (${typeLabel})</span>
+                        <button onclick="event.stopPropagation(); deleteOnlineLink('${type}', ${index})">حذف</button>
                     </div>
                 `;
             });
@@ -269,9 +276,13 @@ function addOnlineLink() {
 
 // اختيار رابط خارجي
 function selectOnlineLink(element, url, type) {
-    document.querySelectorAll('.link-item').forEach(el => el.classList.remove('active'));
-    element.classList.add('active');
-    selectedMedia[type] = url;
+    if(element && element.classList) {
+        document.querySelectorAll('.link-item').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+    }
+    if(selectedMedia && type) {
+        selectedMedia[type] = url;
+    }
 }
 
 // حذف رابط خارجي
