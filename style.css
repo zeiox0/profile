@@ -18,7 +18,26 @@ body, html { width: 100%; height: 100%; font-family: 'Segoe UI', sans-serif; bac
 .fade-out { opacity: 0 !important; }
 
 /* فيديو الخلفية وطبقة الضباب */
-#bg-video { position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; pointer-events: none; }
+#bg-video { 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    z-index: -2; 
+    pointer-events: none;
+    display: block;
+    background: #000;
+}
+
+/* تحسين الفيديو للهواتف */
+@media (max-width: 768px) {
+    #bg-video {
+        min-width: 100%;
+        min-height: 100%;
+    }
+}
 .fog-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: linear-gradient(to bottom, rgba(2, 10, 25, 0.6), rgba(0, 5, 15, 0.9));
@@ -32,6 +51,18 @@ body, html { width: 100%; height: 100%; font-family: 'Segoe UI', sans-serif; bac
 }
 #user-name { font-size: 3rem; letter-spacing: 4px; margin-bottom: 10px; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
 #user-bio { font-size: 1.2rem; margin-bottom: 20px; color: #ccc; }
+
+/* تحسين الملف الشخصي على الهواتف */
+@media (max-width: 768px) {
+    #user-name { font-size: 2rem; letter-spacing: 2px; }
+    #user-bio { font-size: 1rem; }
+}
+
+@media (max-width: 480px) {
+    #user-name { font-size: 1.5rem; letter-spacing: 1px; }
+    #user-bio { font-size: 0.9rem; }
+    #social-links a { font-size: 1.4rem; margin: 0 8px; }
+}
 
 /* أيقونات السوشيال ميديا */
 #social-links a {

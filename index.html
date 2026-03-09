@@ -11,7 +11,7 @@
     <div id="entry-screen"><span id="enter-btn">ENTER</span></div>
 
     <div id="main-content" class="hidden">
-        <video id="bg-video" loop playsinline muted>
+        <video id="bg-video" loop playsinline muted autoplay>
             <source id="video-src" src="" type="video/mp4">
         </video>
         <div class="fog-overlay"></div>
@@ -41,11 +41,16 @@
                 document.getElementById('user-bio').innerText = data.bio || "";
                 
                 // تشغيل الفيديو والصوت
-                if(data.video) document.getElementById('bg-video').src = data.video;
-                if(data.audio) document.getElementById('bg-music').src = data.audio;
-                
-                document.getElementById('bg-video').load();
-                document.getElementById('bg-music').load();
+                if(data.video) {
+                    const video = document.getElementById('bg-video');
+                    video.src = data.video;
+                    video.load();
+                }
+                if(data.audio) {
+                    const audio = document.getElementById('bg-music');
+                    audio.src = data.audio;
+                    audio.load();
+                }
             }
         });
 
