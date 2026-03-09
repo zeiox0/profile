@@ -11,12 +11,9 @@
     <div id="entry-screen"><span id="enter-btn">ENTER</span></div>
 
     <div id="main-content" class="hidden">
-        <!-- فيديو الخلفية -->
-        <video id="bg-video" playsinline muted loop>
+        <video id="bg-video" loop playsinline muted autoplay style="width: 100%; height: 100%; object-fit: cover; position: fixed; top: 0; left: 0; z-index: -2;">
             <source id="video-src" src="" type="video/mp4">
-            Your browser does not support the video tag.
         </video>
-        
         <div class="fog-overlay"></div>
         
         <div class="profile-info">
@@ -25,7 +22,6 @@
             <div id="social-links"></div>
         </div>
         
-        <!-- الموسيقى الخلفية -->
         <audio id="bg-music" loop>
             <source id="audio-src" src="" type="audio/mpeg">
         </audio>
@@ -37,91 +33,37 @@
     <script src="config.js"></script>
     <script src="security.js"></script>
     <script>
-        // متغيرات عامة
-        let videoElement = null;
-        let audioElement = null;
-        let isMediaReady = false;
+        const video = document.getElementById('bg-video');
+        const audio = document.getElementById('bg-music');
 
         // جلب البيانات من فايربيس
         db.collection('siteData').doc('config').onSnapshot((doc) => {
             if (doc.exists) {
                 const data = doc.data();
-                
-                // تحديث اسم المستخدم والسيرة الذاتية
                 document.getElementById('user-name').innerText = data.name || "zeiox";
                 document.getElementById('user-bio').innerText = data.bio || "";
                 
-                // تحديث الفيديو
                 if(data.video) {
-                    videoElement = document.getElementById('bg-video');
-                    const sourceElement = document.getElementById('video-src');
-                    
-                    sourceElement.src = data.video;
-                    sourceElement.type = 'video/mp4';
-                    
-                    // إعادة تحميل الفيديو
-                    videoElement.load();
-                    
-                    // التحقق من جاهزية الفيديو
-                    videoElement.addEventListener('canplay', function() {
-                        isMediaReady = true;
-                        console.log('Video is ready to play');
-                    }, { once: true });
-                    
-                    // معالجة الأخطاء
-                    videoElement.addEventListener('error', function(e) {
-                        console.error('Video error:', e);
-                    });
+                    video.src = data.video;
+                    video.load();
                 }
-                
-                // تحديث الصوت
                 if(data.audio) {
-                    audioElement = document.getElementById('bg-music');
-                    const audioSourceElement = document.getElementById('audio-src');
-                    
-                    audioSourceElement.src = data.audio;
-                    audioSourceElement.type = 'audio/mpeg';
-                    
-                    audioElement.load();
+                    audio.src = data.audio;
+                    audio.load();
                 }
             }
         });
 
-        // اختفاء شاشة الدخول وتشغيل الميديا
+        // دخول الموقع وتشغيل الميديا
         document.getElementById('entry-screen').addEventListener('click', function() {
             this.classList.add('fade-out');
-            
             setTimeout(() => {
                 this.style.display = 'none';
                 document.getElementById('main-content').classList.remove('hidden');
                 
-                // تشغيل الفيديو
-                videoElement = document.getElementById('bg-video');
-                audioElement = document.getElementById('bg-music');
-                
-                if(videoElement && videoElement.src) {
-                    // محاولة تشغيل الفيديو مع معالجة الأخطاء
-                    let playPromise = videoElement.play();
-                    if (playPromise !== undefined) {
-                        playPromise
-                            .then(() => {
-                                console.log('Video is playing');
-                            })
-                            .catch(error => {
-                                console.log('Video playback failed:', error);
-                                // محاولة إعادة التحميل والتشغيل
-                                videoElement.load();
-                                videoElement.play().catch(err => console.log('Retry failed:', err));
-                            });
-                    }
-                }
-                
-                // تشغيل الصوت (اختياري)
-                if(audioElement && audioElement.src) {
-                    audioElement.play().catch(error => {
-                        console.log('Audio playback failed:', error);
-                    });
-                }
+                // محاولة تشغيل الفيديو والصوت
+                video.play().catch(e => console.log("Video play error:", e));
+                audio.play().catch(e => console.log("Audio play error:", e));
             }, 800);
         });
     </script>
