@@ -43,14 +43,26 @@
                 document.getElementById('user-name').innerText = data.name || "zeiox";
                 document.getElementById('user-bio').innerText = data.bio || "";
                 
+                // تحديث الفيديو
                 if(data.video) {
-                    video.src = data.video;
-                    video.load();
+                    if(video.src !== data.video) {
+                        video.src = data.video;
+                        video.load();
+                    }
                 }
+                
+                // تحديث الصوت
                 if(data.audio) {
-                    audio.src = data.audio;
-                    audio.load();
+                    if(audio.src !== data.audio) {
+                        audio.src = data.audio;
+                        audio.load();
+                    }
                 }
+
+                // تطبيق الإعدادات المتقدمة
+                if(data.videoSpeed) video.playbackRate = data.videoSpeed;
+                if(data.bgVolume !== undefined) audio.volume = data.bgVolume;
+                if(data.videoFit) video.style.objectFit = data.videoFit;
             }
         });
 
