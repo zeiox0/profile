@@ -13,46 +13,75 @@ body, html {
     overflow: hidden; 
 }
 
-/* شاشة البداية (Enter) */
-#enter-screen {
+/* شاشة الدخول الزجاجية */
+.enter-screen {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: #000;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.5));
     z-index: 1000;
     display: flex;
     justify-content: center;
     align-items: center;
     transition: opacity 0.5s ease;
+    backdrop-filter: blur(10px);
 }
 
 .enter-content {
     text-align: center;
     color: #fff;
+    padding: 40px;
+}
+
+/* تأثير الزجاج (Glassmorphism) */
+.glass {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    padding: 50px 60px;
 }
 
 .enter-content h1 {
     font-size: 2.5rem;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     letter-spacing: 2px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
-#enter-btn {
-    background: transparent;
-    border: 2px solid #fff;
+.enter-content p {
+    font-size: 1rem;
+    margin-bottom: 30px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.enter-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.5);
     color: #fff;
-    padding: 10px 30px;
-    font-size: 1.2rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
     cursor: pointer;
-    border-radius: 50px;
+    font-size: 1.5rem;
     transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
 }
 
-#enter-btn:hover {
-    background: #fff;
-    color: #000;
+.enter-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.8);
+    transform: scale(1.1);
+}
+
+.enter-btn:active {
+    transform: scale(0.95);
 }
 
 /* فيديو الخلفية */
@@ -67,7 +96,7 @@ body, html {
     pointer-events: none; 
     transition: filter 0.3s ease;
     background: #000;
-    opacity: 0.7; /* شفافية قليلة كما طلب المستخدم */
+    opacity: 0.7;
 }
 
 /* معلومات الملف الشخصي */
@@ -95,6 +124,36 @@ body, html {
     font-size: 1.2rem; 
     margin-bottom: 20px; 
     color: #ccc;
+}
+
+/* أيقونات التواصل الاجتماعي */
+.social-links {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.social-links a {
+    color: #fff; 
+    font-size: 1.8rem; 
+    text-decoration: none;
+    transition: all 0.3s ease; 
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.social-links a:hover { 
+    transform: translateY(-5px) scale(1.1);
+    color: #007bff;
+    background: rgba(0, 123, 255, 0.2);
+    border-color: rgba(0, 123, 255, 0.5);
 }
 
 /* أدوات التحكم */
@@ -164,4 +223,8 @@ body, html {
     #user-name { font-size: 2rem; }
     #user-bio { font-size: 1rem; }
     .media-controls { bottom: 10px; padding: 10px 15px; }
+    .glass { padding: 30px 40px; }
+    .enter-content h1 { font-size: 1.8rem; }
+    .social-links { gap: 15px; }
+    .social-links a { width: 40px; height: 40px; font-size: 1.4rem; }
 }

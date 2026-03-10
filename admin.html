@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- FFmpeg.js للضغط -->
     <script async src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js"></script>
 </head>
 <body class="admin-body">
@@ -32,6 +31,21 @@
         <input type="text" id="admin-name" class="admin-input" placeholder="الاسم (مثال: zeiox)">
         <input type="text" id="admin-bio" class="admin-input" placeholder="الوصف (Bio)">
         <button onclick="saveData()" class="admin-btn">💾 حفظ البيانات</button>
+    </div>
+
+    <!-- قسم أيقونات التواصل الاجتماعي -->
+    <div class="admin-card">
+        <h2><i class="fas fa-link"></i> 🔗 أيقونات التواصل الاجتماعي</h2>
+        <p style="color: #888; font-size: 0.9rem; margin-bottom: 15px;">
+            أضف روابط التواصل الاجتماعي الخاصة بك. ستظهر الأيقونات تحت وصفك في الموقع.
+        </p>
+        
+        <div id="social-links-container" style="max-height: 400px; overflow-y: auto; margin-bottom: 15px;">
+            <!-- سيتم إضافة الأيقونات هنا ديناميكياً -->
+        </div>
+        
+        <button onclick="addSocialLink()" class="admin-btn" style="margin-bottom: 10px;">➕ إضافة رابط جديد</button>
+        <button onclick="saveSocialLinks()" class="admin-btn">💾 حفظ الأيقونات</button>
     </div>
 
     <!-- قسم الفيديو -->
@@ -123,9 +137,9 @@
             <li style="margin: 8px 0; color: #ccc;">✅ الفيديوهات والأصوات يتم ضغطها تلقائياً قبل الرفع</li>
             <li style="margin: 8px 0; color: #ccc;">✅ يتم الحفاظ على الجودة مع تقليل حجم الملف</li>
             <li style="margin: 8px 0; color: #ccc;">✅ الموقع يعمل بشكل متجاوب على جميع الأجهزة</li>
-            <li style="margin: 8px 0; color: #ccc;">✅ أدوات التحكم متاحة للمستخدمين (تشغيل/إيقاف، مستوى الصوت، السطوع)</li>
+            <li style="margin: 8px 0; color: #ccc;">✅ أدوات التحكم متاحة للمستخدمين (تشغيل/إيقاف، مستوى الصوت)</li>
+            <li style="margin: 8px 0; color: #ccc;">✅ أيقونات التواصل الاجتماعي قابلة للتخصيص من لوحة الإدارة</li>
             <li style="margin: 8px 0; color: #ccc;">✅ النطاق محدد على zeiox0.github.io في جوجل</li>
-            <li style="margin: 8px 0; color: #ccc;">✅ Supabase مكون بشكل صحيح وجاهز للاستخدام</li>
         </ul>
     </div>
 

@@ -6,7 +6,6 @@
     <meta name="description" content="موقع شخصي احترافي">
     <meta name="google-site-verification" content="zeiox0.github.io">
     
-    <!-- Google Search Console - تحديد النطاق -->
     <link rel="canonical" href="https://zeiox0.github.io">
     
     <title>Abdallah | Official</title>
@@ -14,11 +13,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- شاشة البداية (Enter) -->
-    <div id="enter-screen">
-        <div class="enter-content">
+    <!-- شاشة الدخول الزجاجية -->
+    <div id="enter-screen" class="enter-screen">
+        <div class="enter-content glass">
             <h1>Abdallah | Official</h1>
-            <button id="enter-btn">اضغط للدخول</button>
+            <p>اضغط Enter للدخول</p>
+            <button id="enter-btn" class="enter-btn">
+                <i class="fas fa-arrow-right"></i>
+            </button>
         </div>
     </div>
 
@@ -33,7 +35,9 @@
         <div class="profile-info">
             <h1 id="user-name">Zeiox</h1>
             <p id="user-bio">Hi I 👋</p>
-            <div id="social-links"></div>
+            
+            <!-- أيقونات التواصل الاجتماعي -->
+            <div id="social-links" class="social-links"></div>
         </div>
         
         <!-- صوت الخلفية -->
@@ -43,14 +47,12 @@
         
         <!-- أدوات التحكم -->
         <div class="media-controls">
-            <!-- التحكم في الفيديو -->
             <div class="control-group">
                 <button id="video-toggle" class="control-btn" title="تشغيل/إيقاف الفيديو">
                     <i class="fas fa-video"></i>
                 </button>
             </div>
             
-            <!-- التحكم في الصوت -->
             <div class="control-group">
                 <button id="audio-toggle" class="control-btn" title="تشغيل/إيقاف الصوت">
                     <i class="fas fa-volume-up"></i>
@@ -78,9 +80,10 @@
         const enterScreen = document.getElementById('enter-screen');
         const enterBtn = document.getElementById('enter-btn');
         
-        // عند الضغط على زر الدخول
-        enterBtn.addEventListener('click', function() {
+        // عند الضغط على زر الدخول أو مفتاح Enter
+        function enterSite() {
             enterScreen.style.opacity = '0';
+            enterScreen.style.pointerEvents = 'none';
             setTimeout(() => {
                 enterScreen.style.display = 'none';
                 mainContent.style.display = 'block';
@@ -89,6 +92,15 @@
                 videoElement.play().catch(e => console.error('Video error:', e));
                 audioElement.play().catch(e => console.error('Audio error:', e));
             }, 500);
+        }
+        
+        enterBtn.addEventListener('click', enterSite);
+        
+        // الاستماع لمفتاح Enter
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && enterScreen.style.display !== 'none') {
+                enterSite();
+            }
         });
         
         // جلب البيانات من Firebase
@@ -99,6 +111,7 @@
                     document.getElementById('user-name').innerText = data.name || "Zeiox";
                     document.getElementById('user-bio').innerText = data.bio || "Hi I 👋";
                     
+                    // تحديث الفيديو
                     if(data.video && videoElement.src !== data.video) {
                         videoElement.src = data.video;
                         videoElement.load();
@@ -107,12 +120,29 @@
                         }
                     }
                     
+                    // تحديث الصوت
                     if(data.audio && audioElement.src !== data.audio) {
                         audioElement.src = data.audio;
                         audioElement.load();
                         if (mainContent.style.display !== 'none') {
                             audioElement.play().catch(e => console.log('Audio blocked:', e));
                         }
+                    }
+                    
+                    // تحديث الأيقونات الاجتماعية
+                    if(data.socialLinks) {
+                        const socialLinksDiv = document.getElementById('social-links');
+                        socialLinksDiv.innerHTML = '';
+                        
+                        data.socialLinks.forEach(link => {
+                            const a = document.createElement('a');
+                            a.href = link.url;
+                            a.target = '_blank';
+                            a.rel = 'noopener noreferrer';
+                            a.title = link.name;
+                            a.innerHTML = `<i class="${link.icon}"></i>`;
+                            socialLinksDiv.appendChild(a);
+                        });
                     }
                 }
             });
