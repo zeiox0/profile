@@ -5,21 +5,6 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const AUTHORIZED_EMAIL = "abdallah.ali2812@gmail.com";
 
-// إعدادات الضغط
-const COMPRESSION_SETTINGS = {
-    video: {
-        maxSize: 50 * 1024 * 1024, // 50 MB
-        quality: 23, // CRF (0-51)
-        bitrate: '2500k',
-        preset: 'medium'
-    },
-    audio: {
-        maxSize: 20 * 1024 * 1024, // 20 MB
-        bitrate: '192k',
-        quality: 4
-    }
-};
-
 // وظيفة تسجيل الدخول
 function attemptLogin() {
     const email = document.getElementById('email').value.trim();
@@ -43,7 +28,6 @@ function attemptLogin() {
     });
 }
 
-// جلب البيانات الأساسية عند الدخول
 function loadData() {
     db.collection('siteData').doc('config').get().then(doc => {
         if(doc.exists) {
@@ -54,7 +38,6 @@ function loadData() {
     });
 }
 
-// حفظ البيانات الأساسية
 function saveData() {
     const data = {
         name: document.getElementById('admin-name').value,
@@ -65,138 +48,106 @@ function saveData() {
     });
 }
 
-/**
- * معالجة الفيديو والصوت مع الضغط
- * @param {String} type - نوع الملف (video أو audio)
- */
 async function handleMediaAction(type) {
     const linkInput = document.getElementById(`${type}-link`).value.trim();
     const fileInput = document.getElementById(`${type}-file`).files[0];
     const statusMsg = document.getElementById(`${type}-status`);
     const progressBar = document.getElementById(`${type}-progress-bar`);
     const progressContainer = document.getElementById(`${type}-progress-container`);
+    const skipCompression = document.getElementById(`skip-${type}-compression`)?.checked;
 
     statusMsg.innerText = "";
     if (progressContainer) progressContainer.style.display = 'none';
 
-    // إذا أدخل رابط مباشر
     if (linkInput) {
         statusMsg.innerText = "جاري حفظ الرابط المباشر...";
         updateFirebaseMedia(type, linkInput, statusMsg);
     } 
-    // إذا اختار ملف للرفع
     else if (fileInput) {
         try {
-            statusMsg.innerText = "جاري فحص الملف...";
-            
-            // التحقق من نوع الملف
-            const isVideo = type === 'video';
-            const isAudio = type === 'audio';
-            
-            if (isVideo && !fileInput.type.startsWith('video/')) {
-                throw new Error('الملف يجب أن يكون فيديو');
-            }
-            if (isAudio && !fileInput.type.startsWith('audio/')) {
-                throw new Error('الملف يجب أن يكون صوت');
-            }
-            
-            // عرض شريط التقدم
+            statusMsg.innerText = "جاري معالجة الملف...";
             if (progressContainer) progressContainer.style.display = 'block';
-            
-            // ضغط الملف
-            statusMsg.innerText = `جاري ضغط ${type === 'video' ? 'الفيديو' : 'الصوت'}... قد يستغرق وقتاً`;
-            
-            let compressedFile;
-            if (isVideo) {
-                const compressedBlob = await compressVideo(fileInput, (progress) => {
-                    if (progressBar) progressBar.style.width = progress + '%';
-                });
-                compressedFile = blobToFile(compressedBlob, `compressed_${Date.now()}.mp4`);
-            } else if (isAudio) {
-                const compressedBlob = await compressAudio(fileInput, (progress) => {
-                    if (progressBar) progressBar.style.width = progress + '%';
-                });
-                compressedFile = blobToFile(compressedBlob, `compressed_${Date.now()}.mp3`);
+            if (progressBar) progressBar.style.width = '0%';
+
+            let fileToUpload = fileInput;
+
+            // تنفيذ الضغط إذا لم يتم اختيار التخطي
+            if (!skipCompression) {
+                statusMsg.innerText = "جاري الضغط... يرجى الانتظار";
+                try {
+                    if (type === 'video') {
+                        const blob = await compressVideo(fileInput, (p) => {
+                            if (progressBar) progressBar.style.width = p + '%';
+                            if (progressBar) progressBar.innerText = p + '%';
+                        });
+                        fileToUpload = blobToFile(blob, `compressed_${Date.now()}.mp4`);
+                    } else {
+                        const blob = await compressAudio(fileInput, (p) => {
+                            if (progressBar) progressBar.style.width = p + '%';
+                            if (progressBar) progressBar.innerText = p + '%';
+                        });
+                        fileToUpload = blobToFile(blob, `compressed_${Date.now()}.mp3`);
+                    }
+                } catch (err) {
+                    console.error("Compression failed, falling back to original file:", err);
+                    statusMsg.innerText = "⚠️ فشل الضغط، سيتم رفع الملف الأصلي...";
+                    fileToUpload = fileInput;
+                }
             }
-            
-            // الحصول على معلومات الملف الأصلي والمضغوط
-            const originalSize = (fileInput.size / (1024 * 1024)).toFixed(2);
-            const compressedSize = (compressedFile.size / (1024 * 1024)).toFixed(2);
-            const compressionRatio = ((1 - compressedFile.size / fileInput.size) * 100).toFixed(2);
-            
-            statusMsg.innerText = `✅ تم الضغط! الحجم الأصلي: ${originalSize}MB → المضغوط: ${compressedSize}MB (توفير: ${compressionRatio}%)`;
-            
-            // رفع الملف المضغوط
-            statusMsg.innerText = "جاري رفع الملف إلى Supabase...";
-            const fileName = `${type}_${Date.now()}_${compressedFile.name}`;
+
+            statusMsg.innerText = "جاري الرفع إلى السيرفر...";
+            const fileName = `${type}_${Date.now()}_${fileToUpload.name.replace(/\s+/g, '_')}`;
             const bucketName = 'Abdallah';
 
             const { data, error } = await supabaseClient.storage
                 .from(bucketName)
-                .upload(fileName, compressedFile);
+                .upload(fileName, fileToUpload, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
 
             if (error) {
-                statusMsg.innerText = "❌ فشل الرفع: " + error.message;
-                console.error('Supabase Error:', error);
-                alert("تأكد من إعدادات الـ Policies في سوبابيس والتأكد من أن اسم المخزن صحيح.");
+                throw error;
             } else {
                 const { data: urlData } = supabaseClient.storage.from(bucketName).getPublicUrl(fileName);
                 updateFirebaseMedia(type, urlData.publicUrl, statusMsg);
             }
-            
-            if (progressContainer) progressContainer.style.display = 'none';
         } catch (error) {
-            statusMsg.innerText = "❌ خطأ: " + error.message;
-            console.error('Error:', error);
-            if (progressContainer) progressContainer.style.display = 'none';
+            statusMsg.innerText = "❌ حدث خطأ: " + (error.message || "فشل الرفع");
+            console.error('Error details:', error);
+        } finally {
+            // لا نخفي شريط التقدم فوراً للسماح للمستخدم برؤية 100%
+            setTimeout(() => {
+                if (progressContainer) progressContainer.style.display = 'none';
+            }, 2000);
         }
     } 
-    // إذا لم يقم بإدخال شيء
     else {
-        alert("من فضلك أدخل رابطاً مباشراً أو اختر ملفاً للرفع!");
+        alert("من فضلك أدخل رابطاً أو اختر ملفاً!");
     }
 }
 
-/**
- * تحديث قاعدة البيانات بالرابط النهائي
- * @param {String} type - نوع الملف
- * @param {String} url - رابط الملف
- * @param {Element} statusMsgElement - عنصر رسالة الحالة
- */
 function updateFirebaseMedia(type, url, statusMsgElement) {
     db.collection('siteData').doc('config').update({ [type]: url })
       .then(() => {
-          statusMsgElement.innerText = "✅ تم تحديث الموقع بنجاح!";
-          // إعادة تعيين حقول الإدخال
+          statusMsgElement.innerText = "✅ تم التحديث بنجاح!";
+          statusMsgElement.style.color = "#00ff00";
           document.getElementById(`${type}-link`).value = '';
           document.getElementById(`${type}-file`).value = '';
       })
       .catch(err => {
-          statusMsgElement.innerText = "❌ حدث خطأ أثناء التحديث.";
+          statusMsgElement.innerText = "❌ خطأ في تحديث قاعدة البيانات.";
+          statusMsgElement.style.color = "#ff4444";
           console.error('Firebase Error:', err);
       });
 }
 
-/**
- * عرض معلومات الملف المختار
- * @param {String} type - نوع الملف
- */
 function displayFileInfo(type) {
     const fileInput = document.getElementById(`${type}-file`);
     const infoElement = document.getElementById(`${type}-info`);
-    
     if (fileInput.files.length > 0) {
         const file = fileInput.files[0];
-        const info = getFileInfo(file);
-        
-        if (infoElement) {
-            infoElement.innerHTML = `
-                <small style="color: #888;">
-                    📄 ${info.name}<br>
-                    💾 الحجم: ${info.size} MB<br>
-                    🕐 التاريخ: ${info.lastModified}
-                </small>
-            `;
-        }
+        const size = (file.size / (1024 * 1024)).toFixed(2);
+        infoElement.innerHTML = `<small style="color: #888;">📄 ${file.name} (${size} MB)</small>`;
     }
 }
