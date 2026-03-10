@@ -14,13 +14,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div id="entry-screen"><span id="enter-btn">ENTER</span></div>
+    <!-- شاشة الدخول -->
+    <div id="entry-screen">
+        <span id="enter-btn">ENTER</span>
+    </div>
 
     <div id="main-content" class="hidden">
         <!-- فيديو الخلفية مع عرض متجاوب -->
-        <video id="bg-video" autoplay loop playsinline muted preload="metadata">
+        <video id="bg-video" autoplay loop playsinline muted preload="auto">
             <source id="video-src" src="" type="video/mp4">
         </video>
+        
+        <!-- طبقة التراكب (تم تقليل العتامة لضمان رؤية الفيديو) -->
         <div class="fog-overlay"></div>
         
         <!-- معلومات الملف الشخصي -->
@@ -31,11 +36,11 @@
         </div>
         
         <!-- صوت الخلفية -->
-        <audio id="bg-music" loop preload="metadata">
+        <audio id="bg-music" loop preload="auto">
             <source id="audio-src" src="" type="audio/mpeg">
         </audio>
         
-        <!-- أدوات التحكم في الفيديو والصوت (للهواتف والكمبيوتر) -->
+        <!-- أدوات التحكم في الفيديو والصوت -->
         <div class="media-controls">
             <!-- التحكم في الفيديو -->
             <div class="control-group">
@@ -59,18 +64,16 @@
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
     
-    <!-- FFmpeg للضغط (في صفحة الإدارة فقط) -->
-    <script async src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js"></script>
-    
     <!-- Config و Security -->
     <script src="config.js"></script>
     <script src="security.js"></script>
     
     <!-- Main Script -->
     <script>
-        // متغيرات التحكم
         let videoPlaying = true;
         let audioPlaying = true;
+        const videoElement = document.getElementById('bg-video');
+        const audioElement = document.getElementById('bg-music');
         
         // جلب البيانات من Firebase
         db.collection('siteData').doc('config').onSnapshot((doc) => {
@@ -79,44 +82,46 @@
                 document.getElementById('user-name').innerText = data.name || "zeiox";
                 document.getElementById('user-bio').innerText = data.bio || "";
                 
-                // تحديث الفيديو والصوت
-                const videoElement = document.getElementById('bg-video');
-                const audioElement = document.getElementById('bg-music');
-                
-                if(data.video) {
+                // تحديث الفيديو إذا تغير الرابط
+                if(data.video && videoElement.src !== data.video) {
                     videoElement.src = data.video;
                     videoElement.load();
+                    // إذا كان المستخدم قد دخل بالفعل، نحاول التشغيل
+                    if(!document.getElementById('main-content').classList.contains('hidden')) {
+                        videoElement.play().catch(e => console.log('Autoplay blocked:', e));
+                    }
                 }
-                if(data.audio) {
+                
+                // تحديث الصوت إذا تغير الرابط
+                if(data.audio && audioElement.src !== data.audio) {
                     audioElement.src = data.audio;
                     audioElement.load();
                 }
             }
         });
 
-        // اختفاء شاشة الدخول وتشغيل الميديا
+        // تشغيل الميديا عند الضغط على ENTER
         document.getElementById('entry-screen').addEventListener('click', function() {
             this.classList.add('fade-out');
             setTimeout(() => {
                 this.style.display = 'none';
                 document.getElementById('main-content').classList.remove('hidden');
                 
-                const videoElement = document.getElementById('bg-video');
-                const audioElement = document.getElementById('bg-music');
-                
-                videoElement.play().catch(e => console.log('Video play failed:', e));
-                audioElement.play().catch(e => console.log('Audio play failed:', e));
+                // تشغيل الفيديو والصوت (يجب أن يتم بعد تفاعل المستخدم)
+                videoElement.play().catch(e => console.error('Video error:', e));
+                audioElement.play().catch(e => console.error('Audio error:', e));
             }, 800);
         });
 
         // التحكم في الفيديو
         document.getElementById('video-toggle').addEventListener('click', function() {
-            const video = document.getElementById('bg-video');
             if (videoPlaying) {
-                video.pause();
+                videoElement.pause();
+                this.innerHTML = '<i class="fas fa-video-slash"></i>';
                 this.style.opacity = '0.5';
             } else {
-                video.play();
+                videoElement.play();
+                this.innerHTML = '<i class="fas fa-video"></i>';
                 this.style.opacity = '1';
             }
             videoPlaying = !videoPlaying;
@@ -124,19 +129,18 @@
 
         // التحكم في سطوع الفيديو
         document.getElementById('video-brightness').addEventListener('input', function(e) {
-            const brightness = e.target.value;
-            const video = document.getElementById('bg-video');
-            video.style.filter = `brightness(${brightness}%)`;
+            videoElement.style.filter = `brightness(${e.target.value}%)`;
         });
 
         // التحكم في الصوت
         document.getElementById('audio-toggle').addEventListener('click', function() {
-            const audio = document.getElementById('bg-music');
             if (audioPlaying) {
-                audio.pause();
+                audioElement.pause();
+                this.innerHTML = '<i class="fas fa-volume-mute"></i>';
                 this.style.opacity = '0.5';
             } else {
-                audio.play();
+                audioElement.play();
+                this.innerHTML = '<i class="fas fa-volume-up"></i>';
                 this.style.opacity = '1';
             }
             audioPlaying = !audioPlaying;
@@ -144,30 +148,21 @@
 
         // التحكم في مستوى الصوت
         document.getElementById('audio-volume').addEventListener('input', function(e) {
-            const volume = e.target.value / 100;
-            document.getElementById('bg-music').volume = volume;
+            audioElement.volume = e.target.value / 100;
         });
 
-        // دعم الشاشات المختلفة (متجاوب)
-        function adjustForScreen() {
-            const width = window.innerWidth;
-            const profileInfo = document.querySelector('.profile-info');
-            
-            if (width < 768) {
-                // للهواتف
-                profileInfo.style.padding = '10px';
-                document.querySelector('#user-name').style.fontSize = '1.8rem';
-                document.querySelector('#user-bio').style.fontSize = '0.9rem';
-            } else {
-                // للكمبيوتر
-                profileInfo.style.padding = '20px';
-                document.querySelector('#user-name').style.fontSize = '3rem';
-                document.querySelector('#user-bio').style.fontSize = '1.2rem';
+        // تحسين العرض المتجاوب
+        function adjustLayout() {
+            const isMobile = window.innerWidth <= 768;
+            videoElement.style.objectFit = isMobile ? 'cover' : 'cover';
+            // إذا كان كمبيوتر، نجعل الفيديو يظهر بشكل Rectangle (كما طلب المستخدم)
+            if(!isMobile) {
+                videoElement.style.width = '100%';
+                videoElement.style.height = '100%';
             }
         }
-
-        window.addEventListener('resize', adjustForScreen);
-        window.addEventListener('load', adjustForScreen);
+        window.addEventListener('resize', adjustLayout);
+        window.addEventListener('load', adjustLayout);
     </script>
 </body>
 </html>
