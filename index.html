@@ -21,8 +21,9 @@
 
     <div id="main-content" class="hidden">
         <!-- فيديو الخلفية مع عرض متجاوب -->
-        <video id="bg-video" autoplay loop playsinline muted preload="auto" style="background: black;">
-            <source id="video-src" src="" type="video/mp4">
+        <video id="bg-video" autoplay loop playsinline muted preload="auto" style="background: black; object-fit: cover; width: 100%; height: 100%;">
+            <source id="video-src" src="test-video.mp4" type="video/mp4">
+            متصفحك لا يدعم عنصر الفيديو
         </video>
         
         <!-- طبقة التراكب (تم تقليل العتامة لضمان رؤية الفيديو) -->
@@ -30,8 +31,8 @@
         
         <!-- معلومات الملف الشخصي -->
         <div class="profile-info">
-            <h1 id="user-name">Loading...</h1>
-            <p id="user-bio"></p>
+            <h1 id="user-name">Zeiox</h1>
+            <p id="user-bio">Hi I 👋</p>
             <div id="social-links"></div>
         </div>
         
@@ -74,38 +75,44 @@
         let audioPlaying = true;
         const videoElement = document.getElementById('bg-video');
         const audioElement = document.getElementById('bg-music');
+        const entryScreen = document.getElementById('entry-screen');
+        const mainContent = document.getElementById('main-content');
         
         // جلب البيانات من Firebase
-        db.collection('siteData').doc('config').onSnapshot((doc) => {
-            if (doc.exists) {
-                const data = doc.data();
-                document.getElementById('user-name').innerText = data.name || "zeiox";
-                document.getElementById('user-bio').innerText = data.bio || "";
-                
-                // تحديث الفيديو إذا تغير الرابط
-                if(data.video && videoElement.src !== data.video) {
-                    videoElement.src = data.video;
-                    videoElement.load();
-                    // إذا كان المستخدم قد دخل بالفعل، نحاول التشغيل
-                    if(!document.getElementById('main-content').classList.contains('hidden')) {
-                        videoElement.play().catch(e => console.log('Autoplay blocked:', e));
+        try {
+            db.collection('siteData').doc('config').onSnapshot((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    document.getElementById('user-name').innerText = data.name || "Zeiox";
+                    document.getElementById('user-bio').innerText = data.bio || "Hi I 👋";
+                    
+                    // تحديث الفيديو إذا تغير الرابط
+                    if(data.video && videoElement.src !== data.video) {
+                        videoElement.src = data.video;
+                        videoElement.load();
+                        // إذا كان المستخدم قد دخل بالفعل، نحاول التشغيل
+                        if(!mainContent.classList.contains('hidden')) {
+                            videoElement.play().catch(e => console.log('Autoplay blocked:', e));
+                        }
+                    }
+                    
+                    // تحديث الصوت إذا تغير الرابط
+                    if(data.audio && audioElement.src !== data.audio) {
+                        audioElement.src = data.audio;
+                        audioElement.load();
                     }
                 }
-                
-                // تحديث الصوت إذا تغير الرابط
-                if(data.audio && audioElement.src !== data.audio) {
-                    audioElement.src = data.audio;
-                    audioElement.load();
-                }
-            }
-        });
+            });
+        } catch (error) {
+            console.log('Firebase connection error:', error);
+        }
 
         // تشغيل الميديا عند الضغط على ENTER
-        document.getElementById('entry-screen').addEventListener('click', function() {
+        entryScreen.addEventListener('click', function() {
             this.classList.add('fade-out');
             setTimeout(() => {
                 this.style.display = 'none';
-                document.getElementById('main-content').classList.remove('hidden');
+                mainContent.classList.remove('hidden');
                 
                 // تشغيل الفيديو والصوت (يجب أن يتم بعد تفاعل المستخدم)
                 videoElement.play().catch(e => console.error('Video error:', e));
@@ -120,7 +127,7 @@
                 this.innerHTML = '<i class="fas fa-video-slash"></i>';
                 this.style.opacity = '0.5';
             } else {
-                videoElement.play();
+                videoElement.play().catch(e => console.error('Play error:', e));
                 this.innerHTML = '<i class="fas fa-video"></i>';
                 this.style.opacity = '1';
             }
@@ -139,7 +146,7 @@
                 this.innerHTML = '<i class="fas fa-volume-mute"></i>';
                 this.style.opacity = '0.5';
             } else {
-                audioElement.play();
+                audioElement.play().catch(e => console.error('Play error:', e));
                 this.innerHTML = '<i class="fas fa-volume-up"></i>';
                 this.style.opacity = '1';
             }
@@ -154,15 +161,14 @@
         // تحسين العرض المتجاوب
         function adjustLayout() {
             const isMobile = window.innerWidth <= 768;
-            videoElement.style.objectFit = isMobile ? 'cover' : 'cover';
-            // إذا كان كمبيوتر، نجعل الفيديو يظهر بشكل Rectangle (كما طلب المستخدم)
-            if(!isMobile) {
-                videoElement.style.width = '100%';
-                videoElement.style.height = '100%';
-            }
+            videoElement.style.objectFit = 'cover';
+            videoElement.style.width = '100%';
+            videoElement.style.height = '100%';
         }
         window.addEventListener('resize', adjustLayout);
         window.addEventListener('load', adjustLayout);
     </script>
+
+
 </body>
 </html>

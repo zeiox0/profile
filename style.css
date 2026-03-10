@@ -1,115 +1,212 @@
 /* إعدادات أساسية */
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body, html { width: 100%; height: 100%; font-family: 'Segoe UI', sans-serif; background-color: #000; overflow: hidden; }
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+}
+
+body, html { 
+    width: 100%; 
+    height: 100%; 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    background-color: #000; 
+    overflow: hidden; 
+}
 
 /* شاشة الدخول السوداء */
 #entry-screen {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: opacity 0.8s ease;
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%;
+    background: #000; 
+    z-index: 9999; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    cursor: pointer; 
+    transition: opacity 0.8s ease;
 }
+
 #enter-btn {
-    color: #fff; font-size: 1.5rem; letter-spacing: 6px; font-weight: 300;
-    animation: pulse 2s infinite; text-shadow: 0 0 15px rgba(255,255,255,0.4);
+    color: #fff; 
+    font-size: 1.5rem; 
+    letter-spacing: 6px; 
+    font-weight: 300;
+    animation: pulse 2s infinite; 
+    text-shadow: 0 0 15px rgba(255,255,255,0.4);
 }
-@keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+@keyframes pulse { 
+    0%, 100% { opacity: 0.4; } 
+    50% { opacity: 1; } 
+}
 
 /* إخفاء وتلاشي العناصر */
-.hidden { display: none !important; }
-.fade-out { opacity: 0 !important; }
+.hidden { 
+    display: none !important; 
+}
+
+.fade-out { 
+    opacity: 0 !important; 
+}
 
 /* فيديو الخلفية وطبقة الضباب */
 #bg-video { 
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-    object-fit: cover; z-index: -1; pointer-events: none; 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    z-index: -1; 
+    pointer-events: none; 
     transition: filter 0.3s ease;
     background: #000;
 }
 
 .fog-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%;
     /* طبقة تراكب خفيفة جداً */
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(1px); z-index: 0; pointer-events: none;
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(1px); 
+    z-index: 0; 
+    pointer-events: none;
 }
 
 /* معلومات الملف الشخصي */
 .profile-info {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    text-align: center; color: #fff; width: 100%; padding: 20px;
+    position: absolute; 
+    top: 50%; 
+    left: 50%; 
+    transform: translate(-50%, -50%);
+    text-align: center; 
+    color: #fff; 
+    width: 100%; 
+    padding: 20px;
     z-index: 10;
     text-shadow: 0 2px 10px rgba(0,0,0,0.8);
 }
 
 #user-name { 
-    font-size: 3rem; letter-spacing: 4px; margin-bottom: 10px; 
+    font-size: 3rem; 
+    letter-spacing: 4px; 
+    margin-bottom: 10px; 
     text-shadow: 0 0 10px rgba(255,255,255,0.3);
     transition: font-size 0.3s ease;
 }
 
 #user-bio { 
-    font-size: 1.2rem; margin-bottom: 20px; color: #ccc;
+    font-size: 1.2rem; 
+    margin-bottom: 20px; 
+    color: #ccc;
     transition: font-size 0.3s ease;
 }
 
 /* أيقونات السوشيال ميديا */
 #social-links a {
-    color: #fff; font-size: 1.8rem; margin: 0 10px; text-decoration: none;
-    transition: 0.3s; display: inline-block;
+    color: #fff; 
+    font-size: 1.8rem; 
+    margin: 0 10px; 
+    text-decoration: none;
+    transition: 0.3s; 
+    display: inline-block;
 }
-#social-links a:hover { transform: translateY(-5px); color: #007bff; }
+
+#social-links a:hover { 
+    transform: translateY(-5px); 
+    color: #007bff; 
+}
 
 /* ============================================
    أدوات التحكم في الفيديو والصوت
    ============================================ */
 .media-controls {
-    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-    display: flex; gap: 20px; z-index: 100;
-    background: rgba(0, 0, 0, 0.7); padding: 15px 25px;
-    border-radius: 50px; backdrop-filter: blur(10px);
+    position: fixed; 
+    bottom: 20px; 
+    left: 50%; 
+    transform: translateX(-50%);
+    display: flex; 
+    gap: 20px; 
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.7); 
+    padding: 15px 25px;
+    border-radius: 50px; 
+    backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .control-group {
-    display: flex; align-items: center; gap: 10px;
+    display: flex; 
+    align-items: center; 
+    gap: 10px;
 }
 
 .control-btn {
-    background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3);
-    color: #fff; width: 40px; height: 40px; border-radius: 50%;
-    cursor: pointer; font-size: 1rem; transition: all 0.3s ease;
-    display: flex; align-items: center; justify-content: center;
+    background: rgba(255, 255, 255, 0.1); 
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff; 
+    width: 40px; 
+    height: 40px; 
+    border-radius: 50%;
+    cursor: pointer; 
+    font-size: 1rem; 
+    transition: all 0.3s ease;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
 }
 
 .control-btn:hover {
-    background: rgba(0, 123, 255, 0.5); border-color: #007bff;
+    background: rgba(0, 123, 255, 0.5); 
+    border-color: #007bff;
     transform: scale(1.1);
 }
 
 .control-slider {
-    width: 120px; height: 5px; cursor: pointer;
-    background: rgba(255, 255, 255, 0.2); border-radius: 5px;
-    outline: none; -webkit-appearance: none;
+    width: 120px; 
+    height: 5px; 
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.2); 
+    border-radius: 5px;
+    outline: none; 
+    -webkit-appearance: none;
 }
 
 .control-slider::-webkit-slider-thumb {
-    -webkit-appearance: none; appearance: none;
-    width: 15px; height: 15px; border-radius: 50%;
-    background: #007bff; cursor: pointer;
+    -webkit-appearance: none; 
+    appearance: none;
+    width: 15px; 
+    height: 15px; 
+    border-radius: 50%;
+    background: #007bff; 
+    cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .control-slider::-webkit-slider-thumb:hover {
-    background: #0056b3; transform: scale(1.2);
+    background: #0056b3; 
+    transform: scale(1.2);
 }
 
 .control-slider::-moz-range-thumb {
-    width: 15px; height: 15px; border-radius: 50%;
-    background: #007bff; cursor: pointer; border: none;
+    width: 15px; 
+    height: 15px; 
+    border-radius: 50%;
+    background: #007bff; 
+    cursor: pointer; 
+    border: none;
     transition: all 0.3s ease;
 }
 
 .control-slider::-moz-range-thumb:hover {
-    background: #0056b3; transform: scale(1.2);
+    background: #0056b3; 
+    transform: scale(1.2);
 }
 
 /* ============================================
@@ -118,130 +215,224 @@ body, html { width: 100%; height: 100%; font-family: 'Segoe UI', sans-serif; bac
 
 /* للهواتف الصغيرة (أقل من 480px) */
 @media (max-width: 480px) {
-    #user-name { font-size: 1.5rem; letter-spacing: 2px; }
-    #user-bio { font-size: 0.8rem; }
-    #social-links a { font-size: 1.4rem; margin: 0 5px; }
-    
-    .media-controls {
-        flex-direction: column; gap: 10px;
-        bottom: 10px; padding: 10px 15px;
+    #user-name { 
+        font-size: 1.5rem; 
+        letter-spacing: 2px; 
     }
     
-    .control-slider { width: 80px; }
+    #user-bio { 
+        font-size: 0.8rem; 
+    }
+    
+    #social-links a { 
+        font-size: 1.4rem; 
+        margin: 0 5px; 
+    }
+    
+    .media-controls {
+        flex-direction: column; 
+        gap: 10px;
+        bottom: 10px; 
+        padding: 10px 15px;
+    }
+    
+    .control-slider { 
+        width: 80px; 
+    }
 }
 
 /* للهواتف المتوسطة (480px - 768px) */
 @media (max-width: 768px) {
-    #user-name { font-size: 2rem; letter-spacing: 3px; }
-    #user-bio { font-size: 0.95rem; }
-    #social-links a { font-size: 1.5rem; margin: 0 8px; }
-    
-    .media-controls {
-        flex-wrap: wrap; gap: 15px;
-        bottom: 15px; padding: 12px 20px;
+    #user-name { 
+        font-size: 2rem; 
+        letter-spacing: 3px; 
     }
     
-    .control-slider { width: 100px; }
+    #user-bio { 
+        font-size: 0.95rem; 
+    }
+    
+    #social-links a { 
+        font-size: 1.5rem; 
+        margin: 0 8px; 
+    }
+    
+    .media-controls {
+        flex-wrap: wrap; 
+        gap: 15px;
+        bottom: 15px; 
+        padding: 12px 20px;
+    }
+    
+    .control-slider { 
+        width: 100px; 
+    }
 }
 
 /* للأجهزة اللوحية والكمبيوتر (أكبر من 768px) */
 @media (min-width: 769px) {
-    #user-name { font-size: 3rem; letter-spacing: 4px; }
-    #user-bio { font-size: 1.2rem; }
-    #social-links a { font-size: 1.8rem; margin: 0 10px; }
-    
-    .media-controls {
-        flex-direction: row; gap: 20px;
-        bottom: 20px; padding: 15px 25px;
+    #user-name { 
+        font-size: 3rem; 
+        letter-spacing: 4px; 
     }
     
-    .control-slider { width: 120px; }
+    #user-bio { 
+        font-size: 1.2rem; 
+    }
+    
+    #social-links a { 
+        font-size: 1.8rem; 
+        margin: 0 10px; 
+    }
+    
+    .media-controls {
+        flex-direction: row; 
+        gap: 20px;
+        bottom: 20px; 
+        padding: 15px 25px;
+    }
+    
+    .control-slider { 
+        width: 120px; 
+    }
 }
 
 /* ============================================
    ستايل صفحة الأدمن
    ============================================ */
 .admin-body { 
-    background: #050505; color: #fff; overflow-y: auto; 
-    display: block; padding: 20px; font-family: 'Segoe UI', sans-serif;
+    background: #050505; 
+    color: #fff; 
+    overflow-y: auto; 
+    display: block; 
+    padding: 20px; 
+    font-family: 'Segoe UI', sans-serif;
 }
 
 .admin-card { 
-    background: #111; border: 1px solid #333; padding: 20px; 
-    border-radius: 10px; margin-bottom: 20px; 
-    max-width: 600px; margin-left: auto; margin-right: auto;
+    background: #111; 
+    border: 1px solid #333; 
+    padding: 20px; 
+    border-radius: 10px; 
+    margin-bottom: 20px; 
+    max-width: 600px; 
+    margin-left: auto; 
+    margin-right: auto;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
 .admin-card h2 {
-    margin-bottom: 15px; color: #00bfff; font-size: 1.3rem;
+    margin-bottom: 15px; 
+    color: #00bfff; 
+    font-size: 1.3rem;
 }
 
 .admin-input { 
-    width: 100%; padding: 10px; margin: 10px 0; 
-    background: #222; border: 1px solid #444; color: #fff; 
-    border-radius: 5px; font-family: 'Segoe UI', sans-serif;
+    width: 100%; 
+    padding: 10px; 
+    margin: 10px 0; 
+    background: #222; 
+    border: 1px solid #444; 
+    color: #fff; 
+    border-radius: 5px; 
+    font-family: 'Segoe UI', sans-serif;
     transition: all 0.3s ease;
 }
 
 .admin-input:focus {
-    outline: none; border-color: #007bff; box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
+    outline: none; 
+    border-color: #007bff; 
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
 }
 
 .admin-btn { 
-    background: #007bff; color: #fff; padding: 10px 20px; 
-    border: none; border-radius: 5px; cursor: pointer; 
-    width: 100%; margin-top: 10px; font-weight: bold;
+    background: #007bff; 
+    color: #fff; 
+    padding: 10px 20px; 
+    border: none; 
+    border-radius: 5px; 
+    cursor: pointer; 
+    width: 100%; 
+    margin-top: 10px; 
+    font-weight: bold;
     transition: all 0.3s ease;
 }
 
 .admin-btn:hover { 
-    background: #0056b3; transform: translateY(-2px);
+    background: #0056b3; 
+    transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
 }
 
-.admin-btn:active { transform: translateY(0); }
+.admin-btn:active { 
+    transform: translateY(0); 
+}
 
 /* شريط التقدم */
 #video-progress-container, #audio-progress-container {
-    margin-top: 10px; display: none;
+    margin-top: 10px; 
+    display: none;
 }
 
 .progress-bar-container {
-    background: #333; border-radius: 10px; overflow: hidden;
-    height: 20px; margin-top: 10px;
+    background: #333; 
+    border-radius: 10px; 
+    overflow: hidden;
+    height: 20px; 
+    margin-top: 10px;
 }
 
 .progress-bar {
     background: linear-gradient(90deg, #007bff, #00bfff);
-    height: 100%; width: 0%; transition: width 0.3s ease;
-    display: flex; align-items: center; justify-content: center;
-    color: #fff; font-size: 0.8rem; font-weight: bold;
+    height: 100%; 
+    width: 0%; 
+    transition: width 0.3s ease;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    color: #fff; 
+    font-size: 0.8rem; 
+    font-weight: bold;
 }
 
 .divider { 
-    text-align: center; margin: 15px 0; color: #666; font-size: 0.9rem;
+    text-align: center; 
+    margin: 15px 0; 
+    color: #666; 
+    font-size: 0.9rem;
 }
 
 /* معلومات الملف */
 #video-info, #audio-info {
-    margin-top: 10px; padding: 10px;
-    background: rgba(0, 191, 255, 0.1); border-radius: 5px;
+    margin-top: 10px; 
+    padding: 10px;
+    background: rgba(0, 191, 255, 0.1); 
+    border-radius: 5px;
     border-left: 3px solid #00bfff;
 }
 
 /* رسائل الحالة */
 #video-status, #audio-status {
-    margin-top: 10px; padding: 10px;
-    border-radius: 5px; font-weight: bold;
+    margin-top: 10px; 
+    padding: 10px;
+    border-radius: 5px; 
+    font-weight: bold;
 }
 
 /* ============================================
    عناصر إضافية
    ============================================ */
-h1 { text-align: center; color: #00bfff; margin-bottom: 30px; }
+h1 { 
+    text-align: center; 
+    color: #00bfff; 
+    margin-bottom: 30px; 
+}
 
 /* تحسينات الأداء */
 @media (prefers-reduced-motion: reduce) {
-    * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    * { 
+        animation-duration: 0.01ms !important; 
+        animation-iteration-count: 1 !important; 
+        transition-duration: 0.01ms !important; 
+    }
 }
