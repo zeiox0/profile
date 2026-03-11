@@ -38,6 +38,9 @@
             
             <!-- أيقونات التواصل الاجتماعي -->
             <div id="social-links" class="social-links"></div>
+            
+            <!-- قسم التطبيقات المتصلة -->
+            <div id="connected-apps" class="connected-apps"></div>
         </div>
         
         <!-- صوت الخلفية -->
@@ -58,6 +61,51 @@
                     <i class="fas fa-volume-up"></i>
                 </button>
                 <input type="range" id="audio-volume" class="control-slider" min="0" max="100" value="50" title="مستوى الصوت">
+            </div>
+            
+            <div class="control-group">
+                <button id="dev-mode-btn" class="control-btn" title="وضع المطور">
+                    <i class="fas fa-code"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة وضع المطور (Developer Mode) -->
+    <div id="dev-mode-modal" class="modal" style="display: none;">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h2>وضع المطور</h2>
+                <button class="close-btn" id="close-dev-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="dev-section">
+                    <h3>إضافة تطبيق جديد</h3>
+                    <div class="form-group">
+                        <label>اسم التطبيق:</label>
+                        <input type="text" id="app-name" placeholder="مثال: GitHub">
+                    </div>
+                    <div class="form-group">
+                        <label>رابط التطبيق:</label>
+                        <input type="url" id="app-url" placeholder="https://example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>أيقونة (Font Awesome):</label>
+                        <input type="text" id="app-icon" placeholder="fab fa-github">
+                    </div>
+                    <button id="add-app-btn" class="btn-primary">إضافة التطبيق</button>
+                </div>
+                
+                <div class="dev-section">
+                    <h3>التطبيقات المضافة</h3>
+                    <div id="apps-list" class="apps-list"></div>
+                </div>
+                
+                <div class="dev-section">
+                    <h3>حسابات ديسكورد المتصلة</h3>
+                    <div id="discord-accounts" class="discord-accounts"></div>
+                    <button id="add-discord-btn" class="btn-primary">إضافة حساب ديسكورد</button>
+                </div>
             </div>
         </div>
     </div>
@@ -80,6 +128,25 @@
         const enterScreen = document.getElementById('enter-screen');
         const enterBtn = document.getElementById('enter-btn');
         
+        // تخزين البيانات محلياً للتطبيقات وديسكورد فقط
+        let appData = {
+            apps: [],
+            discordAccounts: []
+        };
+        
+        // تحميل البيانات من localStorage
+        function loadLocalData() {
+            const saved = localStorage.getItem('profilePortalData');
+            if (saved) {
+                appData = JSON.parse(saved);
+            }
+        }
+        
+        // حفظ البيانات في localStorage
+        function saveLocalData() {
+            localStorage.setItem('profilePortalData', JSON.stringify(appData));
+        }
+        
         // عند الضغط على زر الدخول أو مفتاح Enter
         function enterSite() {
             enterScreen.style.opacity = '0';
@@ -91,6 +158,11 @@
                 // تشغيل الميديا بعد تفاعل المستخدم
                 videoElement.play().catch(e => console.error('Video error:', e));
                 audioElement.play().catch(e => console.error('Audio error:', e));
+                
+                // تحميل البيانات المحفوظة
+                loadLocalData();
+                renderApps();
+                renderDiscordAccounts();
             }, 500);
         }
         
@@ -103,7 +175,7 @@
             }
         });
         
-        // جلب البيانات من Firebase
+        // جلب البيانات من Firebase - بدون تغيير
         try {
             db.collection('siteData').doc('config').onSnapshot((doc) => {
                 if (doc.exists) {
@@ -181,6 +253,152 @@
         // التحكم في مستوى الصوت
         document.getElementById('audio-volume').addEventListener('input', function(e) {
             audioElement.volume = e.target.value / 100;
+        });
+        
+        // وضع المطور
+        document.getElementById('dev-mode-btn').addEventListener('click', function() {
+            const modal = document.getElementById('dev-mode-modal');
+            modal.style.display = modal.style.display === 'none' ? 'flex' : 'none';
+        });
+        
+        // إغلاق نافذة وضع المطور
+        document.getElementById('close-dev-modal').addEventListener('click', function() {
+            document.getElementById('dev-mode-modal').style.display = 'none';
+        });
+        
+        // إضافة تطبيق جديد
+        document.getElementById('add-app-btn').addEventListener('click', function() {
+            const name = document.getElementById('app-name').value.trim();
+            const url = document.getElementById('app-url').value.trim();
+            const icon = document.getElementById('app-icon').value.trim();
+            
+            if (name && url && icon) {
+                appData.apps.push({ name, url, icon });
+                saveLocalData();
+                renderApps();
+                
+                // مسح الحقول
+                document.getElementById('app-name').value = '';
+                document.getElementById('app-url').value = '';
+                document.getElementById('app-icon').value = '';
+                
+                alert('تم إضافة التطبيق بنجاح!');
+            } else {
+                alert('يرجى ملء جميع الحقول');
+            }
+        });
+        
+        // عرض التطبيقات المضافة
+        function renderApps() {
+            const appsList = document.getElementById('apps-list');
+            const connectedApps = document.getElementById('connected-apps');
+            
+            appsList.innerHTML = '';
+            connectedApps.innerHTML = '';
+            
+            if (appData.apps.length === 0) {
+                appsList.innerHTML = '<p class="empty-state">لم يتم إضافة أي تطبيقات بعد</p>';
+                return;
+            }
+            
+            appData.apps.forEach((app, index) => {
+                // في قائمة وضع المطور
+                const appItem = document.createElement('div');
+                appItem.className = 'app-item';
+                appItem.innerHTML = `
+                    <div class="app-info">
+                        <i class="${app.icon}"></i>
+                        <div>
+                            <h4>${app.name}</h4>
+                            <p>${app.url}</p>
+                        </div>
+                    </div>
+                    <button class="btn-delete" onclick="deleteApp(${index})">حذف</button>
+                `;
+                appsList.appendChild(appItem);
+                
+                // في الملف الشخصي الرئيسي
+                const connectedApp = document.createElement('a');
+                connectedApp.href = app.url;
+                connectedApp.target = '_blank';
+                connectedApp.rel = 'noopener noreferrer';
+                connectedApp.className = 'connected-app';
+                connectedApp.title = app.name;
+                connectedApp.innerHTML = `<i class="${app.icon}"></i>`;
+                connectedApps.appendChild(connectedApp);
+            });
+        }
+        
+        // حذف تطبيق
+        window.deleteApp = function(index) {
+            if (confirm('هل تريد حذف هذا التطبيق؟')) {
+                appData.apps.splice(index, 1);
+                saveLocalData();
+                renderApps();
+            }
+        };
+        
+        // ربط ديسكورد
+        document.getElementById('add-discord-btn').addEventListener('click', function() {
+            const discordUsername = prompt('أدخل اسم ديسكورد الخاص بك (بدون #):');
+            if (discordUsername) {
+                const discordId = prompt('أدخل معرف ديسكورد الخاص بك (ID):');
+                if (discordId) {
+                    appData.discordAccounts.push({
+                        username: discordUsername,
+                        id: discordId,
+                        addedAt: new Date().toLocaleString('ar-SA')
+                    });
+                    saveLocalData();
+                    renderDiscordAccounts();
+                    alert('تم ربط حساب ديسكورد بنجاح!');
+                }
+            }
+        });
+        
+        // عرض حسابات ديسكورد
+        function renderDiscordAccounts() {
+            const discordAccounts = document.getElementById('discord-accounts');
+            
+            discordAccounts.innerHTML = '';
+            
+            if (appData.discordAccounts.length === 0) {
+                discordAccounts.innerHTML = '<p class="empty-state">لم يتم ربط أي حسابات ديسكورد بعد</p>';
+                return;
+            }
+            
+            appData.discordAccounts.forEach((account, index) => {
+                const accountItem = document.createElement('div');
+                accountItem.className = 'discord-account-item';
+                accountItem.innerHTML = `
+                    <div class="account-info">
+                        <i class="fab fa-discord"></i>
+                        <div>
+                            <h4>${account.username}</h4>
+                            <p>ID: ${account.id}</p>
+                            <small>${account.addedAt}</small>
+                        </div>
+                    </div>
+                    <button class="btn-delete" onclick="deleteDiscordAccount(${index})">حذف</button>
+                `;
+                discordAccounts.appendChild(accountItem);
+            });
+        }
+        
+        // حذف حساب ديسكورد
+        window.deleteDiscordAccount = function(index) {
+            if (confirm('هل تريد حذف هذا الحساب؟')) {
+                appData.discordAccounts.splice(index, 1);
+                saveLocalData();
+                renderDiscordAccounts();
+            }
+        };
+        
+        // إغلاق النافذة عند الضغط خارجها
+        document.getElementById('dev-mode-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.style.display = 'none';
+            }
         });
     </script>
 </body>

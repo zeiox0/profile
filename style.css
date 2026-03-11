@@ -156,6 +156,37 @@ body, html {
     border-color: rgba(0, 123, 255, 0.5);
 }
 
+/* التطبيقات المتصلة */
+.connected-apps {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.connected-app {
+    color: #fff; 
+    font-size: 1.8rem; 
+    text-decoration: none;
+    transition: all 0.3s ease; 
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.connected-app:hover { 
+    transform: translateY(-5px) scale(1.1);
+    color: #00ff88;
+    background: rgba(0, 255, 136, 0.2);
+    border-color: rgba(0, 255, 136, 0.5);
+}
+
 /* أدوات التحكم */
 .media-controls {
     position: fixed; 
@@ -170,6 +201,8 @@ body, html {
     border-radius: 50px; 
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .control-group {
@@ -196,6 +229,7 @@ body, html {
 .control-btn:hover {
     background: rgba(0, 123, 255, 0.5); 
     border-color: #007bff;
+    transform: scale(1.1);
 }
 
 .control-slider {
@@ -218,6 +252,214 @@ body, html {
     cursor: pointer;
 }
 
+/* نافذة وضع المطور */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background: rgba(20, 20, 30, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 15px;
+}
+
+.modal-header h2 {
+    color: #fff;
+    font-size: 1.8rem;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+    color: #ff6b6b;
+    transform: scale(1.2);
+}
+
+.modal-body {
+    color: #fff;
+}
+
+.dev-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dev-section:last-child {
+    border-bottom: none;
+}
+
+.dev-section h3 {
+    color: #00ff88;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #00ff88;
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #00ff88, #00cc6f);
+    border: none;
+    color: #000;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+}
+
+.btn-delete {
+    background: rgba(255, 107, 107, 0.3);
+    border: 1px solid rgba(255, 107, 107, 0.5);
+    color: #ff6b6b;
+    padding: 5px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.btn-delete:hover {
+    background: rgba(255, 107, 107, 0.5);
+    border-color: #ff6b6b;
+}
+
+.apps-list,
+.discord-accounts {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.app-item,
+.discord-account-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.app-item:hover,
+.discord-account-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.app-info,
+.account-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+}
+
+.app-info i,
+.account-info i {
+    font-size: 1.5rem;
+    color: #00ff88;
+}
+
+.app-info div,
+.account-info div {
+    text-align: right;
+}
+
+.app-info h4,
+.account-info h4 {
+    color: #fff;
+    margin-bottom: 5px;
+}
+
+.app-info p,
+.account-info p {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+}
+
+.account-info small {
+    display: block;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.8rem;
+    margin-top: 3px;
+}
+
+.empty-state {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 20px;
+    font-style: italic;
+}
+
 /* العرض المتجاوب */
 @media (max-width: 768px) {
     #user-name { font-size: 2rem; }
@@ -227,4 +469,48 @@ body, html {
     .enter-content h1 { font-size: 1.8rem; }
     .social-links { gap: 15px; }
     .social-links a { width: 40px; height: 40px; font-size: 1.4rem; }
+    .connected-app { width: 40px; height: 40px; font-size: 1.4rem; }
+    .modal-content {
+        width: 95%;
+        padding: 20px;
+    }
+    .modal-header h2 {
+        font-size: 1.4rem;
+    }
+}
+
+/* تأثيرات الحركة */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.app-item,
+.discord-account-item {
+    animation: fadeIn 0.3s ease;
+}
+
+/* شريط التمرير المخصص */
+.modal-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 136, 0.3);
+    border-radius: 10px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 255, 136, 0.5);
 }
