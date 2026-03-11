@@ -6,151 +6,77 @@
     <title>لوحة التحكم - Abdallah</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script async src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
 </head>
 <body class="admin-body">
-
     <!-- شاشة تسجيل الدخول -->
-    <div id="login-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:100; display:flex; justify-content:center; align-items:center;">
-        <div class="admin-card">
-            <h2 style="text-align:center; margin-bottom:20px; color:#00bfff;">🔐 تسجيل الدخول للإدارة</h2>
+    <div id="login-overlay" class="login-overlay">
+        <div class="admin-card glass">
+            <h2>🔐 تسجيل الدخول</h2>
             <input type="email" id="email" class="admin-input" placeholder="البريد الإلكتروني" autofocus>
             <input type="password" id="password" class="admin-input" placeholder="كلمة المرور">
             <button onclick="attemptLogin()" class="admin-btn">🔓 دخول</button>
-            <p id="error-msg" style="color:#ff6b6b; display:none; margin-top:10px; text-align:center;"></p>
+            <p id="error-msg" class="error-msg"></p>
         </div>
     </div>
 
     <!-- محتوى لوحة التحكم -->
-    <h1>⚙️ لوحة تحكم الموقع</h1>
+    <div id="admin-panel" style="display: none;">
+        <header class="admin-header">
+            <h1>⚙️ لوحة التحكم</h1>
+            <button onclick="logout()" class="logout-btn">تسجيل خروج</button>
+        </header>
 
-    <!-- قسم البيانات الشخصية -->
-    <div class="admin-card">
-        <h2><i class="fas fa-user"></i> 👤 البيانات الشخصية</h2>
-        <input type="text" id="admin-name" class="admin-input" placeholder="الاسم (مثال: zeiox)">
-        <input type="text" id="admin-bio" class="admin-input" placeholder="الوصف (Bio)">
-        <button onclick="saveData()" class="admin-btn">💾 حفظ البيانات</button>
+        <main class="admin-grid">
+            <!-- البيانات الشخصية -->
+            <section class="admin-card glass">
+                <h3>👤 البيانات الشخصية</h3>
+                <input type="text" id="admin-name" class="admin-input" placeholder="الاسم">
+                <input type="text" id="admin-bio" class="admin-input" placeholder="الوصف (Bio)">
+                <button onclick="saveProfileData()" class="admin-btn">💾 حفظ البيانات</button>
+            </section>
+
+            <!-- إدارة الفيديوهات -->
+            <section class="admin-card glass">
+                <h3>🎬 قائمة تشغيل الفيديو</h3>
+                <div class="input-group">
+                    <input type="text" id="video-url" class="admin-input" placeholder="رابط الفيديو (Direct Link)">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="video-loop"> تكرار الفيديو
+                    </label>
+                    <button onclick="addVideo()" class="admin-btn small">➕ إضافة</button>
+                </div>
+                <div id="video-list" class="media-list"></div>
+            </section>
+
+            <!-- إدارة الصور -->
+            <section class="admin-card glass">
+                <h3>🖼️ معرض الصور</h3>
+                <div class="input-group">
+                    <input type="text" id="image-url" class="admin-input" placeholder="رابط الصورة">
+                    <input type="number" id="image-duration" class="admin-input" placeholder="مدة العرض (ثانية)" value="5">
+                    <button onclick="addImage()" class="admin-btn small">➕ إضافة</button>
+                </div>
+                <div id="image-list" class="media-list"></div>
+            </section>
+
+            <!-- إدارة الصوت -->
+            <section class="admin-card glass">
+                <h3>🎵 قائمة تشغيل الصوت</h3>
+                <div class="input-group">
+                    <input type="text" id="audio-url" class="admin-input" placeholder="رابط الصوت">
+                    <input type="text" id="audio-name" class="admin-input" placeholder="اسم الأغنية">
+                    <input type="text" id="audio-artist" class="admin-input" placeholder="الفنان">
+                    <button onclick="addAudio()" class="admin-btn small">➕ إضافة</button>
+                </div>
+                <div id="audio-list" class="media-list"></div>
+            </section>
+        </main>
     </div>
 
-    <!-- قسم أيقونات التواصل الاجتماعي -->
-    <div class="admin-card">
-        <h2><i class="fas fa-link"></i> 🔗 أيقونات التواصل الاجتماعي</h2>
-        <p style="color: #888; font-size: 0.9rem; margin-bottom: 15px;">
-            أضف روابط التواصل الاجتماعي الخاصة بك. ستظهر الأيقونات تحت وصفك في الموقع.
-        </p>
-        
-        <div id="social-links-container" style="max-height: 400px; overflow-y: auto; margin-bottom: 15px;">
-            <!-- سيتم إضافة الأيقونات هنا ديناميكياً -->
-        </div>
-        
-        <button onclick="addSocialLink()" class="admin-btn" style="margin-bottom: 10px;">➕ إضافة رابط جديد</button>
-        <button onclick="saveSocialLinks()" class="admin-btn">💾 حفظ الأيقونات</button>
-    </div>
-
-    <!-- قسم الفيديو -->
-    <div class="admin-card">
-        <h2><i class="fas fa-video"></i> 🎬 خلفية الفيديو</h2>
-        <p style="color: #888; font-size: 0.9rem; margin-bottom: 10px;">
-            💡 الفيديو سيتم ضغطه تلقائياً قبل الرفع للحفاظ على الجودة وتقليل الحجم
-        </p>
-        
-        <input type="text" id="video-link" class="admin-input" placeholder="ضع رابط مباشر للفيديو هنا (اختياري)">
-        <div class="divider">--- أو ارفع ملف من جهازك ---</div>
-        
-        <input type="file" id="video-file" class="admin-input" accept="video/*" onchange="displayFileInfo('video')">
-        <div id="video-info"></div>
-        
-        <button onclick="handleMediaAction('video')" class="admin-btn">🚀 تحديث الفيديو</button>
-        
-        <!-- شريط التقدم -->
-        <div id="video-progress-container" class="progress-bar-container">
-            <div id="video-progress-bar" class="progress-bar" style="width: 0%;">0%</div>
-        </div>
-        
-        <p id="video-status" style="margin-top:10px; color:#00ff00; text-align: center; font-weight: bold;"></p>
-    </div>
-
-    <!-- قسم الصوت -->
-    <div class="admin-card">
-        <h2><i class="fas fa-music"></i> 🎵 خلفية الصوت</h2>
-        <p style="color: #888; font-size: 0.9rem; margin-bottom: 10px;">
-            💡 الصوت سيتم ضغطه تلقائياً قبل الرفع مع الحفاظ على جودة عالية
-        </p>
-        
-        <input type="text" id="audio-link" class="admin-input" placeholder="ضع رابط مباشر للصوت هنا (اختياري)">
-        <div class="divider">--- أو ارفع ملف من جهازك ---</div>
-        
-        <input type="file" id="audio-file" class="admin-input" accept="audio/*" onchange="displayFileInfo('audio')">
-        <div id="audio-info"></div>
-        
-        <button onclick="handleMediaAction('audio')" class="admin-btn">🚀 تحديث الصوت</button>
-        
-        <!-- شريط التقدم -->
-        <div id="audio-progress-container" class="progress-bar-container">
-            <div id="audio-progress-bar" class="progress-bar" style="width: 0%;">0%</div>
-        </div>
-        
-        <p id="audio-status" style="margin-top:10px; color:#00ff00; text-align: center; font-weight: bold;"></p>
-    </div>
-
-    <!-- قسم الإعدادات المتقدمة -->
-    <div class="admin-card">
-        <h2><i class="fas fa-sliders-h"></i> ⚙️ إعدادات الضغط المتقدمة</h2>
-        
-        <div style="background: #222; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
-            <h3 style="color: #00bfff; margin-bottom: 10px;">📊 إعدادات الفيديو</h3>
-            <label style="display: block; margin: 8px 0;">
-                <span style="color: #ccc;">جودة الفيديو (CRF):</span>
-                <input type="range" id="video-crf" min="18" max="28" value="23" style="width: 100%; margin-top: 5px;">
-                <small style="color: #888;">18 = أفضل جودة | 28 = أصغر حجم</small>
-            </label>
-            <label style="display: block; margin: 8px 0;">
-                <span style="color: #ccc;">معدل البت (Bitrate):</span>
-                <select id="video-bitrate" style="width: 100%; padding: 8px; background: #333; color: #fff; border: 1px solid #555; border-radius: 3px;">
-                    <option value="1500k">1500k - جودة منخفضة</option>
-                    <option value="2500k" selected>2500k - جودة متوسطة (موصى به)</option>
-                    <option value="4000k">4000k - جودة عالية</option>
-                    <option value="6000k">6000k - جودة عالية جداً</option>
-                </select>
-            </label>
-        </div>
-        
-        <div style="background: #222; padding: 15px; border-radius: 5px;">
-            <h3 style="color: #00bfff; margin-bottom: 10px;">🎵 إعدادات الصوت</h3>
-            <label style="display: block; margin: 8px 0;">
-                <span style="color: #ccc;">جودة الصوت (Bitrate):</span>
-                <select id="audio-bitrate" style="width: 100%; padding: 8px; background: #333; color: #fff; border: 1px solid #555; border-radius: 3px;">
-                    <option value="128k">128k - جودة منخفضة</option>
-                    <option value="192k" selected>192k - جودة عالية (موصى به)</option>
-                    <option value="256k">256k - جودة عالية جداً</option>
-                    <option value="320k">320k - أفضل جودة</option>
-                </select>
-            </label>
-        </div>
-    </div>
-
-    <!-- قسم المعلومات -->
-    <div class="admin-card" style="background: rgba(0, 191, 255, 0.1); border-color: #00bfff;">
-        <h2 style="color: #00bfff;"><i class="fas fa-info-circle"></i> ℹ️ معلومات مهمة</h2>
-        <ul style="list-style: none; padding: 0;">
-            <li style="margin: 8px 0; color: #ccc;">✅ الفيديوهات والأصوات يتم ضغطها تلقائياً قبل الرفع</li>
-            <li style="margin: 8px 0; color: #ccc;">✅ يتم الحفاظ على الجودة مع تقليل حجم الملف</li>
-            <li style="margin: 8px 0; color: #ccc;">✅ الموقع يعمل بشكل متجاوب على جميع الأجهزة</li>
-            <li style="margin: 8px 0; color: #ccc;">✅ أدوات التحكم متاحة للمستخدمين (تشغيل/إيقاف، مستوى الصوت)</li>
-            <li style="margin: 8px 0; color: #ccc;">✅ أيقونات التواصل الاجتماعي قابلة للتخصيص من لوحة الإدارة</li>
-            <li style="margin: 8px 0; color: #ccc;">✅ النطاق محدد على zeiox0.github.io في جوجل</li>
-        </ul>
-    </div>
-
-    <!-- Firebase Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
-    
-    <!-- Config و Scripts -->
     <script src="config.js"></script>
-    <script src="media-compressor.js"></script>
     <script src="admin.js"></script>
 </body>
 </html>

@@ -1,296 +1,269 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="موقع شخصي احترافي">
-    <meta name="google-site-verification" content="zeiox0.github.io">
-    
-    <link rel="canonical" href="https://zeiox0.github.io">
-    
     <title>Abdallah | Official</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-    <!-- شاشة الدخول الزجاجية -->
+    <!-- شاشة الدخول -->
     <div id="enter-screen" class="enter-screen">
         <div class="enter-content glass">
             <h1>Abdallah | Official</h1>
             <p>اضغط Enter للدخول</p>
             <button id="enter-btn" class="enter-btn">
-                <i class="fas fa-arrow-right"></i>
+                <i class="fas fa-play"></i>
             </button>
         </div>
     </div>
 
     <div id="main-content" style="display: none;">
-        <!-- فيديو الخلفية -->
-        <video id="bg-video" loop playsinline muted preload="auto">
-            <source id="video-src" src="test-video.mp4" type="video/mp4">
-            متصفحك لا يدعم عنصر الفيديو
-        </video>
-        
-        <!-- معلومات الملف الشخصي -->
-        <div class="profile-container">
-            <!-- صورة الملف الشخصي الدائرية -->
-            <div class="profile-avatar">
-                <img id="user-avatar" src="https://via.placeholder.com/150" alt="Profile Avatar">
+        <!-- خلفية الوسائط (فيديو أو صور) -->
+        <div id="media-background" class="media-background">
+            <video id="bg-video" playsinline muted preload="auto" style="display: none;"></video>
+            <div id="bg-image" class="bg-image" style="display: none;"></div>
+            <div id="no-media" class="no-media" style="display: none;">
+                <p>لا يوجد محتوى لعرضه</p>
             </div>
+        </div>
 
-            <!-- الاسم والرموز -->
-            <div class="profile-header">
-                <h1 id="user-name">Zeiox</h1>
-                <p id="user-symbols" class="user-symbols">✕ ◇ ★ ◉ ◐ ◆</p>
-            </div>
-
-            <!-- الوصف والرابط -->
-            <p id="user-bio" class="user-bio">Hi I 👋</p>
-            <p id="user-link" class="user-link">discord.gg/guns</p>
-
-            <!-- بطاقات التطبيقات المرتبطة -->
-            <div id="connected-apps" class="connected-apps-cards"></div>
-
-            <!-- أيقونات التواصل الاجتماعي -->
-            <div id="social-links" class="social-links"></div>
-
-            <!-- معلومات إضافية -->
-            <div class="profile-stats">
-                <span id="profile-views" class="stat-item">
-                    <i class="fas fa-eye"></i> 36,834
-                </span>
-                <span class="stat-item">
-                    <i class="fas fa-map-marker-alt"></i> guns.lol HQ
-                </span>
-            </div>
-
-            <!-- مشغل الموسيقى -->
-            <div class="music-player">
-                <div class="player-album">
-                    <img id="player-album-art" src="https://via.placeholder.com/60" alt="Album Art">
-                </div>
-                <div class="player-info">
-                    <p id="player-title" class="player-title">private jet - d. savage</p>
-                    <div class="player-timeline">
-                        <span id="player-current-time" class="time">0:34</span>
-                        <div class="progress-bar">
-                            <div id="player-progress" class="progress-fill"></div>
+        <!-- محتوى الملف الشخصي -->
+        <div class="profile-wrapper">
+            <div class="profile-card glass">
+                <div class="profile-header">
+                    <div class="avatar-container">
+                        <img id="user-avatar" src="https://via.placeholder.com/150" alt="Avatar">
+                    </div>
+                    <div class="user-info">
+                        <h1 id="user-name">Zeiox</h1>
+                        <div id="user-badges" class="badges">
+                            <i class="fas fa-check-circle" title="Verified"></i>
+                            <i class="fas fa-code" title="Developer"></i>
+                            <i class="fas fa-star" title="Premium"></i>
                         </div>
-                        <span id="player-total-time" class="time">3:10</span>
+                        <p id="user-bio">Hi I 👋</p>
+                        <p id="user-link" class="user-link">discord.gg/guns</p>
                     </div>
                 </div>
-                <div class="player-controls">
-                    <button id="player-prev" class="player-btn">
-                        <i class="fas fa-step-backward"></i>
-                    </button>
-                    <button id="player-play" class="player-btn">
-                        <i class="fas fa-play"></i>
-                    </button>
-                    <button id="player-next" class="player-btn">
-                        <i class="fas fa-step-forward"></i>
-                    </button>
+
+                <div class="profile-sections">
+                    <!-- تطبيقات مرتبطة -->
+                    <div id="connected-apps" class="apps-grid"></div>
+                    
+                    <!-- روابط اجتماعية -->
+                    <div id="social-links" class="social-icons"></div>
+                </div>
+
+                <div class="profile-footer">
+                    <div class="stats">
+                        <span><i class="fas fa-eye"></i> <span id="view-count">0</span></span>
+                        <span><i class="fas fa-map-marker-alt"></i> <span id="user-location">Earth</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- مشغل الموسيقى المتقدم -->
+            <div class="advanced-player glass">
+                <div class="player-left">
+                    <img id="music-cover" src="https://via.placeholder.com/60" alt="Cover">
+                    <div class="track-info">
+                        <h4 id="track-title">لا يوجد صوت</h4>
+                        <p id="track-artist">---</p>
+                    </div>
+                </div>
+                <div class="player-center">
+                    <div class="player-controls">
+                        <button id="prev-btn" class="p-btn"><i class="fas fa-step-backward"></i></button>
+                        <button id="play-pause-btn" class="p-btn play-main"><i class="fas fa-play"></i></button>
+                        <button id="next-btn" class="p-btn"><i class="fas fa-step-forward"></i></button>
+                    </div>
+                    <div class="progress-container">
+                        <span id="curr-time">0:00</span>
+                        <input type="range" id="progress-bar" min="0" max="100" value="0">
+                        <span id="total-time">0:00</span>
+                    </div>
+                </div>
+                <div class="player-right">
+                    <div class="volume-control">
+                        <button id="mute-btn" class="p-btn"><i class="fas fa-volume-up"></i></button>
+                        <input type="range" id="volume-slider" min="0" max="100" value="50">
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <!-- صوت الخلفية -->
-        <audio id="bg-music" loop preload="auto">
-            <source id="audio-src" src="" type="audio/mpeg">
-        </audio>
-        
-        <!-- أدوات التحكم -->
-        <div class="media-controls">
-            <div class="control-group">
-                <button id="video-toggle" class="control-btn" title="تشغيل/إيقاف الفيديو">
-                    <i class="fas fa-video"></i>
-                </button>
-            </div>
-            
-            <div class="control-group">
-                <button id="audio-toggle" class="control-btn" title="تشغيل/إيقاف الصوت">
-                    <i class="fas fa-volume-up"></i>
-                </button>
-                <input type="range" id="audio-volume" class="control-slider" min="0" max="100" value="50" title="مستوى الصوت">
+
+        <!-- أدوات تحكم الفيديو (تظهر عند الطلب) -->
+        <div id="video-controls" class="video-controls glass" style="display: none;">
+            <button id="v-prev" class="v-btn"><i class="fas fa-backward"></i></button>
+            <button id="v-play-pause" class="v-btn"><i class="fas fa-play"></i></button>
+            <button id="v-next" class="v-btn"><i class="fas fa-forward"></i></button>
+            <div class="v-progress">
+                <input type="range" id="v-progress-bar" min="0" max="100" value="0">
             </div>
         </div>
     </div>
 
-    <!-- Firebase Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
-    
-    <!-- Config و Security -->
+    <audio id="main-audio" preload="auto"></audio>
+
     <script src="config.js"></script>
     <script src="security.js"></script>
-    
-    <!-- Main Script -->
     <script>
-        let videoPlaying = true;
-        let audioPlaying = true;
-        const videoElement = document.getElementById('bg-video');
-        const audioElement = document.getElementById('bg-music');
-        const mainContent = document.getElementById('main-content');
+        const db = firebase.firestore();
+        let siteData = {};
+        let currentVideoIndex = 0;
+        let currentAudioIndex = 0;
+        let isPlaying = false;
+
+        const videoElem = document.getElementById('bg-video');
+        const audioElem = document.getElementById('main-audio');
         const enterScreen = document.getElementById('enter-screen');
-        const enterBtn = document.getElementById('enter-btn');
-        
-        // تخزين البيانات محلياً للتطبيقات فقط
-        let appData = {
-            apps: []
-        };
-        
-        // تحميل البيانات من localStorage
-        function loadLocalData() {
-            const saved = localStorage.getItem('profilePortalData');
-            if (saved) {
-                appData = JSON.parse(saved);
+        const mainContent = document.getElementById('main-content');
+
+        // تحميل البيانات من Firebase
+        db.collection('siteData').doc('config').onSnapshot((doc) => {
+            if (doc.exists) {
+                siteData = doc.data();
+                updateUI();
+            }
+        });
+
+        function updateUI() {
+            document.getElementById('user-name').innerText = siteData.name || "Zeiox";
+            document.getElementById('user-bio').innerText = siteData.bio || "Hi I 👋";
+            document.getElementById('view-count').innerText = siteData.views || "0";
+            
+            // تحديث الأيقونات الاجتماعية
+            const socialDiv = document.getElementById('social-links');
+            socialDiv.innerHTML = '';
+            if (siteData.socialLinks) {
+                siteData.socialLinks.forEach(link => {
+                    const a = document.createElement('a');
+                    a.href = link.url;
+                    a.target = "_blank";
+                    a.innerHTML = `<i class="${link.icon}"></i>`;
+                    socialDiv.appendChild(a);
+                });
+            }
+
+            // تحديث التطبيقات
+            const appsDiv = document.getElementById('connected-apps');
+            appsDiv.innerHTML = '';
+            const localApps = JSON.parse(localStorage.getItem('profilePortalData') || '{"apps":[]}');
+            localApps.apps.forEach(app => {
+                const card = document.createElement('div');
+                card.className = 'app-card glass';
+                card.innerHTML = `
+                    <i class="${app.icon}"></i>
+                    <div class="app-details">
+                        <h5>${app.name}</h5>
+                        <p>${app.url.split('/')[2] || app.url}</p>
+                    </div>
+                `;
+                card.onclick = () => window.open(app.url, '_blank');
+                appsDiv.appendChild(card);
+            });
+
+            // تهيئة الميديا
+            initMedia();
+        }
+
+        function initMedia() {
+            if (siteData.videos && siteData.videos.length > 0) {
+                videoElem.style.display = 'block';
+                document.getElementById('bg-image').style.display = 'none';
+                playVideo(0);
+            } else if (siteData.images && siteData.images.length > 0) {
+                videoElem.style.display = 'none';
+                document.getElementById('bg-image').style.display = 'block';
+                startImageSlideshow();
+            } else {
+                document.getElementById('no-media').style.display = 'flex';
+            }
+
+            if (siteData.audios && siteData.audios.length > 0) {
+                loadAudio(0);
             }
         }
-        
-        // حفظ البيانات في localStorage
-        function saveLocalData() {
-            localStorage.setItem('profilePortalData', JSON.stringify(appData));
+
+        function playVideo(index) {
+            if (!siteData.videos || siteData.videos.length === 0) return;
+            currentVideoIndex = index % siteData.videos.length;
+            videoElem.src = siteData.videos[currentVideoIndex].url;
+            videoElem.load();
+            if (isPlaying) videoElem.play();
+            
+            videoElem.onended = () => {
+                if (siteData.videos[currentVideoIndex].loop) {
+                    videoElem.play();
+                } else {
+                    playVideo(currentVideoIndex + 1);
+                }
+            };
         }
-        
-        // عند الضغط على زر الدخول أو مفتاح Enter
-        function enterSite() {
+
+        function loadAudio(index) {
+            if (!siteData.audios || siteData.audios.length === 0) return;
+            currentAudioIndex = index % siteData.audios.length;
+            const audio = siteData.audios[currentAudioIndex];
+            audioElem.src = audio.url;
+            document.getElementById('track-title').innerText = audio.name || "مجهول";
+            document.getElementById('track-artist').innerText = audio.artist || "فنان غير معروف";
+            if (isPlaying) audioElem.play();
+        }
+
+        // أزرار التحكم
+        document.getElementById('enter-btn').onclick = () => {
             enterScreen.style.opacity = '0';
-            enterScreen.style.pointerEvents = 'none';
             setTimeout(() => {
                 enterScreen.style.display = 'none';
                 mainContent.style.display = 'block';
-                
-                // تشغيل الميديا بعد تفاعل المستخدم
-                videoElement.play().catch(e => console.error('Video error:', e));
-                audioElement.play().catch(e => console.error('Audio error:', e));
-                
-                // تحميل البيانات المحفوظة
-                loadLocalData();
-                renderApps();
+                isPlaying = true;
+                if (videoElem.src) videoElem.play();
+                if (audioElem.src) audioElem.play();
             }, 500);
-        }
-        
-        enterBtn.addEventListener('click', enterSite);
-        
-        // الاستماع لمفتاح Enter
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && enterScreen.style.display !== 'none') {
-                enterSite();
-            }
-        });
-        
-        // جلب البيانات من Firebase - بدون تغيير
-        try {
-            db.collection('siteData').doc('config').onSnapshot((doc) => {
-                if (doc.exists) {
-                    const data = doc.data();
-                    document.getElementById('user-name').innerText = data.name || "Zeiox";
-                    document.getElementById('user-bio').innerText = data.bio || "Hi I 👋";
-                    
-                    // تحديث الفيديو
-                    if(data.video && videoElement.src !== data.video) {
-                        videoElement.src = data.video;
-                        videoElement.load();
-                        if (mainContent.style.display !== 'none') {
-                            videoElement.play().catch(e => console.log('Autoplay blocked:', e));
-                        }
-                    }
-                    
-                    // تحديث الصوت
-                    if(data.audio && audioElement.src !== data.audio) {
-                        audioElement.src = data.audio;
-                        audioElement.load();
-                        if (mainContent.style.display !== 'none') {
-                            audioElement.play().catch(e => console.log('Audio blocked:', e));
-                        }
-                    }
-                    
-                    // تحديث الأيقونات الاجتماعية
-                    if(data.socialLinks) {
-                        const socialLinksDiv = document.getElementById('social-links');
-                        socialLinksDiv.innerHTML = '';
-                        
-                        data.socialLinks.forEach(link => {
-                            const a = document.createElement('a');
-                            a.href = link.url;
-                            a.target = '_blank';
-                            a.rel = 'noopener noreferrer';
-                            a.title = link.name;
-                            a.innerHTML = `<i class="${link.icon}"></i>`;
-                            socialLinksDiv.appendChild(a);
-                        });
-                    }
-                }
-            });
-        } catch (error) {
-            console.log('Firebase connection error:', error);
-        }
+        };
 
-        // التحكم في الفيديو
-        document.getElementById('video-toggle').addEventListener('click', function() {
-            if (videoPlaying) {
-                videoElement.pause();
-                this.innerHTML = '<i class="fas fa-video-slash"></i>';
-                this.style.opacity = '0.5';
+        const playBtn = document.getElementById('play-pause-btn');
+        playBtn.onclick = () => {
+            if (audioElem.paused) {
+                audioElem.play();
+                playBtn.innerHTML = '<i class="fas fa-pause"></i>';
             } else {
-                videoElement.play().catch(e => console.error('Play error:', e));
-                this.innerHTML = '<i class="fas fa-video"></i>';
-                this.style.opacity = '1';
+                audioElem.pause();
+                playBtn.innerHTML = '<i class="fas fa-play"></i>';
             }
-            videoPlaying = !videoPlaying;
-        });
+        };
 
-        // التحكم في الصوت
-        document.getElementById('audio-toggle').addEventListener('click', function() {
-            if (audioPlaying) {
-                audioElement.pause();
-                this.innerHTML = '<i class="fas fa-volume-mute"></i>';
-                this.style.opacity = '0.5';
-            } else {
-                audioElement.play().catch(e => console.error('Play error:', e));
-                this.innerHTML = '<i class="fas fa-volume-up"></i>';
-                this.style.opacity = '1';
-            }
-            audioPlaying = !audioPlaying;
-        });
+        document.getElementById('next-btn').onclick = () => loadAudio(currentAudioIndex + 1);
+        document.getElementById('prev-btn').onclick = () => loadAudio(currentAudioIndex - 1);
 
-        // التحكم في مستوى الصوت
-        document.getElementById('audio-volume').addEventListener('input', function(e) {
-            audioElement.volume = e.target.value / 100;
-        });
-        
-        // عرض التطبيقات المضافة
-        function renderApps() {
-            const connectedApps = document.getElementById('connected-apps-cards');
-            
-            connectedApps.innerHTML = '';
-            
-            if (appData.apps.length === 0) {
-                return;
-            }
-            
-            appData.apps.forEach((app, index) => {
-                // في الملف الشخصي الرئيسي - بطاقات
-                const connectedApp = document.createElement('div');
-                connectedApp.className = 'app-card';
-                connectedApp.innerHTML = `
-                    <a href="${app.url}" target="_blank" rel="noopener noreferrer" class="app-card-link">
-                        <div class="app-card-icon">
-                            <i class="${app.icon}"></i>
-                        </div>
-                        <div class="app-card-info">
-                            <h3>${app.name}</h3>
-                            <p>${app.url}</p>
-                        </div>
-                    </a>
-                `;
-                connectedApps.appendChild(connectedApp);
-            });
+        // شريط التقدم
+        audioElem.ontimeupdate = () => {
+            const progress = (audioElem.currentTime / audioElem.duration) * 100;
+            document.getElementById('progress-bar').value = progress || 0;
+            document.getElementById('curr-time').innerText = formatTime(audioElem.currentTime);
+            document.getElementById('total-time').innerText = formatTime(audioElem.duration);
+        };
+
+        document.getElementById('progress-bar').oninput = (e) => {
+            audioElem.currentTime = (e.target.value / 100) * audioElem.duration;
+        };
+
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return "0:00";
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
         }
-        
-        // إغلاق النافذة عند الضغط خارجها
-        document.addEventListener('click', function(e) {
-            // إذا كان هناك نافذة مودال، يمكن إغلاقها هنا إذا لزم الأمر
-        });
+
+        // مستوى الصوت
+        document.getElementById('volume-slider').oninput = (e) => {
+            audioElem.volume = e.target.value / 100;
+        };
     </script>
 </body>
 </html>
