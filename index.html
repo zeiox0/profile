@@ -10,18 +10,16 @@
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-    <!-- شاشة الدخول -->
+    <!-- شاشة الدخول البسيطة -->
     <div id="enter-screen" class="enter-screen">
-        <div class="enter-content glass">
-            <h1>Abdallah | Official</h1>
-            <p>اضغط Enter للدخول</p>
-            <button id="enter-btn" class="enter-btn">
-                <i class="fas fa-play"></i>
+        <div class="enter-content">
+            <button id="enter-btn" class="enter-btn-minimal">
+                <span>ENTER</span>
             </button>
         </div>
     </div>
 
-    <div id="main-content" style="display: none;">
+    <div id="main-content" class="main-content blurred">
         <!-- خلفية الوسائط (فيديو أو صور) -->
         <div id="media-background" class="media-background">
             <video id="bg-video" playsinline muted preload="auto" style="display: none;"></video>
@@ -51,10 +49,7 @@
                 </div>
 
                 <div class="profile-sections">
-                    <!-- تطبيقات مرتبطة -->
                     <div id="connected-apps" class="apps-grid"></div>
-                    
-                    <!-- روابط اجتماعية -->
                     <div id="social-links" class="social-icons"></div>
                 </div>
 
@@ -95,16 +90,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- أدوات تحكم الفيديو (تظهر عند الطلب) -->
-        <div id="video-controls" class="video-controls glass" style="display: none;">
-            <button id="v-prev" class="v-btn"><i class="fas fa-backward"></i></button>
-            <button id="v-play-pause" class="v-btn"><i class="fas fa-play"></i></button>
-            <button id="v-next" class="v-btn"><i class="fas fa-forward"></i></button>
-            <div class="v-progress">
-                <input type="range" id="v-progress-bar" min="0" max="100" value="0">
-            </div>
-        </div>
     </div>
 
     <audio id="main-audio" preload="auto"></audio>
@@ -122,6 +107,7 @@
         const audioElem = document.getElementById('main-audio');
         const enterScreen = document.getElementById('enter-screen');
         const mainContent = document.getElementById('main-content');
+        const enterBtn = document.getElementById('enter-btn');
 
         // تحميل البيانات من Firebase
         db.collection('siteData').doc('config').onSnapshot((doc) => {
@@ -136,7 +122,6 @@
             document.getElementById('user-bio').innerText = siteData.bio || "Hi I 👋";
             document.getElementById('view-count').innerText = siteData.views || "0";
             
-            // تحديث الأيقونات الاجتماعية
             const socialDiv = document.getElementById('social-links');
             socialDiv.innerHTML = '';
             if (siteData.socialLinks) {
@@ -149,7 +134,6 @@
                 });
             }
 
-            // تحديث التطبيقات
             const appsDiv = document.getElementById('connected-apps');
             appsDiv.innerHTML = '';
             const localApps = JSON.parse(localStorage.getItem('profilePortalData') || '{"apps":[]}');
@@ -167,7 +151,6 @@
                 appsDiv.appendChild(card);
             });
 
-            // تهيئة الميديا
             initMedia();
         }
 
@@ -179,7 +162,7 @@
             } else if (siteData.images && siteData.images.length > 0) {
                 videoElem.style.display = 'none';
                 document.getElementById('bg-image').style.display = 'block';
-                startImageSlideshow();
+                // Image slideshow logic can be added here
             } else {
                 document.getElementById('no-media').style.display = 'flex';
             }
@@ -194,7 +177,7 @@
             currentVideoIndex = index % siteData.videos.length;
             videoElem.src = siteData.videos[currentVideoIndex].url;
             videoElem.load();
-            if (isPlaying) videoElem.play();
+            if (isPlaying) videoElem.play().catch(e => console.log("Video play error:", e));
             
             videoElem.onended = () => {
                 if (siteData.videos[currentVideoIndex].loop) {
@@ -212,27 +195,28 @@
             audioElem.src = audio.url;
             document.getElementById('track-title').innerText = audio.name || "مجهول";
             document.getElementById('track-artist').innerText = audio.artist || "فنان غير معروف";
-            if (isPlaying) audioElem.play();
+            if (isPlaying) audioElem.play().catch(e => console.log("Audio play error:", e));
         }
 
-        // أزرار التحكم
-        function enterSite() {
-            if (enterScreen.style.display === 'none') return;
-            enterScreen.style.opacity = '0';
+        // وظيفة الدخول
+        function handleEnter() {
+            if (enterScreen.classList.contains('hidden')) return;
+            
+            enterScreen.classList.add('hidden');
+            mainContent.classList.remove('blurred');
+            isPlaying = true;
+            
+            if (videoElem.src) videoElem.play().catch(e => console.log("Video auto-play blocked:", e));
+            if (audioElem.src) audioElem.play().catch(e => console.log("Audio auto-play blocked:", e));
+            
             setTimeout(() => {
                 enterScreen.style.display = 'none';
-                mainContent.style.display = 'block';
-                isPlaying = true;
-                if (videoElem.src) videoElem.play().catch(e => console.log("Video play error:", e));
-                if (audioElem.src) audioElem.play().catch(e => console.log("Audio play error:", e));
-            }, 500);
+            }, 1000);
         }
 
-        document.getElementById('enter-btn').onclick = enterSite;
-        
-        // دعم مفتاح Enter
+        enterBtn.onclick = handleEnter;
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') enterSite();
+            if (e.key === 'Enter') handleEnter();
         });
 
         const playBtn = document.getElementById('play-pause-btn');
@@ -249,7 +233,6 @@
         document.getElementById('next-btn').onclick = () => loadAudio(currentAudioIndex + 1);
         document.getElementById('prev-btn').onclick = () => loadAudio(currentAudioIndex - 1);
 
-        // شريط التقدم
         audioElem.ontimeupdate = () => {
             const progress = (audioElem.currentTime / audioElem.duration) * 100;
             document.getElementById('progress-bar').value = progress || 0;
@@ -268,7 +251,6 @@
             return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
         }
 
-        // مستوى الصوت
         document.getElementById('volume-slider').oninput = (e) => {
             audioElem.volume = e.target.value / 100;
         };

@@ -14,51 +14,70 @@ body, html {
     color: #fff;
 }
 
-/* تأثير الزجاج (Glassmorphism) */
-.glass {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-}
-
-/* شاشة الدخول */
+/* شاشة الدخول البسيطة والشفافة */
 .enter-screen {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1000;
+    z-index: 2000;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: #000;
-    transition: opacity 0.5s ease;
+    background: transparent;
+    transition: opacity 1s ease, visibility 1s ease;
+}
+
+.enter-screen.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .enter-content {
-    padding: 40px;
     text-align: center;
 }
 
-.enter-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+.enter-btn-minimal {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.4);
     color: #fff;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
+    padding: 15px 40px;
+    font-size: 1.2rem;
+    letter-spacing: 5px;
     cursor: pointer;
-    font-size: 1.5rem;
-    margin-top: 20px;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    border-radius: 4px;
 }
 
-.enter-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: scale(1.1);
+.enter-btn-minimal:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #fff;
+    letter-spacing: 8px;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+/* المحتوى الرئيسي وتأثير التشويش */
+.main-content {
+    width: 100%;
+    height: 100%;
+    transition: filter 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.main-content.blurred {
+    filter: blur(20px);
+}
+
+/* تأثير الزجاج */
+.glass {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
 /* خلفية الوسائط */
@@ -85,9 +104,9 @@ body, html {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(45deg, #1a1a1a, #000);
+    background: #000;
     font-size: 1.2rem;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.3);
 }
 
 /* محتوى الملف الشخصي */
@@ -106,41 +125,42 @@ body, html {
 .profile-card {
     width: 100%;
     max-width: 500px;
-    padding: 30px;
-    margin-bottom: 20px;
-    animation: slideUp 0.8s ease-out;
+    padding: 35px;
+    margin-bottom: 25px;
+    animation: fadeIn 1.2s ease-out;
 }
 
 .profile-header {
     display: flex;
     align-items: center;
-    gap: 20px;
-    margin-bottom: 25px;
+    gap: 25px;
+    margin-bottom: 30px;
 }
 
 .avatar-container img {
-    width: 100px;
-    height: 100px;
+    width: 110px;
+    height: 110px;
     border-radius: 50%;
-    border: 3px solid rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.1);
     object-fit: cover;
 }
 
 .user-info h1 {
-    font-size: 1.8rem;
-    margin-bottom: 5px;
+    font-size: 2rem;
+    margin-bottom: 8px;
+    font-weight: 500;
 }
 
 .badges {
     display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
+    gap: 10px;
+    margin-bottom: 10px;
     color: #00bfff;
 }
 
 .user-link {
     font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.4);
     margin-top: 5px;
 }
 
@@ -149,20 +169,20 @@ body, html {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 15px;
-    margin-bottom: 25px;
+    margin-bottom: 30px;
 }
 
 .app-card {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px;
+    padding: 15px;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .app-card:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
     transform: translateY(-3px);
 }
 
@@ -177,83 +197,85 @@ body, html {
 
 .app-details p {
     font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 /* روابط اجتماعية */
 .social-icons {
     display: flex;
     justify-content: center;
-    gap: 15px;
-    margin-bottom: 20px;
+    gap: 20px;
+    margin-bottom: 25px;
 }
 
 .social-icons a {
     color: #fff;
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     text-decoration: none;
-    width: 45px;
-    height: 45px;
+    width: 50px;
+    height: 50px;
     display: flex;
     justify-content: center;
     align-items: center;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.03);
     transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .social-icons a:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.1);
     transform: scale(1.1);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .profile-footer {
     text-align: center;
     font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .stats {
     display: flex;
     justify-content: center;
-    gap: 20px;
+    gap: 25px;
 }
 
-/* مشغل الموسيقى المتقدم */
+/* مشغل الموسيقى */
 .advanced-player {
     width: 100%;
     max-width: 600px;
-    padding: 15px 25px;
+    padding: 20px 30px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    animation: slideUp 0.8s ease-out 0.2s both;
+    animation: fadeIn 1.2s ease-out 0.3s both;
 }
 
 .player-left {
     display: flex;
     align-items: center;
     gap: 15px;
-    width: 30%;
+    width: 35%;
 }
 
 .player-left img {
-    width: 50px;
-    height: 50px;
-    border-radius: 8px;
+    width: 55px;
+    height: 55px;
+    border-radius: 10px;
     object-fit: cover;
 }
 
 .track-info h4 {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .track-info p {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .player-center {
@@ -264,8 +286,8 @@ body, html {
 .player-controls {
     display: flex;
     justify-content: center;
-    gap: 15px;
-    margin-bottom: 8px;
+    gap: 20px;
+    margin-bottom: 12px;
 }
 
 .p-btn {
@@ -273,47 +295,51 @@ body, html {
     border: none;
     color: #fff;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 1.1rem;
     transition: all 0.3s ease;
+    opacity: 0.7;
 }
 
 .p-btn:hover {
+    opacity: 1;
     color: #00ff88;
 }
 
 .play-main {
-    width: 35px;
-    height: 35px;
+    width: 40px;
+    height: 40px;
     background: #fff;
     color: #000;
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
+    opacity: 1;
 }
 
 .play-main:hover {
     background: #00ff88;
-    color: #000;
+    transform: scale(1.05);
 }
 
 .progress-container {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 0.7rem;
-    color: rgba(255, 255, 255, 0.5);
+    gap: 12px;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
 }
 
 #progress-bar {
     flex: 1;
-    height: 4px;
+    height: 3px;
     cursor: pointer;
     accent-color: #00ff88;
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .player-right {
-    width: 30%;
+    width: 25%;
     display: flex;
     justify-content: flex-end;
 }
@@ -325,47 +351,21 @@ body, html {
 }
 
 #volume-slider {
-    width: 60px;
-    height: 4px;
+    width: 70px;
+    height: 3px;
     accent-color: #00ff88;
 }
 
-/* الرسوم المتحركة */
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* العرض المتجاوب */
-@media (max-width: 600px) {
-    .profile-header {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .apps-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .advanced-player {
-        flex-direction: column;
-        gap: 15px;
-        padding: 20px;
-    }
-    
-    .player-left, .player-center, .player-right {
-        width: 100%;
-        justify-content: center;
-    }
-    
-    .player-left {
-        text-align: center;
-        flex-direction: column;
-    }
+@media (max-width: 650px) {
+    .profile-card { padding: 25px; }
+    .apps-grid { grid-template-columns: 1fr; }
+    .advanced-player { flex-direction: column; gap: 20px; }
+    .player-left, .player-center, .player-right { width: 100%; justify-content: center; text-align: center; }
+    .player-left { flex-direction: column; }
 }
