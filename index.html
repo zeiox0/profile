@@ -216,16 +216,24 @@
         }
 
         // أزرار التحكم
-        document.getElementById('enter-btn').onclick = () => {
+        function enterSite() {
+            if (enterScreen.style.display === 'none') return;
             enterScreen.style.opacity = '0';
             setTimeout(() => {
                 enterScreen.style.display = 'none';
                 mainContent.style.display = 'block';
                 isPlaying = true;
-                if (videoElem.src) videoElem.play();
-                if (audioElem.src) audioElem.play();
+                if (videoElem.src) videoElem.play().catch(e => console.log("Video play error:", e));
+                if (audioElem.src) audioElem.play().catch(e => console.log("Audio play error:", e));
             }, 500);
-        };
+        }
+
+        document.getElementById('enter-btn').onclick = enterSite;
+        
+        // دعم مفتاح Enter
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') enterSite();
+        });
 
         const playBtn = document.getElementById('play-pause-btn');
         playBtn.onclick = () => {
