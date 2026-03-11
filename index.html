@@ -100,12 +100,6 @@
                     <h3>التطبيقات المضافة</h3>
                     <div id="apps-list" class="apps-list"></div>
                 </div>
-                
-                <div class="dev-section">
-                    <h3>حسابات ديسكورد المتصلة</h3>
-                    <div id="discord-accounts" class="discord-accounts"></div>
-                    <button id="add-discord-btn" class="btn-primary">إضافة حساب ديسكورد</button>
-                </div>
             </div>
         </div>
     </div>
@@ -128,10 +122,9 @@
         const enterScreen = document.getElementById('enter-screen');
         const enterBtn = document.getElementById('enter-btn');
         
-        // تخزين البيانات محلياً للتطبيقات وديسكورد فقط
+        // تخزين البيانات محلياً للتطبيقات فقط
         let appData = {
-            apps: [],
-            discordAccounts: []
+            apps: []
         };
         
         // تحميل البيانات من localStorage
@@ -162,7 +155,6 @@
                 // تحميل البيانات المحفوظة
                 loadLocalData();
                 renderApps();
-                renderDiscordAccounts();
             }, 500);
         }
         
@@ -335,62 +327,6 @@
                 appData.apps.splice(index, 1);
                 saveLocalData();
                 renderApps();
-            }
-        };
-        
-        // ربط ديسكورد
-        document.getElementById('add-discord-btn').addEventListener('click', function() {
-            const discordUsername = prompt('أدخل اسم ديسكورد الخاص بك (بدون #):');
-            if (discordUsername) {
-                const discordId = prompt('أدخل معرف ديسكورد الخاص بك (ID):');
-                if (discordId) {
-                    appData.discordAccounts.push({
-                        username: discordUsername,
-                        id: discordId,
-                        addedAt: new Date().toLocaleString('ar-SA')
-                    });
-                    saveLocalData();
-                    renderDiscordAccounts();
-                    alert('تم ربط حساب ديسكورد بنجاح!');
-                }
-            }
-        });
-        
-        // عرض حسابات ديسكورد
-        function renderDiscordAccounts() {
-            const discordAccounts = document.getElementById('discord-accounts');
-            
-            discordAccounts.innerHTML = '';
-            
-            if (appData.discordAccounts.length === 0) {
-                discordAccounts.innerHTML = '<p class="empty-state">لم يتم ربط أي حسابات ديسكورد بعد</p>';
-                return;
-            }
-            
-            appData.discordAccounts.forEach((account, index) => {
-                const accountItem = document.createElement('div');
-                accountItem.className = 'discord-account-item';
-                accountItem.innerHTML = `
-                    <div class="account-info">
-                        <i class="fab fa-discord"></i>
-                        <div>
-                            <h4>${account.username}</h4>
-                            <p>ID: ${account.id}</p>
-                            <small>${account.addedAt}</small>
-                        </div>
-                    </div>
-                    <button class="btn-delete" onclick="deleteDiscordAccount(${index})">حذف</button>
-                `;
-                discordAccounts.appendChild(accountItem);
-            });
-        }
-        
-        // حذف حساب ديسكورد
-        window.deleteDiscordAccount = function(index) {
-            if (confirm('هل تريد حذف هذا الحساب؟')) {
-                appData.discordAccounts.splice(index, 1);
-                saveLocalData();
-                renderDiscordAccounts();
             }
         };
         
