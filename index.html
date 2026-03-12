@@ -11,10 +11,10 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
 </head>
 <body>
-    <!-- شاشة الدخول البسيطة -->
+    <!-- شاشة الدخول -->
     <div id="enter-screen" class="enter-screen">
         <div class="enter-content">
-            <button id="enter-btn" class="enter-btn-minimal">
+            <button class="enter-btn-minimal" onclick="handleEnter()">
                 <span>ENTER</span>
             </button>
         </div>
@@ -73,20 +73,20 @@
                 </div>
                 <div class="player-center">
                     <div class="player-controls">
-                        <button id="prev-btn" class="p-btn"><i class="fas fa-step-backward"></i></button>
-                        <button id="play-pause-btn" class="p-btn play-main"><i class="fas fa-play"></i></button>
-                        <button id="next-btn" class="p-btn"><i class="fas fa-step-forward"></i></button>
+                        <button id="prev-btn" class="p-btn" onclick="prevTrack()"><i class="fas fa-step-backward"></i></button>
+                        <button id="play-pause-btn" class="p-btn play-main" onclick="togglePlay()"><i class="fas fa-play"></i></button>
+                        <button id="next-btn" class="p-btn" onclick="nextTrack()"><i class="fas fa-step-forward"></i></button>
                     </div>
                     <div class="progress-container">
                         <span id="curr-time">0:00</span>
-                        <input type="range" id="progress-bar" min="0" max="100" value="0">
+                        <input type="range" id="progress-bar" min="0" max="100" value="0" onchange="seekAudio(this.value)">
                         <span id="total-time">0:00</span>
                     </div>
                 </div>
                 <div class="player-right">
                     <div class="volume-control">
                         <button id="mute-btn" class="p-btn"><i class="fas fa-volume-up"></i></button>
-                        <input type="range" id="volume-slider" min="0" max="100" value="50">
+                        <input type="range" id="volume-slider" min="0" max="100" value="50" onchange="setVolume(this.value)">
                     </div>
                 </div>
             </div>
@@ -99,29 +99,23 @@
     <script>
         // متغيرات عامة
         let siteData = {};
-        let currentVideoIndex = 0;
         let currentAudioIndex = 0;
         let isPlaying = false;
 
         // عناصر DOM
-        const videoElem = document.getElementById('bg-video');
         const audioElem = document.getElementById('main-audio');
         const enterScreen = document.getElementById('enter-screen');
         const mainContent = document.getElementById('main-content');
-        const enterBtn = document.getElementById('enter-btn');
 
-        // دالة الدخول الرئيسية
+        // دالة الدخول
         function handleEnter() {
-            console.log("Enter triggered");
+            console.log("Enter clicked");
             if (enterScreen.classList.contains('hidden')) return;
             
             enterScreen.classList.add('hidden');
             mainContent.classList.remove('blurred');
             isPlaying = true;
             
-            if (videoElem.src) {
-                videoElem.play().catch(e => console.log("Video play error:", e));
-            }
             if (audioElem.src) {
                 audioElem.play().catch(e => console.log("Audio play error:", e));
             }
@@ -131,12 +125,6 @@
             }, 1000);
         }
 
-        // ربط زر الدخول
-        if (enterBtn) {
-            enterBtn.addEventListener('click', handleEnter);
-            console.log("Enter button listener added");
-        }
-        
         // دعم مفتاح Enter
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') handleEnter();
@@ -145,7 +133,7 @@
         // تحميل البيانات من Firebase
         function loadData() {
             if (typeof db === 'undefined') {
-                console.error("Firebase DB not initialized");
+                console.error("Firebase not initialized");
                 return;
             }
 
@@ -154,11 +142,9 @@
                     siteData = doc.data();
                     console.log("Data loaded:", siteData);
                     updateUI();
-                } else {
-                    console.log("No data found, using defaults");
                 }
             }, (error) => {
-                console.error("Error loading data:", error);
+                console.error("Error:", error);
             });
         }
 
@@ -167,7 +153,7 @@
             document.getElementById('user-bio').innerText = siteData.bio || "Hi I 👋";
             document.getElementById('view-count').innerText = siteData.views || "0";
             
-            // تحديث الروابط الاجتماعية
+            // تحديث الروابط
             const socialDiv = document.getElementById('social-links');
             socialDiv.innerHTML = '';
             if (siteData.socialLinks && Array.isArray(siteData.socialLinks)) {
@@ -198,45 +184,10 @@
                 appsDiv.appendChild(card);
             });
 
-            initMedia();
-        }
-
-        function initMedia() {
-            if (siteData.videos && siteData.videos.length > 0) {
-                videoElem.style.display = 'block';
-                document.getElementById('bg-image').style.display = 'none';
-                document.getElementById('no-media').style.display = 'none';
-                if (!videoElem.src) playVideo(0);
-            } else if (siteData.images && siteData.images.length > 0) {
-                videoElem.style.display = 'none';
-                document.getElementById('bg-image').style.display = 'block';
-                document.getElementById('no-media').style.display = 'none';
-                document.getElementById('bg-image').style.backgroundImage = `url(${siteData.images[0].url})`;
-            } else {
-                document.getElementById('no-media').style.display = 'flex';
-                videoElem.style.display = 'none';
-                document.getElementById('bg-image').style.display = 'none';
-            }
-
+            // تحديث الصوت
             if (siteData.audios && siteData.audios.length > 0 && !audioElem.src) {
                 loadAudio(0);
             }
-        }
-
-        function playVideo(index) {
-            if (!siteData.videos || siteData.videos.length === 0) return;
-            currentVideoIndex = index % siteData.videos.length;
-            videoElem.src = siteData.videos[currentVideoIndex].url;
-            videoElem.load();
-            if (isPlaying) videoElem.play().catch(e => console.log("Video play error:", e));
-            
-            videoElem.onended = () => {
-                if (siteData.videos[currentVideoIndex].loop) {
-                    videoElem.play();
-                } else {
-                    playVideo(currentVideoIndex + 1);
-                }
-            };
         }
 
         function loadAudio(index) {
@@ -246,39 +197,46 @@
             audioElem.src = audio.url;
             document.getElementById('track-title').innerText = audio.name || "مجهول";
             document.getElementById('track-artist').innerText = audio.artist || "فنان غير معروف";
-            if (isPlaying) audioElem.play().catch(e => console.log("Audio play error:", e));
+            if (isPlaying) audioElem.play().catch(e => console.log("Play error:", e));
         }
 
-        // أزرار التحكم بالموسيقى
-        const playBtn = document.getElementById('play-pause-btn');
-        if (playBtn) {
-            playBtn.onclick = () => {
-                if (audioElem.paused) {
-                    audioElem.play();
-                    playBtn.innerHTML = '<i class="fas fa-pause"></i>';
-                } else {
-                    audioElem.pause();
-                    playBtn.innerHTML = '<i class="fas fa-play"></i>';
-                }
-            };
+        // أزرار التحكم
+        function togglePlay() {
+            const btn = document.getElementById('play-pause-btn');
+            if (audioElem.paused) {
+                audioElem.play();
+                btn.innerHTML = '<i class="fas fa-pause"></i>';
+            } else {
+                audioElem.pause();
+                btn.innerHTML = '<i class="fas fa-play"></i>';
+            }
         }
 
-        document.getElementById('next-btn').onclick = () => loadAudio(currentAudioIndex + 1);
-        document.getElementById('prev-btn').onclick = () => loadAudio(currentAudioIndex - 1);
+        function nextTrack() {
+            loadAudio(currentAudioIndex + 1);
+        }
 
-        // شريط التقدم
+        function prevTrack() {
+            loadAudio(currentAudioIndex - 1);
+        }
+
+        function seekAudio(value) {
+            if (audioElem.duration) {
+                audioElem.currentTime = (value / 100) * audioElem.duration;
+            }
+        }
+
+        function setVolume(value) {
+            audioElem.volume = value / 100;
+        }
+
+        // تحديث شريط التقدم
         audioElem.ontimeupdate = () => {
             if (audioElem.duration) {
                 const progress = (audioElem.currentTime / audioElem.duration) * 100;
                 document.getElementById('progress-bar').value = progress || 0;
                 document.getElementById('curr-time').innerText = formatTime(audioElem.currentTime);
                 document.getElementById('total-time').innerText = formatTime(audioElem.duration);
-            }
-        };
-
-        document.getElementById('progress-bar').oninput = (e) => {
-            if (audioElem.duration) {
-                audioElem.currentTime = (e.target.value / 100) * audioElem.duration;
             }
         };
 
@@ -289,14 +247,9 @@
             return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
         }
 
-        // التحكم بمستوى الصوت
-        document.getElementById('volume-slider').oninput = (e) => {
-            audioElem.volume = e.target.value / 100;
-        };
-
         // تحميل البيانات عند التحميل
         window.addEventListener('load', () => {
-            console.log("Page loaded, loading data...");
+            console.log("Page loaded");
             loadData();
         });
     </script>
