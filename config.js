@@ -10,6 +10,8 @@ const firebaseConfig = {
 };
 
 // تهيئة فايربيس
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 const db = firebase.firestore();
 const auth = firebase.auth();

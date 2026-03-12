@@ -2,9 +2,18 @@ const AUTHORIZED_EMAIL = "abdallah.ali2812@gmail.com";
 let currentData = {};
 
 function attemptLogin() {
-    const email = document.getElementById('email').value.trim();
-    const pass = document.getElementById('password').value;
+    const emailInput = document.getElementById('email');
+    const passInput = document.getElementById('password');
     const errorMsg = document.getElementById('error-msg');
+    
+    const email = emailInput.value.trim();
+    const pass = passInput.value;
+
+    if (!email || !pass) {
+        errorMsg.innerText = "يرجى إدخال البريد الإلكتروني وكلمة المرور";
+        errorMsg.style.display = "block";
+        return;
+    }
 
     if (email.toLowerCase() !== AUTHORIZED_EMAIL) {
         errorMsg.innerText = "هذا الإيميل غير مصرح له كمسؤول!";
@@ -13,13 +22,15 @@ function attemptLogin() {
     }
 
     auth.signInWithEmailAndPassword(email, pass)
-    .then(() => {
+    .then((userCredential) => {
+        console.log("Login successful");
         document.getElementById('login-overlay').style.display = 'none';
         document.getElementById('admin-panel').style.display = 'block';
         loadData(); 
     })
     .catch((error) => {
-        errorMsg.innerText = "خطأ: الباسورد غلط أو الحساب غير مفعل.";
+        console.error("Login error:", error);
+        errorMsg.innerText = "خطأ: " + (error.message || "الباسورد غلط أو الحساب غير مفعل.");
         errorMsg.style.display = "block";
     });
 }
@@ -29,7 +40,20 @@ function loadData() {
         if(doc.exists) {
             currentData = doc.data();
             renderAdminPanel();
+        } else {
+            // تهيئة المستند إذا لم يكن موجوداً
+            db.collection('siteData').doc('config').set({
+                name: "Abdallah",
+                bio: "Hi I 👋",
+                videos: [],
+                images: [],
+                audios: [],
+                apps: [],
+                socialLinks: []
+            });
         }
+    }, error => {
+        console.error("Load data error:", error);
     });
 }
 
@@ -44,13 +68,21 @@ function renderAdminPanel() {
 
 function renderMediaList(containerId, list, type) {
     const container = document.getElementById(containerId);
+    if (!container) return;
     container.innerHTML = '';
     list.forEach((item, index) => {
         const div = document.createElement('div');
         div.className = 'media-item';
+        div.style.display = 'flex';
+        div.style.justifyContent = 'space-between';
+        div.style.padding = '10px';
+        div.style.background = 'rgba(255,255,255,0.05)';
+        div.style.marginBottom = '5px';
+        div.style.borderRadius = '5px';
+        
         div.innerHTML = `
-            <span>${item.name || item.url.split('/').pop()}</span>
-            <button onclick="removeItem('${type}', ${index})">❌</button>
+            <span>${item.name || (item.url ? item.url.split('/').pop().substring(0, 20) : 'Unnamed')}</span>
+            <button onclick="removeItem('${type}', ${index})" style="background:none; border:none; color:red; cursor:pointer;">❌</button>
         `;
         container.appendChild(div);
     });
@@ -60,7 +92,8 @@ function saveProfileData() {
     const name = document.getElementById('admin-name').value;
     const bio = document.getElementById('admin-bio').value;
     db.collection('siteData').doc('config').update({ name, bio })
-    .then(() => alert("✅ تم حفظ البيانات الشخصية!"));
+    .then(() => alert("✅ تم حفظ البيانات الشخصية!"))
+    .catch(err => alert("❌ خطأ في الحفظ: " + err.message));
 }
 
 function addVideo() {
@@ -83,7 +116,7 @@ function addImage() {
     if (!url) return alert("يرجى إدخال الرابط");
     
     const images = currentData.images || [];
-    images.push({ url, duration: parseInt(duration) });
+    images.push({ url, duration: parseInt(duration) || 5 });
     db.collection('siteData').doc('config').update({ images })
     .then(() => {
         document.getElementById('image-url').value = '';
@@ -98,7 +131,7 @@ function addAudio() {
     if (!url) return alert("يرجى إدخال الرابط");
     
     const audios = currentData.audios || [];
-    audios.push({ url, name, artist });
+    audios.push({ url, name: name || "مجهول", artist: artist || "فنان غير معروف" });
     db.collection('siteData').doc('config').update({ audios })
     .then(() => {
         document.getElementById('audio-url').value = '';
@@ -109,7 +142,7 @@ function addAudio() {
 }
 
 function removeItem(type, index) {
-    const list = currentData[type];
+    const list = [...(currentData[type] || [])];
     list.splice(index, 1);
     db.collection('siteData').doc('config').update({ [type]: list });
 }
@@ -117,3 +150,13 @@ function removeItem(type, index) {
 function logout() {
     auth.signOut().then(() => location.reload());
 }
+
+// إضافة مستمع لحدث الضغط على Enter في شاشة الدخول
+document.addEventListener('DOMContentLoaded', () => {
+    const passInput = document.getElementById('password');
+    if (passInput) {
+        passInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') attemptLogin();
+        });
+    }
+});

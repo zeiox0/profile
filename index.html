@@ -6,8 +6,11 @@
     <title>Abdallah | Official</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    
+    <!-- تحميل مكتبات Firebase أولاً -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
 </head>
 <body>
     <!-- شاشة الدخول البسيطة -->
@@ -37,13 +40,13 @@
                         <img id="user-avatar" src="https://via.placeholder.com/150" alt="Avatar">
                     </div>
                     <div class="user-info">
-                        <h1 id="user-name">Zeiox</h1>
+                        <h1 id="user-name">Abdallah</h1>
                         <div id="user-badges" class="badges">
                             <i class="fas fa-check-circle" title="Verified"></i>
                             <i class="fas fa-code" title="Developer"></i>
                             <i class="fas fa-star" title="Premium"></i>
                         </div>
-                        <p id="user-bio">Hi I 👋</p>
+                        <p id="user-bio">جاري تحميل الوصف...</p>
                         <p id="user-link" class="user-link">discord.gg/guns</p>
                     </div>
                 </div>
@@ -94,10 +97,12 @@
 
     <audio id="main-audio" preload="auto"></audio>
 
+    <!-- تحميل الإعدادات أولاً -->
     <script src="config.js"></script>
-    <script src="security.js"></script>
     <script>
-        const db = firebase.firestore();
+        // التأكد من تهيئة Firebase من config.js
+        // const db = firebase.firestore(); تم تعريفها بالفعل في config.js
+        
         let siteData = {};
         let currentVideoIndex = 0;
         let currentAudioIndex = 0;
@@ -110,21 +115,29 @@
         const enterBtn = document.getElementById('enter-btn');
 
         // تحميل البيانات من Firebase
-        db.collection('siteData').doc('config').onSnapshot((doc) => {
-            if (doc.exists) {
-                siteData = doc.data();
-                updateUI();
-            }
-        });
+        if (typeof db !== 'undefined') {
+            db.collection('siteData').doc('config').onSnapshot((doc) => {
+                if (doc.exists) {
+                    siteData = doc.data();
+                    updateUI();
+                } else {
+                    console.error("No such document in Firestore!");
+                }
+            }, (error) => {
+                console.error("Error getting document:", error);
+            });
+        } else {
+            console.error("Firebase DB is not initialized!");
+        }
 
         function updateUI() {
-            document.getElementById('user-name').innerText = siteData.name || "Zeiox";
+            document.getElementById('user-name').innerText = siteData.name || "Abdallah";
             document.getElementById('user-bio').innerText = siteData.bio || "Hi I 👋";
             document.getElementById('view-count').innerText = siteData.views || "0";
             
             const socialDiv = document.getElementById('social-links');
             socialDiv.innerHTML = '';
-            if (siteData.socialLinks) {
+            if (siteData.socialLinks && Array.isArray(siteData.socialLinks)) {
                 siteData.socialLinks.forEach(link => {
                     const a = document.createElement('a');
                     a.href = link.url;
@@ -136,15 +149,16 @@
 
             const appsDiv = document.getElementById('connected-apps');
             appsDiv.innerHTML = '';
-            const localApps = JSON.parse(localStorage.getItem('profilePortalData') || '{"apps":[]}');
-            localApps.apps.forEach(app => {
+            // محاولة جلب التطبيقات من Firebase أولاً، ثم localStorage كاحتياطي
+            const apps = siteData.apps || JSON.parse(localStorage.getItem('profilePortalData') || '{"apps":[]}').apps || [];
+            apps.forEach(app => {
                 const card = document.createElement('div');
                 card.className = 'app-card glass';
                 card.innerHTML = `
-                    <i class="${app.icon}"></i>
+                    <i class="${app.icon || 'fas fa-link'}"></i>
                     <div class="app-details">
                         <h5>${app.name}</h5>
-                        <p>${app.url.split('/')[2] || app.url}</p>
+                        <p>${app.url ? app.url.split('/')[2] : 'link'}</p>
                     </div>
                 `;
                 card.onclick = () => window.open(app.url, '_blank');
@@ -158,16 +172,20 @@
             if (siteData.videos && siteData.videos.length > 0) {
                 videoElem.style.display = 'block';
                 document.getElementById('bg-image').style.display = 'none';
-                playVideo(0);
+                document.getElementById('no-media').style.display = 'none';
+                if (!videoElem.src) playVideo(0);
             } else if (siteData.images && siteData.images.length > 0) {
                 videoElem.style.display = 'none';
                 document.getElementById('bg-image').style.display = 'block';
-                // Image slideshow logic can be added here
+                document.getElementById('no-media').style.display = 'none';
+                document.getElementById('bg-image').style.backgroundImage = `url(${siteData.images[0].url})`;
             } else {
                 document.getElementById('no-media').style.display = 'flex';
+                videoElem.style.display = 'none';
+                document.getElementById('bg-image').style.display = 'none';
             }
 
-            if (siteData.audios && siteData.audios.length > 0) {
+            if (siteData.audios && siteData.audios.length > 0 && !audioElem.src) {
                 loadAudio(0);
             }
         }
@@ -190,7 +208,7 @@
 
         function loadAudio(index) {
             if (!siteData.audios || siteData.audios.length === 0) return;
-            currentAudioIndex = index % siteData.audios.length;
+            currentAudioIndex = (index + siteData.audios.length) % siteData.audios.length;
             const audio = siteData.audios[currentAudioIndex];
             audioElem.src = audio.url;
             document.getElementById('track-title').innerText = audio.name || "مجهول";
@@ -198,8 +216,8 @@
             if (isPlaying) audioElem.play().catch(e => console.log("Audio play error:", e));
         }
 
-        // وظيفة الدخول
         function handleEnter() {
+            console.log("Enter triggered");
             if (enterScreen.classList.contains('hidden')) return;
             
             enterScreen.classList.add('hidden');
@@ -214,34 +232,44 @@
             }, 1000);
         }
 
-        enterBtn.onclick = handleEnter;
+        // استخدام مستمع الأحداث لضمان العمل
+        if (enterBtn) {
+            enterBtn.addEventListener('click', handleEnter);
+        }
+        
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') handleEnter();
         });
 
         const playBtn = document.getElementById('play-pause-btn');
-        playBtn.onclick = () => {
-            if (audioElem.paused) {
-                audioElem.play();
-                playBtn.innerHTML = '<i class="fas fa-pause"></i>';
-            } else {
-                audioElem.pause();
-                playBtn.innerHTML = '<i class="fas fa-play"></i>';
-            }
-        };
+        if (playBtn) {
+            playBtn.onclick = () => {
+                if (audioElem.paused) {
+                    audioElem.play();
+                    playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                } else {
+                    audioElem.pause();
+                    playBtn.innerHTML = '<i class="fas fa-play"></i>';
+                }
+            };
+        }
 
         document.getElementById('next-btn').onclick = () => loadAudio(currentAudioIndex + 1);
         document.getElementById('prev-btn').onclick = () => loadAudio(currentAudioIndex - 1);
 
         audioElem.ontimeupdate = () => {
-            const progress = (audioElem.currentTime / audioElem.duration) * 100;
-            document.getElementById('progress-bar').value = progress || 0;
-            document.getElementById('curr-time').innerText = formatTime(audioElem.currentTime);
-            document.getElementById('total-time').innerText = formatTime(audioElem.duration);
+            if (audioElem.duration) {
+                const progress = (audioElem.currentTime / audioElem.duration) * 100;
+                document.getElementById('progress-bar').value = progress || 0;
+                document.getElementById('curr-time').innerText = formatTime(audioElem.currentTime);
+                document.getElementById('total-time').innerText = formatTime(audioElem.duration);
+            }
         };
 
         document.getElementById('progress-bar').oninput = (e) => {
-            audioElem.currentTime = (e.target.value / 100) * audioElem.duration;
+            if (audioElem.duration) {
+                audioElem.currentTime = (e.target.value / 100) * audioElem.duration;
+            }
         };
 
         function formatTime(seconds) {
