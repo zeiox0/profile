@@ -28,8 +28,9 @@ if (typeof firebase !== 'undefined') {
 }
 
 // تهيئة سوبابيس
-let supabaseClient;
+var supabaseClient;
 if (typeof supabase !== 'undefined') {
     supabaseClient = supabase.createClient(supabaseConfig.url, supabaseConfig.key);
+    window.supabaseClient = supabaseClient; // التأكد من توفره عالمياً
     console.log("Supabase initialized");
 }
