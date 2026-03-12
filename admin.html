@@ -199,7 +199,7 @@
         // التأكد من تهيئة السيرفرات قبل تحميل admin.js
         console.log("Checking services initialization...");
         const checkInit = setInterval(() => {
-            if (typeof db !== 'undefined' && typeof supabaseClient !== 'undefined') {
+            if (typeof db !== 'undefined' && typeof window.supabaseClient !== 'undefined') {
                 console.log("Services ready, loading admin logic...");
                 clearInterval(checkInit);
                 const script = document.createElement('script');

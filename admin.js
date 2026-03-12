@@ -168,7 +168,7 @@ async function uploadMedia(type) {
             const fileName = `${type}_${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
             const bucketName = 'Abdallah';
 
-            const { data, error } = await supabaseClient.storage
+            const { data, error } = await window.supabaseClient.storage
                 .from(bucketName)
                 .upload(fileName, file, {
                     cacheControl: '3600',
@@ -181,7 +181,7 @@ async function uploadMedia(type) {
             }
 
             console.log("Supabase upload success:", data);
-            const { data: urlData } = supabaseClient.storage.from(bucketName).getPublicUrl(fileName);
+            const { data: urlData } = window.supabaseClient.storage.from(bucketName).getPublicUrl(fileName);
             mediaUrl = urlData.publicUrl;
             console.log("Public URL generated:", mediaUrl);
             
