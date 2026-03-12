@@ -154,13 +154,26 @@
             }
 
             // تحديث الخلفية (أول فيديو في القائمة)
+            const bgImage = document.getElementById('bg-image');
+            const noMedia = document.getElementById('no-media');
+            
             if (siteData.videos && siteData.videos.length > 0) {
                 videoElem.src = siteData.videos[0].url;
                 videoElem.style.display = 'block';
-                if (isPlaying) videoElem.play();
+                bgImage.style.display = 'none';
+                noMedia.style.display = 'none';
+                if (isPlaying) {
+                    videoElem.play().catch(e => console.log("Video play failed:", e));
+                }
+            } else if (profile.avatar) {
+                videoElem.style.display = 'none';
+                bgImage.style.display = 'block';
+                bgImage.style.backgroundImage = `url('${profile.avatar}')`;
+                noMedia.style.display = 'none';
             } else {
-                document.getElementById('bg-image').style.display = 'block';
-                document.getElementById('bg-image').style.backgroundImage = `url('${profile.avatar}')`;
+                videoElem.style.display = 'none';
+                bgImage.style.display = 'none';
+                noMedia.style.display = 'block';
             }
 
             // تحديث الصوت

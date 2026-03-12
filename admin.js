@@ -173,7 +173,23 @@ async function uploadMedia(type) {
             const { data: urlData } = supabaseClient.storage.from(bucketName).getPublicUrl(fileName);
             mediaUrl = urlData.publicUrl;
             
-            saveMedia(`${type}s`, { url: mediaUrl, name: mediaName, timestamp: Date.now() });
+            if (type === 'avatar') {
+                document.getElementById('admin-avatar-url').value = mediaUrl;
+                // لا نحتاج لاستدعاء saveProfileData هنا لأننا سنقوم بتحديث currentData وحفظها
+                const profile = {
+                    ...currentData.profile,
+                    name: document.getElementById('admin-name').value,
+                    bio: document.getElementById('admin-bio').value,
+                    avatar: mediaUrl,
+                    visibility: document.getElementById('profile-visibility').value
+                };
+                db.collection('siteData').doc('config').update({ profile })
+                .then(() => {
+                    currentData.profile = profile;
+                });
+            } else {
+                saveMedia(`${type}s`, { url: mediaUrl, name: mediaName, timestamp: Date.now() });
+            }
             
             if(statusMsg) statusMsg.innerText = "✅ تم الرفع بنجاح!";
             if(progressDiv) progressDiv.style.display = 'none';
@@ -183,7 +199,13 @@ async function uploadMedia(type) {
             console.error('Upload Error:', err);
         }
     } else if (mediaUrl) {
-        saveMedia(`${type}s`, { url: mediaUrl, name: mediaName, timestamp: Date.now() });
+        if (type === 'avatar') {
+            // تحديث قيمة الرابط في الكائن قبل الحفظ
+            currentData.profile.avatar = mediaUrl;
+            saveProfileData();
+        } else {
+            saveMedia(`${type}s`, { url: mediaUrl, name: mediaName, timestamp: Date.now() });
+        }
         if(urlInput) urlInput.value = '';
     } else {
         alert("من فضلك أدخل رابطاً أو اختر ملفاً!");
@@ -192,6 +214,7 @@ async function uploadMedia(type) {
 
 function uploadVideo() { uploadMedia('video'); }
 function uploadAudio() { uploadMedia('audio'); }
+function uploadAvatar() { uploadMedia('avatar'); }
 
 function saveMedia(type, item) {
     const list = currentData[type] || [];
@@ -208,15 +231,19 @@ function removeItem(type, index) {
 }
 
 function saveProfileData() {
+    const avatarUrl = document.getElementById('admin-avatar-url').value;
     const profile = {
         ...currentData.profile,
         name: document.getElementById('admin-name').value,
         bio: document.getElementById('admin-bio').value,
-        avatar: document.getElementById('admin-avatar-url').value,
+        avatar: avatarUrl,
         visibility: document.getElementById('profile-visibility').value
     };
     db.collection('siteData').doc('config').update({ profile })
-    .then(() => alert("✅ تم حفظ بيانات البروفايل!"));
+    .then(() => {
+        currentData.profile = profile; // تحديث البيانات المحلية
+        alert("✅ تم حفظ بيانات البروفايل!");
+    });
 }
 
 function saveSocialLinks() {
