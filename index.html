@@ -6,8 +6,6 @@
     <title>Abdallah | Official</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- تحميل مكتبات Firebase أولاً -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
@@ -23,7 +21,7 @@
     </div>
 
     <div id="main-content" class="main-content blurred">
-        <!-- خلفية الوسائط (فيديو أو صور) -->
+        <!-- خلفية الوسائط -->
         <div id="media-background" class="media-background">
             <video id="bg-video" playsinline muted preload="auto" style="display: none;"></video>
             <div id="bg-image" class="bg-image" style="display: none;"></div>
@@ -46,7 +44,7 @@
                             <i class="fas fa-code" title="Developer"></i>
                             <i class="fas fa-star" title="Premium"></i>
                         </div>
-                        <p id="user-bio">جاري تحميل الوصف...</p>
+                        <p id="user-bio">جاري التحميل...</p>
                         <p id="user-link" class="user-link">discord.gg/guns</p>
                     </div>
                 </div>
@@ -64,7 +62,7 @@
                 </div>
             </div>
 
-            <!-- مشغل الموسيقى المتقدم -->
+            <!-- مشغل الموسيقى -->
             <div class="advanced-player glass">
                 <div class="player-left">
                     <img id="music-cover" src="https://via.placeholder.com/60" alt="Cover">
@@ -97,37 +95,71 @@
 
     <audio id="main-audio" preload="auto"></audio>
 
-    <!-- تحميل الإعدادات أولاً -->
     <script src="config.js"></script>
     <script>
-        // التأكد من تهيئة Firebase من config.js
-        // const db = firebase.firestore(); تم تعريفها بالفعل في config.js
-        
+        // متغيرات عامة
         let siteData = {};
         let currentVideoIndex = 0;
         let currentAudioIndex = 0;
         let isPlaying = false;
 
+        // عناصر DOM
         const videoElem = document.getElementById('bg-video');
         const audioElem = document.getElementById('main-audio');
         const enterScreen = document.getElementById('enter-screen');
         const mainContent = document.getElementById('main-content');
         const enterBtn = document.getElementById('enter-btn');
 
+        // دالة الدخول الرئيسية
+        function handleEnter() {
+            console.log("Enter triggered");
+            if (enterScreen.classList.contains('hidden')) return;
+            
+            enterScreen.classList.add('hidden');
+            mainContent.classList.remove('blurred');
+            isPlaying = true;
+            
+            if (videoElem.src) {
+                videoElem.play().catch(e => console.log("Video play error:", e));
+            }
+            if (audioElem.src) {
+                audioElem.play().catch(e => console.log("Audio play error:", e));
+            }
+            
+            setTimeout(() => {
+                enterScreen.style.display = 'none';
+            }, 1000);
+        }
+
+        // ربط زر الدخول
+        if (enterBtn) {
+            enterBtn.addEventListener('click', handleEnter);
+            console.log("Enter button listener added");
+        }
+        
+        // دعم مفتاح Enter
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleEnter();
+        });
+
         // تحميل البيانات من Firebase
-        if (typeof db !== 'undefined') {
+        function loadData() {
+            if (typeof db === 'undefined') {
+                console.error("Firebase DB not initialized");
+                return;
+            }
+
             db.collection('siteData').doc('config').onSnapshot((doc) => {
                 if (doc.exists) {
                     siteData = doc.data();
+                    console.log("Data loaded:", siteData);
                     updateUI();
                 } else {
-                    console.error("No such document in Firestore!");
+                    console.log("No data found, using defaults");
                 }
             }, (error) => {
-                console.error("Error getting document:", error);
+                console.error("Error loading data:", error);
             });
-        } else {
-            console.error("Firebase DB is not initialized!");
         }
 
         function updateUI() {
@@ -135,6 +167,7 @@
             document.getElementById('user-bio').innerText = siteData.bio || "Hi I 👋";
             document.getElementById('view-count').innerText = siteData.views || "0";
             
+            // تحديث الروابط الاجتماعية
             const socialDiv = document.getElementById('social-links');
             socialDiv.innerHTML = '';
             if (siteData.socialLinks && Array.isArray(siteData.socialLinks)) {
@@ -147,10 +180,10 @@
                 });
             }
 
+            // تحديث التطبيقات
             const appsDiv = document.getElementById('connected-apps');
             appsDiv.innerHTML = '';
-            // محاولة جلب التطبيقات من Firebase أولاً، ثم localStorage كاحتياطي
-            const apps = siteData.apps || JSON.parse(localStorage.getItem('profilePortalData') || '{"apps":[]}').apps || [];
+            const apps = siteData.apps || [];
             apps.forEach(app => {
                 const card = document.createElement('div');
                 card.className = 'app-card glass';
@@ -216,31 +249,7 @@
             if (isPlaying) audioElem.play().catch(e => console.log("Audio play error:", e));
         }
 
-        function handleEnter() {
-            console.log("Enter triggered");
-            if (enterScreen.classList.contains('hidden')) return;
-            
-            enterScreen.classList.add('hidden');
-            mainContent.classList.remove('blurred');
-            isPlaying = true;
-            
-            if (videoElem.src) videoElem.play().catch(e => console.log("Video auto-play blocked:", e));
-            if (audioElem.src) audioElem.play().catch(e => console.log("Audio auto-play blocked:", e));
-            
-            setTimeout(() => {
-                enterScreen.style.display = 'none';
-            }, 1000);
-        }
-
-        // استخدام مستمع الأحداث لضمان العمل
-        if (enterBtn) {
-            enterBtn.addEventListener('click', handleEnter);
-        }
-        
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') handleEnter();
-        });
-
+        // أزرار التحكم بالموسيقى
         const playBtn = document.getElementById('play-pause-btn');
         if (playBtn) {
             playBtn.onclick = () => {
@@ -257,6 +266,7 @@
         document.getElementById('next-btn').onclick = () => loadAudio(currentAudioIndex + 1);
         document.getElementById('prev-btn').onclick = () => loadAudio(currentAudioIndex - 1);
 
+        // شريط التقدم
         audioElem.ontimeupdate = () => {
             if (audioElem.duration) {
                 const progress = (audioElem.currentTime / audioElem.duration) * 100;
@@ -279,9 +289,16 @@
             return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
         }
 
+        // التحكم بمستوى الصوت
         document.getElementById('volume-slider').oninput = (e) => {
             audioElem.volume = e.target.value / 100;
         };
+
+        // تحميل البيانات عند التحميل
+        window.addEventListener('load', () => {
+            console.log("Page loaded, loading data...");
+            loadData();
+        });
     </script>
 </body>
 </html>
