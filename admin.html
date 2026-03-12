@@ -6,11 +6,11 @@
     <title>إعدادات المطور - Abdallah</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- مكتبات Firebase -->
+    <!-- مكتبات Firebase و Supabase -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="admin-body">
     <!-- شاشة تسجيل الدخول -->
@@ -68,9 +68,10 @@
                                 <label>أو من رابط:</label>
                                 <input type="text" id="video-url" class="admin-input" placeholder="https://...">
                                 <button onclick="uploadVideo()" class="admin-btn">رفع الفيديو</button>
-                                <div id="video-progress" style="display:none; margin-top:10px;">
-                                    <progress value="0" max="100" style="width:100%"></progress>
+                                <div id="video-progress-container" style="display:none; margin-top:10px;">
+                                    <progress id="video-progress-bar" value="0" max="100" style="width:100%"></progress>
                                 </div>
+                                <p id="video-status-msg" style="margin-top:10px; font-size:14px;"></p>
                             </div>
                         </div>
                         <div class="admin-card">
@@ -104,9 +105,10 @@
                                 <label>أو من رابط صوت:</label>
                                 <input type="text" id="audio-url" class="admin-input" placeholder="رابط ملف mp3">
                                 <button onclick="uploadAudio()" class="admin-btn">إضافة الصوت</button>
-                                <div id="audio-progress" style="display:none; margin-top:10px;">
-                                    <progress value="0" max="100" style="width:100%"></progress>
+                                <div id="audio-progress-container" style="display:none; margin-top:10px;">
+                                    <progress id="audio-progress-bar" value="0" max="100" style="width:100%"></progress>
                                 </div>
+                                <p id="audio-status-msg" style="margin-top:10px; font-size:14px;"></p>
                             </div>
                         </div>
                     </div>
@@ -173,7 +175,6 @@
             <section id="preview-section" class="admin-section">
                 <div class="admin-card">
                     <h3>👁️ المعاينة المباشرة (Live Preview)</h3>
-                    <p style="margin-bottom: 15px; color: #aaa;">هنا يمكنك رؤية كيف سيظهر موقعك للزوار بعد التعديلات الحالية.</p>
                     <div class="preview-container" style="position: relative; width: 100%; height: 600px; border: 2px solid #333; border-radius: 10px; overflow: hidden; background: #000;">
                         <iframe id="live-preview-frame" src="index.html" style="width: 100%; height: 100%; border: none;"></iframe>
                     </div>

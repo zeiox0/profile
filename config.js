@@ -9,10 +9,10 @@ const firebaseConfig = {
   measurementId: "G-WPZ1KM4JJ9"
 };
 
-// إعدادات سوبابيس (Supabase) - يرجى استبدال القيم عند توفرها
+// إعدادات سوبابيس (Supabase) المستعادة من نسخة يوم الاثنين
 const supabaseConfig = {
-    url: "https://your-project-id.supabase.co",
-    key: "your-anon-key"
+    url: "https://mtdevelmgoinumifpcpb.supabase.co",
+    key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10ZGV2ZWxtZ29pbnVtaWZwY3BiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3NzM0MTMsImV4cCI6MjA4ODM0OTQxM30.xronBSbgZPVd79VDTEoLuB3XsCwQwGfB_uCW2hPIlMQ"
 };
 
 // تهيئة فايربيس
@@ -27,9 +27,9 @@ if (typeof firebase !== 'undefined') {
     console.log("Firebase initialized");
 }
 
-// تهيئة سوبابيس (إذا تم تضمين المكتبة)
-let supabase;
-if (typeof supabasejs !== 'undefined') {
-    supabase = supabasejs.createClient(supabaseConfig.url, supabaseConfig.key);
+// تهيئة سوبابيس
+let supabaseClient;
+if (typeof supabase !== 'undefined') {
+    supabaseClient = supabase.createClient(supabaseConfig.url, supabaseConfig.key);
     console.log("Supabase initialized");
 }

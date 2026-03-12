@@ -139,12 +139,13 @@ function replayMedia(type, index) {
     .then(() => alert("✅ تم إعادة تفعيل الميديا المختارة!"));
 }
 
-// إصلاح الرفع باستخدام Firebase Storage
+// استعادة منطق الرفع المستقر باستخدام Supabase من نسخة يوم الاثنين
 async function uploadMedia(type) {
     const fileInput = document.getElementById(`${type}-file`);
     const urlInput = document.getElementById(`${type}-url`);
-    const progressDiv = document.getElementById(`${type}-progress`);
-    const progressBar = progressDiv ? progressDiv.querySelector('progress') : null;
+    const statusMsg = document.getElementById(`${type}-status-msg`);
+    const progressBar = document.getElementById(`${type}-progress-bar`);
+    const progressDiv = document.getElementById(`${type}-progress-container`);
     
     let mediaUrl = urlInput ? urlInput.value.trim() : "";
     let mediaName = "ميديا من رابط";
@@ -152,43 +153,43 @@ async function uploadMedia(type) {
     if (fileInput && fileInput.files.length > 0) {
         const file = fileInput.files[0];
         mediaName = file.name;
+        if(statusMsg) statusMsg.innerText = "جاري الرفع إلى السيرفر...";
         if(progressDiv) progressDiv.style.display = 'block';
+        if(progressBar) progressBar.value = 0;
         
         try {
-            const storageRef = storage.ref(`${type}s/${Date.now()}_${file.name}`);
-            const uploadTask = storageRef.put(file);
-            
-            uploadTask.on('state_changed', 
-                (snapshot) => {
-                    if(progressBar) {
-                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                        progressBar.value = progress;
-                    }
-                }, 
-                (error) => { alert("خطأ في الرفع: " + error.message); }, 
-                async () => {
-                    mediaUrl = await uploadTask.snapshot.ref.getDownloadURL();
-                    saveMedia(`${type}s`, { url: mediaUrl, name: mediaName, timestamp: Date.now() });
-                    if(progressDiv) progressDiv.style.display = 'none';
-                    fileInput.value = '';
-                }
-            );
-            return;
-        } catch (err) {
-            alert("خطأ: " + err.message);
-            return;
-        }
-    }
+            const fileName = `${type}_${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+            const bucketName = 'Abdallah'; // الباكيت المستقر
 
-    if (mediaUrl) {
+            const { data, error } = await supabaseClient.storage
+                .from(bucketName)
+                .upload(fileName, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+
+            if (error) throw error;
+
+            const { data: urlData } = supabaseClient.storage.from(bucketName).getPublicUrl(fileName);
+            mediaUrl = urlData.publicUrl;
+            
+            saveMedia(`${type}s`, { url: mediaUrl, name: mediaName, timestamp: Date.now() });
+            
+            if(statusMsg) statusMsg.innerText = "✅ تم الرفع بنجاح!";
+            if(progressDiv) progressDiv.style.display = 'none';
+            fileInput.value = '';
+        } catch (err) {
+            if(statusMsg) statusMsg.innerText = "❌ خطأ في الرفع: " + err.message;
+            console.error('Upload Error:', err);
+        }
+    } else if (mediaUrl) {
         saveMedia(`${type}s`, { url: mediaUrl, name: mediaName, timestamp: Date.now() });
         if(urlInput) urlInput.value = '';
     } else {
-        alert("يرجى اختيار ملف أو إدخال رابط");
+        alert("من فضلك أدخل رابطاً أو اختر ملفاً!");
     }
 }
 
-// دوال الرفع المحددة للواجهة
 function uploadVideo() { uploadMedia('video'); }
 function uploadAudio() { uploadMedia('audio'); }
 
@@ -196,7 +197,7 @@ function saveMedia(type, item) {
     const list = currentData[type] || [];
     list.unshift(item);
     db.collection('siteData').doc('config').update({ [type]: list })
-    .then(() => alert("✅ تم الإضافة بنجاح!"));
+    .then(() => alert("✅ تم الحفظ بنجاح!"));
 }
 
 function removeItem(type, index) {
@@ -232,7 +233,6 @@ function saveSocialLinks() {
     .then(() => alert("✅ تم حفظ الروابط الاجتماعية!"));
 }
 
-// تحديث المعاينة المباشرة
 function updateLivePreview() {
     const previewFrame = document.getElementById('live-preview-frame');
     if (previewFrame) {
