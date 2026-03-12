@@ -21,10 +21,10 @@
     </div>
 
     <div id="main-content" class="main-content blurred">
-        <!-- خلفية الوسائط -->
+        <!-- خلفية الوسائط (فيديو أو صورة) -->
         <div id="media-background" class="media-background">
-            <video id="bg-video" playsinline muted preload="auto" style="display: none;"></video>
-            <div id="bg-image" class="bg-image" style="display: none;"></div>
+            <video id="bg-video" playsinline muted preload="auto" loop style="display: none;"></video>
+            <div id="bg-image" class="bg-image" style="display: none; background-size: cover; background-position: center;"></div>
             <div id="no-media" class="no-media" style="display: none;">
                 <p>لا يوجد محتوى لعرضه</p>
             </div>
@@ -45,13 +45,13 @@
                             <i class="fas fa-star" title="Premium"></i>
                         </div>
                         <p id="user-bio">جاري التحميل...</p>
-                        <p id="user-link" class="user-link">discord.gg/guns</p>
                     </div>
                 </div>
 
                 <div class="profile-sections">
-                    <div id="connected-apps" class="apps-grid"></div>
-                    <div id="social-links" class="social-icons"></div>
+                    <div id="social-links" class="social-icons">
+                        <!-- الروابط الاجتماعية تظهر هنا -->
+                    </div>
                 </div>
 
                 <div class="profile-footer">
@@ -62,7 +62,7 @@
                 </div>
             </div>
 
-            <!-- مشغل الموسيقى -->
+            <!-- مشغل الموسيقى المتطور -->
             <div class="advanced-player glass">
                 <div class="player-left">
                     <img id="music-cover" src="https://via.placeholder.com/60" alt="Cover">
@@ -79,14 +79,14 @@
                     </div>
                     <div class="progress-container">
                         <span id="curr-time">0:00</span>
-                        <input type="range" id="progress-bar" min="0" max="100" value="0" onchange="seekAudio(this.value)">
+                        <input type="range" id="progress-bar" min="0" max="100" value="0" oninput="seekAudio(this.value)">
                         <span id="total-time">0:00</span>
                     </div>
                 </div>
                 <div class="player-right">
                     <div class="volume-control">
-                        <button id="mute-btn" class="p-btn"><i class="fas fa-volume-up"></i></button>
-                        <input type="range" id="volume-slider" min="0" max="100" value="50" onchange="setVolume(this.value)">
+                        <button id="mute-btn" class="p-btn" onclick="toggleMute()"><i class="fas fa-volume-up"></i></button>
+                        <input type="range" id="volume-slider" min="0" max="100" value="50" oninput="setVolume(this.value)">
                     </div>
                 </div>
             </div>
@@ -96,117 +96,72 @@
     <audio id="main-audio" preload="auto"></audio>
 
     <script src="config.js"></script>
-    <script src="security.js"></script>
     <script>
-        // متغيرات عامة
         let siteData = {};
         let currentAudioIndex = 0;
         let isPlaying = false;
-        let firebaseReady = false;
-
-        // عناصر DOM
         const audioElem = document.getElementById('main-audio');
+        const videoElem = document.getElementById('bg-video');
         const enterScreen = document.getElementById('enter-screen');
         const mainContent = document.getElementById('main-content');
 
-        // التحقق من تحميل Firebase
-        function checkFirebaseReady() {
-            if (typeof db === 'undefined' || typeof auth === 'undefined') {
-                console.error("Firebase not initialized yet");
-                setTimeout(checkFirebaseReady, 500);
-                return;
-            }
-            firebaseReady = true;
-            console.log("Firebase initialized successfully");
-            loadData();
-        }
-
-        // دالة الدخول
         function handleEnter() {
-            console.log("Enter clicked");
-            if (enterScreen.classList.contains('hidden')) return;
-            
             enterScreen.classList.add('hidden');
             mainContent.classList.remove('blurred');
             isPlaying = true;
-            
-            if (audioElem.src) {
-                audioElem.play().catch(e => console.log("Audio play error:", e));
-            }
-            
-            setTimeout(() => {
-                enterScreen.style.display = 'none';
-            }, 1000);
+            if (audioElem.src) audioElem.play();
+            if (videoElem.src) videoElem.play();
+            setTimeout(() => enterScreen.style.display = 'none', 1000);
         }
 
-        // دعم مفتاح Enter
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') handleEnter();
-        });
-
-        // تحميل البيانات من Firebase
         function loadData() {
-            if (typeof db === 'undefined') {
-                console.error("Firebase not initialized");
-                document.getElementById('user-bio').innerText = "خطأ في تحميل البيانات";
-                return;
-            }
-
-            try {
-                db.collection('siteData').doc('config').onSnapshot((doc) => {
-                    if (doc.exists) {
-                        siteData = doc.data();
-                        console.log("Data loaded:", siteData);
-                        updateUI();
-                    } else {
-                        console.warn("No data found in Firestore");
-                        document.getElementById('user-bio').innerText = "لم يتم العثور على بيانات";
-                    }
-                }, (error) => {
-                    console.error("Error loading data:", error);
-                    document.getElementById('user-bio').innerText = "خطأ: " + error.message;
-                });
-            } catch (err) {
-                console.error("Exception in loadData:", err);
-                document.getElementById('user-bio').innerText = "خطأ: " + err.message;
-            }
+            if (typeof db === 'undefined') return setTimeout(loadData, 500);
+            db.collection('siteData').doc('config').onSnapshot((doc) => {
+                if (doc.exists) {
+                    siteData = doc.data();
+                    updateUI();
+                }
+            });
         }
 
         function updateUI() {
-            document.getElementById('user-name').innerText = siteData.name || "Abdallah";
-            document.getElementById('user-bio').innerText = siteData.bio || "Hi I 👋";
-            document.getElementById('view-count').innerText = siteData.views || "0";
+            const profile = siteData.profile || {};
+            document.getElementById('user-name').innerText = profile.name || "Abdallah";
+            document.getElementById('user-bio').innerText = profile.bio || "Hi I 👋";
+            document.getElementById('user-avatar').src = profile.avatar || "https://via.placeholder.com/150";
             
-            // تحديث الروابط
+            // تحديث الروابط الاجتماعية
             const socialDiv = document.getElementById('social-links');
             socialDiv.innerHTML = '';
-            if (siteData.socialLinks && Array.isArray(siteData.socialLinks)) {
-                siteData.socialLinks.forEach(link => {
+            const social = profile.social || {};
+            const icons = {
+                discord: 'fab fa-discord',
+                youtube: 'fab fa-youtube',
+                twitter: 'fab fa-twitter',
+                instagram: 'fab fa-instagram',
+                tiktok: 'fab fa-tiktok',
+                github: 'fab fa-github'
+            };
+
+            for (let key in social) {
+                if (social[key]) {
                     const a = document.createElement('a');
-                    a.href = link.url;
+                    a.href = social[key].startsWith('http') ? social[key] : `https://${key}.com/${social[key]}`;
                     a.target = "_blank";
-                    a.innerHTML = `<i class="${link.icon}"></i>`;
+                    a.innerHTML = `<i class="${icons[key] || 'fas fa-link'}"></i>`;
                     socialDiv.appendChild(a);
-                });
+                }
             }
 
-            // تحديث التطبيقات
-            const appsDiv = document.getElementById('connected-apps');
-            appsDiv.innerHTML = '';
-            const apps = siteData.apps || [];
-            apps.forEach(app => {
-                const card = document.createElement('div');
-                card.className = 'app-card glass';
-                card.innerHTML = `
-                    <i class="${app.icon || 'fas fa-link'}"></i>
-                    <div class="app-details">
-                        <h5>${app.name}</h5>
-                        <p>${app.url ? app.url.split('/')[2] : 'link'}</p>
-                    </div>
-                `;
-                card.onclick = () => window.open(app.url, '_blank');
-                appsDiv.appendChild(card);
-            });
+            // تحديث الخلفية (أول فيديو في القائمة)
+            if (siteData.videos && siteData.videos.length > 0) {
+                videoElem.src = siteData.videos[0].url;
+                videoElem.style.display = 'block';
+                if (isPlaying) videoElem.play();
+            } else {
+                document.getElementById('bg-image').style.display = 'block';
+                document.getElementById('bg-image').style.backgroundImage = `url('${profile.avatar}')`;
+            }
 
             // تحديث الصوت
             if (siteData.audios && siteData.audios.length > 0 && !audioElem.src) {
@@ -219,12 +174,11 @@
             currentAudioIndex = (index + siteData.audios.length) % siteData.audios.length;
             const audio = siteData.audios[currentAudioIndex];
             audioElem.src = audio.url;
-            document.getElementById('track-title').innerText = audio.name || "مجهول";
-            document.getElementById('track-artist').innerText = audio.artist || "فنان غير معروف";
-            if (isPlaying) audioElem.play().catch(e => console.log("Play error:", e));
+            document.getElementById('track-title').innerText = audio.name || "صوت مضاف";
+            document.getElementById('track-artist').innerText = "فنان";
+            if (isPlaying) audioElem.play();
         }
 
-        // أزرار التحكم
         function togglePlay() {
             const btn = document.getElementById('play-pause-btn');
             if (audioElem.paused) {
@@ -236,46 +190,28 @@
             }
         }
 
-        function nextTrack() {
-            loadAudio(currentAudioIndex + 1);
-        }
+        function nextTrack() { loadAudio(currentAudioIndex + 1); }
+        function prevTrack() { loadAudio(currentAudioIndex - 1); }
+        function seekAudio(value) { if (audioElem.duration) audioElem.currentTime = (value / 100) * audioElem.duration; }
+        function setVolume(value) { audioElem.volume = value / 100; }
+        function toggleMute() { audioElem.muted = !audioElem.muted; }
 
-        function prevTrack() {
-            loadAudio(currentAudioIndex - 1);
-        }
-
-        function seekAudio(value) {
-            if (audioElem.duration) {
-                audioElem.currentTime = (value / 100) * audioElem.duration;
-            }
-        }
-
-        function setVolume(value) {
-            audioElem.volume = value / 100;
-        }
-
-        // تحديث شريط التقدم
         audioElem.ontimeupdate = () => {
             if (audioElem.duration) {
                 const progress = (audioElem.currentTime / audioElem.duration) * 100;
-                document.getElementById('progress-bar').value = progress || 0;
+                document.getElementById('progress-bar').value = progress;
                 document.getElementById('curr-time').innerText = formatTime(audioElem.currentTime);
                 document.getElementById('total-time').innerText = formatTime(audioElem.duration);
             }
         };
 
-        function formatTime(seconds) {
-            if (isNaN(seconds)) return "0:00";
-            const mins = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
-            return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        function formatTime(s) {
+            const m = Math.floor(s / 60);
+            const sec = Math.floor(s % 60);
+            return `${m}:${sec < 10 ? '0' : ''}${sec}`;
         }
 
-        // تحميل البيانات عند التحميل
-        window.addEventListener('load', () => {
-            console.log("Page loaded");
-            checkFirebaseReady();
-        });
+        window.onload = loadData;
     </script>
 </body>
 </html>

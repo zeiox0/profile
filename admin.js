@@ -1,5 +1,31 @@
 const AUTHORIZED_EMAIL = "abdallah.ali2812@gmail.com";
-let currentData = {};
+let currentData = {
+    videos: [],
+    audios: [],
+    profile: {
+        name: "Abdallah",
+        bio: "Hi I 👋",
+        avatar: "",
+        visibility: "public",
+        social: {
+            discord: "",
+            youtube: "",
+            twitter: "",
+            instagram: "",
+            tiktok: "",
+            github: ""
+        }
+    }
+};
+
+// تبديل الأقسام في لوحة التحكم
+function switchSection(sectionId, element) {
+    document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+    
+    document.getElementById(sectionId).classList.add('active');
+    element.classList.add('active');
+}
 
 function attemptLogin() {
     const emailInput = document.getElementById('email');
@@ -25,7 +51,7 @@ function attemptLogin() {
     .then((userCredential) => {
         console.log("Login successful");
         document.getElementById('login-overlay').style.display = 'none';
-        document.getElementById('admin-panel').style.display = 'block';
+        document.getElementById('admin-panel').style.display = 'flex';
         loadData(); 
     })
     .catch((error) => {
@@ -41,16 +67,8 @@ function loadData() {
             currentData = doc.data();
             renderAdminPanel();
         } else {
-            // تهيئة المستند إذا لم يكن موجوداً
-            db.collection('siteData').doc('config').set({
-                name: "Abdallah",
-                bio: "Hi I 👋",
-                videos: [],
-                images: [],
-                audios: [],
-                apps: [],
-                socialLinks: []
-            });
+            // تهيئة البيانات الافتراضية
+            db.collection('siteData').doc('config').set(currentData);
         }
     }, error => {
         console.error("Load data error:", error);
@@ -58,105 +76,195 @@ function loadData() {
 }
 
 function renderAdminPanel() {
-    document.getElementById('admin-name').value = currentData.name || "";
-    document.getElementById('admin-bio').value = currentData.bio || "";
+    // تحديث قسم البروفايل
+    const profile = currentData.profile || {};
+    document.getElementById('admin-name').value = profile.name || "";
+    document.getElementById('admin-bio').value = profile.bio || "";
+    document.getElementById('admin-avatar-url').value = profile.avatar || "";
+    document.getElementById('profile-visibility').value = profile.visibility || "public";
     
-    renderMediaList('video-list', currentData.videos || [], 'videos');
-    renderMediaList('image-list', currentData.images || [], 'images');
-    renderMediaList('audio-list', currentData.audios || [], 'audios');
+    // تحديث الروابط الاجتماعية
+    const social = profile.social || {};
+    document.getElementById('social-discord').value = social.discord || "";
+    document.getElementById('social-youtube').value = social.youtube || "";
+    document.getElementById('social-twitter').value = social.twitter || "";
+    document.getElementById('social-instagram').value = social.instagram || "";
+    document.getElementById('social-tiktok').value = social.tiktok || "";
+    document.getElementById('social-github').value = social.github || "";
+
+    // تحديث الهيستوري
+    renderHistory('video-history', currentData.videos || [], 'videos');
+    renderHistory('audio-history', currentData.audios || [], 'audios');
 }
 
-function renderMediaList(containerId, list, type) {
+function renderHistory(containerId, list, type) {
     const container = document.getElementById(containerId);
     if (!container) return;
     container.innerHTML = '';
+    
+    if (list.length === 0) {
+        container.innerHTML = '<p style="color:#666; text-align:center; padding:20px;">لا يوجد تاريخ مضاف</p>';
+        return;
+    }
+
     list.forEach((item, index) => {
         const div = document.createElement('div');
-        div.className = 'media-item';
-        div.style.display = 'flex';
-        div.style.justifyContent = 'space-between';
-        div.style.padding = '10px';
-        div.style.background = 'rgba(255,255,255,0.05)';
-        div.style.marginBottom = '5px';
-        div.style.borderRadius = '5px';
-        
+        div.className = 'history-item';
         div.innerHTML = `
-            <span>${item.name || (item.url ? item.url.split('/').pop().substring(0, 20) : 'Unnamed')}</span>
-            <button onclick="removeItem('${type}', ${index})" style="background:none; border:none; color:red; cursor:pointer;">❌</button>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <i class="${type === 'videos' ? 'fas fa-video' : 'fas fa-music'}"></i>
+                <span>${item.name || (item.url ? item.url.split('/').pop().substring(0, 20) : 'Unnamed')}</span>
+            </div>
+            <button onclick="removeItem('${type}', ${index})" style="background:none; border:none; color:#ff4d4d; cursor:pointer;">
+                <i class="fas fa-trash"></i>
+            </button>
         `;
         container.appendChild(div);
     });
 }
 
-function saveProfileData() {
-    const name = document.getElementById('admin-name').value;
-    const bio = document.getElementById('admin-bio').value;
-    db.collection('siteData').doc('config').update({ name, bio })
-    .then(() => alert("✅ تم حفظ البيانات الشخصية!"))
-    .catch(err => alert("❌ خطأ في الحفظ: " + err.message));
+// رفع فيديو (دعم الملفات والروابط)
+async function uploadVideo() {
+    const fileInput = document.getElementById('video-file');
+    const urlInput = document.getElementById('video-url');
+    const progressDiv = document.getElementById('video-progress');
+    const progressBar = progressDiv.querySelector('progress');
+    
+    let videoUrl = urlInput.value.trim();
+    let videoName = "فيديو من رابط";
+
+    if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        videoName = file.name;
+        progressDiv.style.display = 'block';
+        
+        try {
+            const storageRef = storage.ref(`videos/${Date.now()}_${file.name}`);
+            const uploadTask = storageRef.put(file);
+            
+            uploadTask.on('state_changed', 
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    progressBar.value = progress;
+                }, 
+                (error) => { alert("خطأ في الرفع: " + error.message); }, 
+                async () => {
+                    videoUrl = await uploadTask.snapshot.ref.getDownloadURL();
+                    saveMedia('videos', { url: videoUrl, name: videoName, type: 'file' });
+                    progressDiv.style.display = 'none';
+                    fileInput.value = '';
+                }
+            );
+            return;
+        } catch (err) {
+            alert("خطأ: " + err.message);
+            return;
+        }
+    }
+
+    if (videoUrl) {
+        saveMedia('videos', { url: videoUrl, name: videoName, type: 'url' });
+        urlInput.value = '';
+    } else {
+        alert("يرجى اختيار ملف أو إدخال رابط");
+    }
 }
 
-function addVideo() {
-    const url = document.getElementById('video-url').value;
-    const loop = document.getElementById('video-loop').checked;
-    if (!url) return alert("يرجى إدخال الرابط");
+// رفع صوت
+async function uploadAudio() {
+    const fileInput = document.getElementById('audio-file');
+    const urlInput = document.getElementById('audio-url');
+    const fromVideoInput = document.getElementById('audio-from-video');
     
-    const videos = currentData.videos || [];
-    videos.push({ url, loop });
-    db.collection('siteData').doc('config').update({ videos })
-    .then(() => {
-        document.getElementById('video-url').value = '';
-        alert("✅ تم إضافة الفيديو!");
-    });
+    let audioUrl = urlInput.value.trim();
+    let audioName = "صوت مضاف";
+
+    if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const storageRef = storage.ref(`audios/${Date.now()}_${file.name}`);
+        const uploadTask = await storageRef.put(file);
+        audioUrl = await uploadTask.ref.getDownloadURL();
+        audioName = file.name;
+    } else if (fromVideoInput.value.trim()) {
+        audioUrl = fromVideoInput.value.trim();
+        audioName = "صوت مستخرج من فيديو";
+    }
+
+    if (audioUrl) {
+        saveMedia('audios', { url: audioUrl, name: audioName });
+        fileInput.value = '';
+        urlInput.value = '';
+        fromVideoInput.value = '';
+    } else {
+        alert("يرجى إدخال مصدر للصوت");
+    }
 }
 
-function addImage() {
-    const url = document.getElementById('image-url').value;
-    const duration = document.getElementById('image-duration').value;
-    if (!url) return alert("يرجى إدخال الرابط");
-    
-    const images = currentData.images || [];
-    images.push({ url, duration: parseInt(duration) || 5 });
-    db.collection('siteData').doc('config').update({ images })
-    .then(() => {
-        document.getElementById('image-url').value = '';
-        alert("✅ تم إضافة الصورة!");
-    });
-}
-
-function addAudio() {
-    const url = document.getElementById('audio-url').value;
-    const name = document.getElementById('audio-name').value;
-    const artist = document.getElementById('audio-artist').value;
-    if (!url) return alert("يرجى إدخال الرابط");
-    
-    const audios = currentData.audios || [];
-    audios.push({ url, name: name || "مجهول", artist: artist || "فنان غير معروف" });
-    db.collection('siteData').doc('config').update({ audios })
-    .then(() => {
-        document.getElementById('audio-url').value = '';
-        document.getElementById('audio-name').value = '';
-        document.getElementById('audio-artist').value = '';
-        alert("✅ تم إضافة الصوت!");
-    });
+function saveMedia(type, item) {
+    const list = currentData[type] || [];
+    list.unshift(item); // إضافة في البداية للهيستوري
+    db.collection('siteData').doc('config').update({ [type]: list })
+    .then(() => alert("✅ تم الإضافة بنجاح!"));
 }
 
 function removeItem(type, index) {
+    if (!confirm("هل أنت متأكد من الحذف؟")) return;
     const list = [...(currentData[type] || [])];
     list.splice(index, 1);
     db.collection('siteData').doc('config').update({ [type]: list });
+}
+
+function saveProfileData() {
+    const profile = {
+        ...currentData.profile,
+        name: document.getElementById('admin-name').value,
+        bio: document.getElementById('admin-bio').value,
+        avatar: document.getElementById('admin-avatar-url').value,
+        visibility: document.getElementById('profile-visibility').value
+    };
+    db.collection('siteData').doc('config').update({ profile })
+    .then(() => alert("✅ تم حفظ بيانات البروفايل!"));
+}
+
+function saveSocialLinks() {
+    const social = {
+        discord: document.getElementById('social-discord').value,
+        youtube: document.getElementById('social-youtube').value,
+        twitter: document.getElementById('social-twitter').value,
+        instagram: document.getElementById('social-instagram').value,
+        tiktok: document.getElementById('social-tiktok').value,
+        github: document.getElementById('social-github').value
+    };
+    const profile = { ...currentData.profile, social };
+    db.collection('siteData').doc('config').update({ profile })
+    .then(() => alert("✅ تم حفظ الروابط الاجتماعية!"));
 }
 
 function logout() {
     auth.signOut().then(() => location.reload());
 }
 
-// إضافة مستمع لحدث الضغط على Enter في شاشة الدخول
+// محاكاة البحث في المكتبة أونلاين
+function searchOnlineVideos() {
+    const query = document.getElementById('video-search').value.toLowerCase();
+    const results = document.getElementById('online-video-results');
+    
+    // بيانات تجريبية للمكتبة
+    const library = [
+        { name: "Nature Relax", url: "https://www.w3schools.com/html/mov_bbb.mp4" },
+        { name: "Abstract Motion", url: "https://vjs.zencdn.net/v/oceans.mp4" }
+    ];
+
+    const filtered = library.filter(v => v.name.toLowerCase().includes(query));
+    results.innerHTML = filtered.map(v => `
+        <div class="history-item">
+            <span>${v.name}</span>
+            <button onclick="document.getElementById('video-url').value='${v.url}'; alert('تم اختيار الفيديو من المكتبة')" class="admin-btn small" style="padding:2px 8px; font-size:12px;">اختيار</button>
+        </div>
+    `).join('') || '<p style="color:#666; text-align:center;">لا توجد نتائج</p>';
+}
+
+// تهيئة البحث عند التحميل
 document.addEventListener('DOMContentLoaded', () => {
-    const passInput = document.getElementById('password');
-    if (passInput) {
-        passInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') attemptLogin();
-        });
-    }
+    if (document.getElementById('video-search')) searchOnlineVideos();
 });
