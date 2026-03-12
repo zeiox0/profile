@@ -67,16 +67,22 @@ function attemptLogin() {
 }
 
 function loadData() {
+    console.log("Attempting to load data from Firestore...");
     db.collection('siteData').doc('config').onSnapshot(doc => {
         if(doc.exists) {
+            console.log("Data loaded successfully:", doc.data());
             currentData = doc.data();
             renderAdminPanel();
             updateLivePreview();
         } else {
-            db.collection('siteData').doc('config').set(currentData);
+            console.log("No config document found, creating default...");
+            db.collection('siteData').doc('config').set(currentData)
+                .then(() => console.log("Default config created"))
+                .catch(err => console.error("Error creating default config:", err));
         }
     }, error => {
-        console.error("Load data error:", error);
+        console.error("Firestore Snapshot Error:", error);
+        alert("خطأ في الاتصال بـ Firebase: " + error.message);
     });
 }
 
@@ -158,8 +164,9 @@ async function uploadMedia(type) {
         if(progressBar) progressBar.value = 0;
         
         try {
+            console.log(`Starting upload for ${type}:`, file.name);
             const fileName = `${type}_${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
-            const bucketName = 'Abdallah'; // الباكيت المستقر
+            const bucketName = 'Abdallah';
 
             const { data, error } = await supabaseClient.storage
                 .from(bucketName)
@@ -168,10 +175,15 @@ async function uploadMedia(type) {
                     upsert: false
                 });
 
-            if (error) throw error;
+            if (error) {
+                console.error("Supabase Upload Error:", error);
+                throw error;
+            }
 
+            console.log("Supabase upload success:", data);
             const { data: urlData } = supabaseClient.storage.from(bucketName).getPublicUrl(fileName);
             mediaUrl = urlData.publicUrl;
+            console.log("Public URL generated:", mediaUrl);
             
             if (type === 'avatar') {
                 document.getElementById('admin-avatar-url').value = mediaUrl;
