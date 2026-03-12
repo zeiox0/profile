@@ -52,9 +52,10 @@ function attemptLogin() {
         return;
     }
 
+    console.log("Attempting login for:", email);
     auth.signInWithEmailAndPassword(email, pass)
     .then((userCredential) => {
-        console.log("Login successful");
+        console.log("Login successful:", userCredential.user.email);
         document.getElementById('login-overlay').style.display = 'none';
         document.getElementById('admin-panel').style.display = 'flex';
         loadData(); 
@@ -187,7 +188,6 @@ async function uploadMedia(type) {
             
             if (type === 'avatar') {
                 document.getElementById('admin-avatar-url').value = mediaUrl;
-                // لا نحتاج لاستدعاء saveProfileData هنا لأننا سنقوم بتحديث currentData وحفظها
                 const profile = {
                     ...currentData.profile,
                     name: document.getElementById('admin-name').value,
@@ -195,12 +195,10 @@ async function uploadMedia(type) {
                     avatar: mediaUrl,
                     visibility: document.getElementById('profile-visibility').value
                 };
-                db.collection('siteData').doc('config').update({ profile })
-                .then(() => {
-                    currentData.profile = profile;
-                });
+                await db.collection('siteData').doc('config').update({ profile });
+                currentData.profile = profile;
             } else {
-                saveMedia(`${type}s`, { url: mediaUrl, name: mediaName, timestamp: Date.now() });
+                await saveMedia(`${type}s`, { url: mediaUrl, name: mediaName, timestamp: Date.now() });
             }
             
             if(statusMsg) statusMsg.innerText = "✅ تم الرفع بنجاح!";
@@ -228,11 +226,16 @@ function uploadVideo() { uploadMedia('video'); }
 function uploadAudio() { uploadMedia('audio'); }
 function uploadAvatar() { uploadMedia('avatar'); }
 
-function saveMedia(type, item) {
+async function saveMedia(type, item) {
     const list = currentData[type] || [];
     list.unshift(item);
-    db.collection('siteData').doc('config').update({ [type]: list })
-    .then(() => alert("✅ تم الحفظ بنجاح!"));
+    try {
+        await db.collection('siteData').doc('config').update({ [type]: list });
+        alert("✅ تم الحفظ بنجاح!");
+    } catch (err) {
+        console.error("Error saving media:", err);
+        alert("❌ خطأ في الحفظ: " + err.message);
+    }
 }
 
 function removeItem(type, index) {

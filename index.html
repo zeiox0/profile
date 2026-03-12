@@ -35,7 +35,7 @@
             <div class="profile-card glass">
                 <div class="profile-header">
                     <div class="avatar-container">
-	                        <img id="user-avatar" src="https://via.placeholder.com/150" alt="Avatar" onerror="this.src='https://via.placeholder.com/150'; this.onerror=null;">
+                        <img id="user-avatar" src="https://via.placeholder.com/150" alt="Avatar" onerror="this.src='https://via.placeholder.com/150'; this.onerror=null;">
                     </div>
                     <div class="user-info">
                         <h1 id="user-name">Abdallah</h1>
@@ -65,7 +65,7 @@
             <!-- مشغل الموسيقى المتطور -->
             <div class="advanced-player glass">
                 <div class="player-left">
-	                    <img id="music-cover" src="https://via.placeholder.com/60" alt="Cover" onerror="this.src='https://via.placeholder.com/60'; this.onerror=null;">
+                    <img id="music-cover" src="https://via.placeholder.com/60" alt="Cover" onerror="this.src='https://via.placeholder.com/60'; this.onerror=null;">
                     <div class="track-info">
                         <h4 id="track-title">لا يوجد صوت</h4>
                         <p id="track-artist">---</p>
@@ -109,8 +109,8 @@
             enterScreen.classList.add('hidden');
             mainContent.classList.remove('blurred');
             isPlaying = true;
-            if (audioElem.src) audioElem.play();
-            if (videoElem.src) videoElem.play();
+            if (audioElem.src) audioElem.play().catch(e => console.log("Audio play failed:", e));
+            if (videoElem.src) videoElem.play().catch(e => console.log("Video play failed:", e));
             setTimeout(() => enterScreen.style.display = 'none', 1000);
         }
 
@@ -120,7 +120,11 @@
                 if (doc.exists) {
                     siteData = doc.data();
                     updateUI();
+                } else {
+                    console.log("No config found in Firestore");
                 }
+            }, (error) => {
+                console.error("Firestore error:", error);
             });
         }
 
@@ -158,7 +162,11 @@
             const noMedia = document.getElementById('no-media');
             
             if (siteData.videos && siteData.videos.length > 0) {
-                videoElem.src = siteData.videos[0].url;
+                const videoUrl = siteData.videos[0].url;
+                if (videoElem.src !== videoUrl) {
+                    videoElem.src = videoUrl;
+                    videoElem.load();
+                }
                 videoElem.style.display = 'block';
                 bgImage.style.display = 'none';
                 noMedia.style.display = 'none';
@@ -177,8 +185,10 @@
             }
 
             // تحديث الصوت
-            if (siteData.audios && siteData.audios.length > 0 && !audioElem.src) {
-                loadAudio(0);
+            if (siteData.audios && siteData.audios.length > 0) {
+                if (!audioElem.src || (siteData.audios[currentAudioIndex] && audioElem.src !== siteData.audios[currentAudioIndex].url)) {
+                    loadAudio(0);
+                }
             }
         }
 
@@ -187,15 +197,16 @@
             currentAudioIndex = (index + siteData.audios.length) % siteData.audios.length;
             const audio = siteData.audios[currentAudioIndex];
             audioElem.src = audio.url;
+            audioElem.load();
             document.getElementById('track-title').innerText = audio.name || "صوت مضاف";
             document.getElementById('track-artist').innerText = "فنان";
-            if (isPlaying) audioElem.play();
+            if (isPlaying) audioElem.play().catch(e => console.log("Audio play failed:", e));
         }
 
         function togglePlay() {
             const btn = document.getElementById('play-pause-btn');
             if (audioElem.paused) {
-                audioElem.play();
+                audioElem.play().catch(e => console.log("Play failed:", e));
                 btn.innerHTML = '<i class="fas fa-pause"></i>';
             } else {
                 audioElem.pause();
