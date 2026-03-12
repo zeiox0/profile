@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - Abdallah</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="admin-body">
+    <!-- شاشة تسجيل الدخول -->
+    <div id="login-overlay" class="login-overlay">
+        <div class="admin-card glass">
+            <h2>🔐 تسجيل الدخول</h2>
+            <input type="email" id="email" class="admin-input" placeholder="البريد الإلكتروني" autofocus>
+            <input type="password" id="password" class="admin-input" placeholder="كلمة المرور">
+            <button onclick="attemptLogin()" class="admin-btn">🔓 دخول</button>
+            <p id="error-msg" class="error-msg"></p>
+        </div>
+    </div>
+
+    <!-- محتوى لوحة التحكم -->
+    <div id="admin-panel" style="display: none;">
+        <header class="admin-header">
+            <h1>⚙️ لوحة التحكم</h1>
+            <button onclick="logout()" class="logout-btn">تسجيل خروج</button>
+        </header>
+
+        <main class="admin-grid">
+            <!-- البيانات الشخصية -->
+            <section class="admin-card glass">
+                <h3>👤 البيانات الشخصية</h3>
+                <input type="text" id="admin-name" class="admin-input" placeholder="الاسم">
+                <input type="text" id="admin-bio" class="admin-input" placeholder="الوصف (Bio)">
+                <button onclick="saveProfileData()" class="admin-btn">💾 حفظ البيانات</button>
+            </section>
+
+            <!-- إدارة الفيديوهات -->
+            <section class="admin-card glass">
+                <h3>🎬 قائمة تشغيل الفيديو</h3>
+                <div class="input-group">
+                    <input type="text" id="video-url" class="admin-input" placeholder="رابط الفيديو (Direct Link)">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="video-loop"> تكرار الفيديو
+                    </label>
+                    <button onclick="addVideo()" class="admin-btn small">➕ إضافة</button>
+                </div>
+                <div id="video-list" class="media-list"></div>
+            </section>
+
+            <!-- إدارة الصور -->
+            <section class="admin-card glass">
+                <h3>🖼️ معرض الصور</h3>
+                <div class="input-group">
+                    <input type="text" id="image-url" class="admin-input" placeholder="رابط الصورة">
+                    <input type="number" id="image-duration" class="admin-input" placeholder="مدة العرض (ثانية)" value="5">
+                    <button onclick="addImage()" class="admin-btn small">➕ إضافة</button>
+                </div>
+                <div id="image-list" class="media-list"></div>
+            </section>
+
+            <!-- إدارة الصوت -->
+            <section class="admin-card glass">
+                <h3>🎵 قائمة تشغيل الصوت</h3>
+                <div class="input-group">
+                    <input type="text" id="audio-url" class="admin-input" placeholder="رابط الصوت">
+                    <input type="text" id="audio-name" class="admin-input" placeholder="اسم الأغنية">
+                    <input type="text" id="audio-artist" class="admin-input" placeholder="الفنان">
+                    <button onclick="addAudio()" class="admin-btn small">➕ إضافة</button>
+                </div>
+                <div id="audio-list" class="media-list"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

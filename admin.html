@@ -44,6 +44,10 @@
                     <i class="fas fa-user-circle"></i>
                     <span>البروفايل</span>
                 </div>
+                <div class="menu-item" onclick="switchSection('preview-section', this)">
+                    <i class="fas fa-eye"></i>
+                    <span>المعاينة المباشرة</span>
+                </div>
             </nav>
             <div class="sidebar-footer" style="padding: 20px; border-top: 1px solid #333;">
                 <button onclick="logout()" class="admin-btn secondary" style="width: 100%;">تسجيل خروج</button>
@@ -99,16 +103,10 @@
                                 <input type="file" id="audio-file" class="admin-input" accept="audio/*">
                                 <label>أو من رابط صوت:</label>
                                 <input type="text" id="audio-url" class="admin-input" placeholder="رابط ملف mp3">
-                                <label>أو سحب صوت من رابط فيديو:</label>
-                                <input type="text" id="audio-from-video" class="admin-input" placeholder="رابط فيديو">
                                 <button onclick="uploadAudio()" class="admin-btn">إضافة الصوت</button>
-                            </div>
-                        </div>
-                        <div class="admin-card">
-                            <h3>🔍 مكتبة الأصوات</h3>
-                            <input type="text" id="audio-search" class="admin-input" placeholder="بحث في الأصوات...">
-                            <div id="online-audio-results" class="history-list">
-                                <p style="color:#666; text-align:center;">المكتبة فارغة حالياً</p>
+                                <div id="audio-progress" style="display:none; margin-top:10px;">
+                                    <progress value="0" max="100" style="width:100%"></progress>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -117,24 +115,6 @@
                             <h3>📜 تاريخ الأصوات</h3>
                             <div id="audio-history" class="history-list">
                                 <!-- تظهر هنا الأصوات المضافة مسبقاً -->
-                            </div>
-                        </div>
-                        <div class="admin-card">
-                            <h3>⚙️ إعدادات المشغل</h3>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="audio-autoplay"> تشغيل تلقائي
-                            </label>
-                            <label class="checkbox-label" style="margin-right: 20px;">
-                                <input type="checkbox" id="audio-loop"> تكرار
-                            </label>
-                            <div style="margin-top: 15px;">
-                                <label>سرعة التشغيل:</label>
-                                <select id="audio-speed" class="admin-input" style="width: auto; display: inline-block; margin-right: 10px;">
-                                    <option value="0.5">0.5x</option>
-                                    <option value="1" selected>1x (طبيعي)</option>
-                                    <option value="1.5">1.5x</option>
-                                    <option value="2">2x</option>
-                                </select>
                             </div>
                         </div>
                     </div>
@@ -149,9 +129,8 @@
                         <div>
                             <label>الاسم الظاهر:</label>
                             <input type="text" id="admin-name" class="admin-input" placeholder="اسمك">
-                            <label>صورة البروفايل (رابط أو رفع):</label>
+                            <label>صورة البروفايل (رابط):</label>
                             <input type="text" id="admin-avatar-url" class="admin-input" placeholder="رابط الصورة">
-                            <input type="file" id="admin-avatar-file" class="admin-input" accept="image/*">
                         </div>
                         <div>
                             <label>الوصف (Bio):</label>
@@ -167,11 +146,11 @@
                 </div>
 
                 <div class="admin-card">
-                    <h3>🔗 المواقع الاجتماعية (مكتبة كبيرة)</h3>
+                    <h3>🔗 المواقع الاجتماعية</h3>
                     <div class="grid-view" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                         <div>
                             <label>ديسكورد (Discord):</label>
-                            <input type="text" id="social-discord" class="admin-input" placeholder="رابط السيرفر أو اسم المستخدم">
+                            <input type="text" id="social-discord" class="admin-input" placeholder="رابط السيرفر">
                             <label>يوتيوب (YouTube):</label>
                             <input type="text" id="social-youtube" class="admin-input" placeholder="رابط القناة">
                             <label>تويتر/إكس (X):</label>
@@ -187,6 +166,20 @@
                         </div>
                     </div>
                     <button onclick="saveSocialLinks()" class="admin-btn">💾 حفظ الروابط</button>
+                </div>
+            </section>
+
+            <!-- قسم المعاينة المباشرة (Live Preview) -->
+            <section id="preview-section" class="admin-section">
+                <div class="admin-card">
+                    <h3>👁️ المعاينة المباشرة (Live Preview)</h3>
+                    <p style="margin-bottom: 15px; color: #aaa;">هنا يمكنك رؤية كيف سيظهر موقعك للزوار بعد التعديلات الحالية.</p>
+                    <div class="preview-container" style="position: relative; width: 100%; height: 600px; border: 2px solid #333; border-radius: 10px; overflow: hidden; background: #000;">
+                        <iframe id="live-preview-frame" src="index.html" style="width: 100%; height: 100%; border: none;"></iframe>
+                    </div>
+                    <div style="margin-top: 15px; text-align: center;">
+                        <button onclick="updateLivePreview()" class="admin-btn secondary"><i class="fas fa-sync"></i> تحديث المعاينة</button>
+                    </div>
                 </div>
             </section>
         </main>
