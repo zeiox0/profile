@@ -195,6 +195,18 @@
     </div>
 
     <script src="config.js"></script>
-    <script src="admin.js"></script>
+    <script>
+        // التأكد من تهيئة السيرفرات قبل تحميل admin.js
+        console.log("Checking services initialization...");
+        const checkInit = setInterval(() => {
+            if (typeof db !== 'undefined' && typeof supabaseClient !== 'undefined') {
+                console.log("Services ready, loading admin logic...");
+                clearInterval(checkInit);
+                const script = document.createElement('script');
+                script.src = 'admin.js';
+                document.body.appendChild(script);
+            }
+        }, 100);
+    </script>
 </body>
 </html>
