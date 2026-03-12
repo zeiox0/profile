@@ -96,16 +96,30 @@
     <audio id="main-audio" preload="auto"></audio>
 
     <script src="config.js"></script>
+    <script src="security.js"></script>
     <script>
         // متغيرات عامة
         let siteData = {};
         let currentAudioIndex = 0;
         let isPlaying = false;
+        let firebaseReady = false;
 
         // عناصر DOM
         const audioElem = document.getElementById('main-audio');
         const enterScreen = document.getElementById('enter-screen');
         const mainContent = document.getElementById('main-content');
+
+        // التحقق من تحميل Firebase
+        function checkFirebaseReady() {
+            if (typeof db === 'undefined' || typeof auth === 'undefined') {
+                console.error("Firebase not initialized yet");
+                setTimeout(checkFirebaseReady, 500);
+                return;
+            }
+            firebaseReady = true;
+            console.log("Firebase initialized successfully");
+            loadData();
+        }
 
         // دالة الدخول
         function handleEnter() {
@@ -134,18 +148,28 @@
         function loadData() {
             if (typeof db === 'undefined') {
                 console.error("Firebase not initialized");
+                document.getElementById('user-bio').innerText = "خطأ في تحميل البيانات";
                 return;
             }
 
-            db.collection('siteData').doc('config').onSnapshot((doc) => {
-                if (doc.exists) {
-                    siteData = doc.data();
-                    console.log("Data loaded:", siteData);
-                    updateUI();
-                }
-            }, (error) => {
-                console.error("Error:", error);
-            });
+            try {
+                db.collection('siteData').doc('config').onSnapshot((doc) => {
+                    if (doc.exists) {
+                        siteData = doc.data();
+                        console.log("Data loaded:", siteData);
+                        updateUI();
+                    } else {
+                        console.warn("No data found in Firestore");
+                        document.getElementById('user-bio').innerText = "لم يتم العثور على بيانات";
+                    }
+                }, (error) => {
+                    console.error("Error loading data:", error);
+                    document.getElementById('user-bio').innerText = "خطأ: " + error.message;
+                });
+            } catch (err) {
+                console.error("Exception in loadData:", err);
+                document.getElementById('user-bio').innerText = "خطأ: " + err.message;
+            }
         }
 
         function updateUI() {
@@ -250,7 +274,7 @@
         // تحميل البيانات عند التحميل
         window.addEventListener('load', () => {
             console.log("Page loaded");
-            loadData();
+            checkFirebaseReady();
         });
     </script>
 </body>
