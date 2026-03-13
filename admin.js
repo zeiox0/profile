@@ -4,15 +4,34 @@ let currentData = {
     profile: { name: "Abdallah", bio: "Hi I 👋", avatar: "", visibility: "public", social: {} }
 };
 
-// وظيفة لانتظار تهيئة سوبابيس
+// وظيفة لانتظار تهيئة سوبابيس مع محاولة إنشائه إذا لم يكن موجوداً
 async function waitForSupabase() {
     let attempts = 0;
-    while (!window.supabaseClient && attempts < 10) {
+    while (attempts < 20) {
+        // إذا كان الـ client موجوداً، نعود بنجاح
+        if (window.supabaseClient) {
+            return true;
+        }
+        
+        // محاولة إنشاء الـ client إذا كانت المكتبة متاحة
+        if (typeof supabase !== 'undefined' && supabase.createClient) {
+            try {
+                window.supabaseClient = supabase.createClient(
+                    "https://mtdevelmgoinumifpcpb.supabase.co",
+                    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10ZGV2ZWxtZ29pbnVtaWZwY3BiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3NzM0MTMsImV4cCI6MjA4ODM0OTQxM30.xronBSbgZPVd79VDTEoLuB3XsCwQwGfB_uCW2hPIlMQ"
+                );
+                console.log("Supabase client created in waitForSupabase");
+                return true;
+            } catch(e) {
+                console.error("Failed to create Supabase client:", e);
+            }
+        }
+        
         console.log("Waiting for Supabase client... attempt", attempts + 1);
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 300));
         attempts++;
     }
-    return !!window.supabaseClient;
+    return false;
 }
 
 function switchSection(sectionId, element) {
@@ -117,12 +136,6 @@ function removeItem(type, index) {
 }
 
 async function uploadMedia(type) {
-    const isSupabaseReady = await waitForSupabase();
-    if (!isSupabaseReady) {
-        alert("❌ خطأ: لم يتم تحميل سوبابيس. يرجى تحديث الصفحة.");
-        return;
-    }
-
     const fileInput = document.getElementById(`${type}-file`);
     const urlInput = document.getElementById(`${type}-url`);
     const statusMsg = document.getElementById(`${type}-status-msg`);
@@ -133,15 +146,24 @@ async function uploadMedia(type) {
     let mediaName = "ميديا من رابط";
 
     if (fileInput && fileInput.files.length > 0) {
+        // رفع ملف - نحتاج Supabase
+        if(statusMsg) { statusMsg.innerText = "جاري التحضير..."; statusMsg.style.color = "#aaa"; }
+        
+        const isSupabaseReady = await waitForSupabase();
+        if (!isSupabaseReady) {
+            if(statusMsg) { statusMsg.innerText = "❌ خطأ: فشل الاتصال بخادم الرفع. يرجى تحديث الصفحة والمحاولة مجدداً."; statusMsg.style.color = "#ff4d4d"; }
+            return;
+        }
+
         const file = fileInput.files[0];
         const maxSize = 50 * 1024 * 1024;
         if (file.size > maxSize) {
-            if(statusMsg) statusMsg.innerText = "❌ الحجم كبير جداً (أقصى حد 50MB)";
+            if(statusMsg) { statusMsg.innerText = "❌ الحجم كبير جداً (أقصى حد 50MB)"; statusMsg.style.color = "#ff4d4d"; }
             return;
         }
         
         mediaName = file.name;
-        if(statusMsg) statusMsg.innerText = "جاري الرفع...";
+        if(statusMsg) { statusMsg.innerText = "جاري الرفع..."; statusMsg.style.color = "#aaa"; }
         if(progressDiv) progressDiv.style.display = 'block';
         if(progressBar) progressBar.value = 20;
         
@@ -164,14 +186,19 @@ async function uploadMedia(type) {
             } else {
                 await saveMedia(`${type}s`, { url: mediaUrl, name: mediaName, timestamp: Date.now() });
             }
-            if(statusMsg) statusMsg.innerText = "✅ نجح الرفع!";
-            setTimeout(() => { if(progressDiv) progressDiv.style.display = 'none'; }, 2000);
+            if(statusMsg) { statusMsg.innerText = "✅ نجح الرفع!"; statusMsg.style.color = "#00ff88"; }
+            setTimeout(() => { 
+                if(progressDiv) progressDiv.style.display = 'none';
+                if(statusMsg) statusMsg.innerText = '';
+            }, 3000);
             fileInput.value = '';
         } catch (err) {
-            if(statusMsg) statusMsg.innerText = "❌ خطأ: " + err.message;
-            console.error(err);
+            if(statusMsg) { statusMsg.innerText = "❌ خطأ في الرفع: " + err.message; statusMsg.style.color = "#ff4d4d"; }
+            if(progressDiv) progressDiv.style.display = 'none';
+            console.error("Upload error:", err);
         }
     } else if (mediaUrl) {
+        // إضافة من رابط - لا تحتاج Supabase
         if (type === 'avatar') {
             const profile = { ...currentData.profile, avatar: mediaUrl };
             await db.collection('siteData').doc('config').update({ profile });
@@ -179,7 +206,10 @@ async function uploadMedia(type) {
             await saveMedia(`${type}s`, { url: mediaUrl, name: mediaName, timestamp: Date.now() });
         }
         if(urlInput) urlInput.value = '';
-        if(statusMsg) statusMsg.innerText = "✅ تم الإضافة!";
+        if(statusMsg) { statusMsg.innerText = "✅ تم الإضافة!"; statusMsg.style.color = "#00ff88"; }
+        setTimeout(() => { if(statusMsg) statusMsg.innerText = ''; }, 3000);
+    } else {
+        if(statusMsg) { statusMsg.innerText = "⚠️ يرجى اختيار ملف أو إدخال رابط"; statusMsg.style.color = "#ffaa00"; }
     }
 }
 
@@ -225,3 +255,13 @@ function updateLivePreview() {
 }
 
 function logout() { auth.signOut().then(() => location.reload()); }
+
+// إضافة مستمع لحدث Enter في شاشة الدخول
+document.addEventListener('DOMContentLoaded', () => {
+    const passInput = document.getElementById('password');
+    if (passInput) {
+        passInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') attemptLogin();
+        });
+    }
+});

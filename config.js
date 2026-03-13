@@ -28,14 +28,36 @@ if (typeof firebase !== 'undefined') {
     console.log("Firebase initialized");
 }
 
-// تهيئة سوبابيس فوراً
-if (typeof supabase !== 'undefined') {
+// دالة تهيئة سوبابيس - تُستدعى عند الحاجة أو عند التأكد من تحميل المكتبة
+function initSupabaseClient() {
     try {
-        window.supabaseClient = supabase.createClient(supabaseConfig.url, supabaseConfig.key);
-        console.log("Supabase Client Initialized:", window.supabaseClient);
+        if (typeof supabase !== 'undefined' && supabase.createClient) {
+            window.supabaseClient = supabase.createClient(supabaseConfig.url, supabaseConfig.key);
+            console.log("Supabase Client Initialized successfully");
+            return true;
+        } else {
+            console.warn("Supabase library not ready yet");
+            return false;
+        }
     } catch (e) {
         console.error("Supabase initialization error:", e);
+        return false;
     }
-} else {
-    console.error("Supabase library is missing! Check script tags in HTML.");
+}
+
+// محاولة التهيئة الفورية
+if (!initSupabaseClient()) {
+    // إذا فشلت، ننتظر تحميل الصفحة كاملاً
+    window.addEventListener('load', function() {
+        if (!window.supabaseClient) {
+            initSupabaseClient();
+        }
+    });
+    
+    // محاولة إضافية بعد 500ms
+    setTimeout(function() {
+        if (!window.supabaseClient) {
+            initSupabaseClient();
+        }
+    }, 500);
 }
