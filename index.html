@@ -168,24 +168,33 @@
             const noMedia = document.getElementById('no-media');
             
             if (siteData.videos && siteData.videos.length > 0) {
-                const videoUrl = siteData.videos[0].url;
+                let videoUrl = siteData.videos[0].url;
                 
                 // التحقق من أن الرابط صحيح وليس فارغاً
                 if (videoUrl && videoUrl.trim() !== '') {
                     // التحقق من أن الرابط يبدأ بـ http أو https
                     if (videoUrl.startsWith('http://') || videoUrl.startsWith('https://')) {
+                        // إضافة timestamp للرابط إذا كان من supabase لتجنب الكاش
+                        if (videoUrl.includes('supabase.co')) {
+                            videoUrl = videoUrl.includes('?') ? `${videoUrl}&v=${Date.now()}` : `${videoUrl}?v=${Date.now()}`;
+                        }
+
                         if (videoElem.getAttribute('data-src') !== videoUrl) {
                             videoElem.setAttribute('data-src', videoUrl);
                             videoElem.src = videoUrl;
                             videoElem.load();
-                            console.log("Video loaded successfully:", videoUrl);
+                            console.log("Video loading attempt:", videoUrl);
                         }
                         videoElem.style.display = 'block';
                         bgImage.style.display = 'none';
                         noMedia.style.display = 'none';
-                        if (isPlaying) {
-                            videoElem.play().catch(e => console.log("Video play failed:", e));
-                        }
+                        
+                        // محاولة التشغيل التلقائي بعد التحميل
+                        videoElem.oncanplay = () => {
+                            if (isPlaying) {
+                                videoElem.play().catch(e => console.log("Video play failed:", e));
+                            }
+                        };
                     } else {
                         console.error("Invalid video URL:", videoUrl);
                         videoElem.style.display = 'none';

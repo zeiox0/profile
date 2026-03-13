@@ -205,24 +205,30 @@ async function uploadMedia(type) {
                 throw new Error("Supabase client not initialized. Please refresh the page.");
             }
 
+            console.log("Uploading to bucket:", bucketName, "File:", fileName);
             const { data, error } = await window.supabaseClient.storage
                 .from(bucketName)
                 .upload(fileName, file, {
                     cacheControl: '3600',
-                    upsert: false
+                    upsert: true
                 });
 
             if (error) {
-                console.error("Supabase Upload Error:", error);
-                throw new Error(`Supabase Error: ${error.message}`);
+                console.error("Supabase Upload Error Details:", error);
+                throw new Error(`Supabase Error: ${error.message || JSON.stringify(error)}`);
             }
 
             if(progressBar) progressBar.value = 80;
-            console.log("Supabase upload success:", data);
+            console.log("Supabase upload success data:", data);
             
             // الحصول على الرابط العام للملف
             const { data: urlData } = window.supabaseClient.storage.from(bucketName).getPublicUrl(fileName);
             mediaUrl = urlData.publicUrl;
+            
+            // التأكد من أن الرابط يعمل (إضافة timestamp لتجنب الكاش)
+            if (mediaUrl) {
+                mediaUrl = mediaUrl.includes('?') ? `${mediaUrl}&t=${Date.now()}` : `${mediaUrl}?t=${Date.now()}`;
+            }
             
             if (!mediaUrl) {
                 throw new Error("Failed to get public URL from Supabase");
