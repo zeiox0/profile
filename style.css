@@ -120,6 +120,7 @@ body, html {
     justify-content: center;
     align-items: center;
     padding: 20px;
+    overflow-y: auto; /* السماح بالتمرير في الشاشات الصغيرة */
 }
 
 .profile-card {
@@ -158,52 +159,11 @@ body, html {
     color: #00bfff;
 }
 
-.user-link {
-    font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.4);
-    margin-top: 5px;
-}
-
-/* تطبيقات مرتبطة */
-.apps-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    margin-bottom: 30px;
-}
-
-.app-card {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 15px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.app-card:hover {
-    background: rgba(255, 255, 255, 0.08);
-    transform: translateY(-3px);
-}
-
-.app-card i {
-    font-size: 1.5rem;
-    color: #00ff88;
-}
-
-.app-details h5 {
-    font-size: 0.9rem;
-}
-
-.app-details p {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.4);
-}
-
 /* روابط اجتماعية */
 .social-icons {
     display: flex;
     justify-content: center;
+    flex-wrap: wrap; /* السماح بالتفاف الأيقونات في الشاشات الصغيرة */
     gap: 20px;
     margin-bottom: 25px;
 }
@@ -361,16 +321,93 @@ body, html {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* العرض المتجاوب */
+/* --- العرض المتجاوب للهواتف (Responsive) --- */
 @media (max-width: 650px) {
-    .profile-card { padding: 25px; }
-    .apps-grid { grid-template-columns: 1fr; }
-    .advanced-player { flex-direction: column; gap: 20px; }
-    .player-left, .player-center, .player-right { width: 100%; justify-content: center; text-align: center; }
-    .player-left { flex-direction: column; }
+    body, html {
+        overflow-y: auto; /* السماح بالتمرير في الهاتف */
+    }
+
+    .profile-wrapper {
+        height: auto;
+        padding: 40px 15px;
+        justify-content: flex-start;
+    }
+
+    .profile-card {
+        padding: 25px 20px;
+        margin-bottom: 20px;
+        border-radius: 15px;
+    }
+
+    .profile-header {
+        flex-direction: column; /* ترتيب رأسي في الهاتف */
+        text-align: center;
+        gap: 15px;
+    }
+
+    .avatar-container img {
+        width: 90px;
+        height: 90px;
+    }
+
+    .user-info h1 {
+        font-size: 1.6rem;
+    }
+
+    .badges {
+        justify-content: center;
+    }
+
+    .social-icons {
+        gap: 12px;
+    }
+
+    .social-icons a {
+        width: 45px;
+        height: 45px;
+        font-size: 1.3rem;
+    }
+
+    /* تعديل مشغل الموسيقى للهاتف */
+    .advanced-player {
+        flex-direction: column;
+        gap: 15px;
+        padding: 20px;
+        border-radius: 15px;
+    }
+
+    .player-left, .player-center, .player-right {
+        width: 100%;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .player-left {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .player-left img {
+        width: 50px;
+        height: 50px;
+    }
+
+    .player-controls {
+        gap: 25px;
+    }
+
+    .player-right {
+        display: none; /* إخفاء التحكم في الصوت في الهاتف لتوفير المساحة */
+    }
+
+    .enter-btn-minimal {
+        padding: 12px 30px;
+        font-size: 1rem;
+        letter-spacing: 3px;
+    }
 }
 
-/* لوحة التحكم المطورة - المظهر الكلاسيكي المتوافق */
+/* لوحة التحكم المطورة */
 .admin-layout {
     display: flex;
     height: 100vh;
@@ -471,11 +508,16 @@ body, html {
     color: #fff;
 }
 
-/* تقسيم المحتوى (نصفين) */
 .split-view {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
+}
+
+@media (max-width: 850px) {
+    .admin-layout { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid #333; }
+    .split-view { grid-template-columns: 1fr; }
 }
 
 .history-list {
