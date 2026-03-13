@@ -169,16 +169,34 @@
             
             if (siteData.videos && siteData.videos.length > 0) {
                 const videoUrl = siteData.videos[0].url;
-                if (videoElem.getAttribute('data-src') !== videoUrl) {
-                    videoElem.setAttribute('data-src', videoUrl);
-                    videoElem.src = videoUrl;
-                    videoElem.load();
-                }
-                videoElem.style.display = 'block';
-                bgImage.style.display = 'none';
-                noMedia.style.display = 'none';
-                if (isPlaying) {
-                    videoElem.play().catch(e => console.log("Video play failed:", e));
+                
+                // التحقق من أن الرابط صحيح وليس فارغاً
+                if (videoUrl && videoUrl.trim() !== '') {
+                    // التحقق من أن الرابط يبدأ بـ http أو https
+                    if (videoUrl.startsWith('http://') || videoUrl.startsWith('https://')) {
+                        if (videoElem.getAttribute('data-src') !== videoUrl) {
+                            videoElem.setAttribute('data-src', videoUrl);
+                            videoElem.src = videoUrl;
+                            videoElem.load();
+                            console.log("Video loaded successfully:", videoUrl);
+                        }
+                        videoElem.style.display = 'block';
+                        bgImage.style.display = 'none';
+                        noMedia.style.display = 'none';
+                        if (isPlaying) {
+                            videoElem.play().catch(e => console.log("Video play failed:", e));
+                        }
+                    } else {
+                        console.error("Invalid video URL:", videoUrl);
+                        videoElem.style.display = 'none';
+                        bgImage.style.display = 'none';
+                        noMedia.style.display = 'block';
+                    }
+                } else {
+                    console.warn("Video URL is empty");
+                    videoElem.style.display = 'none';
+                    bgImage.style.display = 'none';
+                    noMedia.style.display = 'block';
                 }
             } else if (profile.avatar) {
                 videoElem.style.display = 'none';

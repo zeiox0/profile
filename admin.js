@@ -145,6 +145,21 @@ function replayMedia(type, index) {
     .then(() => alert("✅ تم إعادة تفعيل الميديا المختارة!"));
 }
 
+// دالة للتحقق من نوع الملف
+function isValidVideoFile(file) {
+    const validVideoTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime', 'video/x-msvideo'];
+    const validExtensions = ['.mp4', '.webm', '.ogv', '.mov', '.avi', '.mkv', '.flv', '.wmv'];
+    
+    // التحقق من نوع MIME
+    if (validVideoTypes.includes(file.type)) {
+        return true;
+    }
+    
+    // التحقق من الامتداد إذا لم يكن نوع MIME معروفاً
+    const fileName = file.name.toLowerCase();
+    return validExtensions.some(ext => fileName.endsWith(ext));
+}
+
 async function uploadMedia(type) {
     const fileInput = document.getElementById(`${type}-file`);
     const urlInput = document.getElementById(`${type}-url`);
@@ -157,17 +172,38 @@ async function uploadMedia(type) {
 
     if (fileInput && fileInput.files.length > 0) {
         const file = fileInput.files[0];
+        
+        // التحقق من نوع الملف للفيديو
+        if (type === 'video' && !isValidVideoFile(file)) {
+            if(statusMsg) statusMsg.innerText = "❌ خطأ: الملف يجب أن يكون فيديو صحيح (mp4, webm, ogv, mov, avi, mkv, flv, wmv)";
+            console.error("Invalid video file type:", file.type, file.name);
+            return;
+        }
+        
+        // التحقق من حجم الملف (حد أقصى 500 MB)
+        const maxSize = 500 * 1024 * 1024;
+        if (file.size > maxSize) {
+            if(statusMsg) statusMsg.innerText = "❌ خطأ: حجم الملف كبير جداً (الحد الأقصى 500 MB)";
+            console.error("File size too large:", file.size);
+            return;
+        }
+        
         mediaName = file.name;
         if(statusMsg) statusMsg.innerText = "جاري الرفع إلى السيرفر...";
         if(progressDiv) progressDiv.style.display = 'block';
         if(progressBar) progressBar.value = 10;
         
         try {
-            console.log(`Starting upload for ${type}:`, file.name);
+            console.log(`Starting upload for ${type}:`, file.name, "Size:", file.size, "Type:", file.type);
             const fileName = `${type}_${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
             const bucketName = 'Abdallah';
 
             if(progressBar) progressBar.value = 30;
+
+            // التحقق من وجود Supabase client
+            if (!window.supabaseClient) {
+                throw new Error("Supabase client not initialized. Please refresh the page.");
+            }
 
             const { data, error } = await window.supabaseClient.storage
                 .from(bucketName)
@@ -178,13 +214,21 @@ async function uploadMedia(type) {
 
             if (error) {
                 console.error("Supabase Upload Error:", error);
-                throw error;
+                throw new Error(`Supabase Error: ${error.message}`);
             }
 
             if(progressBar) progressBar.value = 80;
             console.log("Supabase upload success:", data);
+            
+            // الحصول على الرابط العام للملف
             const { data: urlData } = window.supabaseClient.storage.from(bucketName).getPublicUrl(fileName);
             mediaUrl = urlData.publicUrl;
+            
+            if (!mediaUrl) {
+                throw new Error("Failed to get public URL from Supabase");
+            }
+            
+            console.log("Public URL obtained:", mediaUrl);
             
             if(progressBar) progressBar.value = 100;
             
@@ -207,6 +251,12 @@ async function uploadMedia(type) {
             console.error('Upload Error:', err);
         }
     } else if (mediaUrl) {
+        // التحقق من أن الرابط صحيح
+        if (!mediaUrl.startsWith('http://') && !mediaUrl.startsWith('https://')) {
+            if(statusMsg) statusMsg.innerText = "❌ خطأ: الرابط يجب أن يبدأ بـ http:// أو https://";
+            return;
+        }
+        
         if (type === 'avatar') {
             const profile = {
                 ...currentData.profile,
