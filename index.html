@@ -23,9 +23,9 @@
     <div id="main-content" class="main-content blurred">
         <!-- خلفية الوسائط (فيديو أو صورة) -->
         <div id="media-background" class="media-background">
-            <video id="bg-video" playsinline muted preload="auto" loop style="display: none;"></video>
-            <div id="bg-image" class="bg-image" style="display: none; background-size: cover; background-position: center;"></div>
-            <div id="no-media" class="no-media" style="display: none;">
+            <video id="bg-video" playsinline muted preload="auto" loop style="display: none; width: 100%; height: 100%; object-fit: cover; position: fixed; top: 0; left: 0; z-index: -1;"></video>
+            <div id="bg-image" class="bg-image" style="display: none; background-size: cover; background-position: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;"></div>
+            <div id="no-media" class="no-media" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: #000; display: flex; align-items: center; justify-content: center; color: #333;">
                 <p>لا يوجد محتوى لعرضه</p>
             </div>
         </div>
@@ -163,59 +163,26 @@
                 }
             }
 
-            // تحديث الخلفية (أول فيديو في القائمة)
+            // تحديث الخلفية
             const bgImage = document.getElementById('bg-image');
             const noMedia = document.getElementById('no-media');
             
             if (siteData.videos && siteData.videos.length > 0) {
-                let videoUrl = siteData.videos[0].url;
-                
-                // التحقق من أن الرابط صحيح وليس فارغاً
-                if (videoUrl && videoUrl.trim() !== '') {
-                    // التحقق من أن الرابط يبدأ بـ http أو https
-                    if (videoUrl.startsWith('http://') || videoUrl.startsWith('https://')) {
-                        // إضافة timestamp للرابط إذا كان من supabase لتجنب الكاش
-                        if (videoUrl.includes('supabase.co')) {
-                            videoUrl = videoUrl.includes('?') ? `${videoUrl}&v=${Date.now()}` : `${videoUrl}?v=${Date.now()}`;
-                        }
-
-                        if (videoElem.getAttribute('data-src') !== videoUrl) {
-                            videoElem.setAttribute('data-src', videoUrl);
-                            videoElem.src = videoUrl;
-                            videoElem.load();
-                            console.log("Video loading attempt:", videoUrl);
-                        }
-                        videoElem.style.display = 'block';
-                        bgImage.style.display = 'none';
-                        noMedia.style.display = 'none';
-                        
-                        // محاولة التشغيل التلقائي بعد التحميل
-                        videoElem.oncanplay = () => {
-                            if (isPlaying) {
-                                videoElem.play().catch(e => console.log("Video play failed:", e));
-                            }
-                        };
-                    } else {
-                        console.error("Invalid video URL:", videoUrl);
-                        videoElem.style.display = 'none';
-                        bgImage.style.display = 'none';
-                        noMedia.style.display = 'block';
+                const videoUrl = siteData.videos[0].url;
+                if (videoUrl && videoUrl.startsWith('http')) {
+                    if (videoElem.src !== videoUrl) {
+                        videoElem.src = videoUrl;
+                        videoElem.load();
                     }
-                } else {
-                    console.warn("Video URL is empty");
-                    videoElem.style.display = 'none';
+                    videoElem.style.display = 'block';
                     bgImage.style.display = 'none';
-                    noMedia.style.display = 'block';
+                    noMedia.style.display = 'none';
+                    if (isPlaying) videoElem.play().catch(e => console.log("Video play failed:", e));
+                } else {
+                    showAvatarAsBg(profile, bgImage, noMedia);
                 }
-            } else if (profile.avatar) {
-                videoElem.style.display = 'none';
-                bgImage.style.display = 'block';
-                bgImage.style.backgroundImage = `url('${profile.avatar}')`;
-                noMedia.style.display = 'none';
             } else {
-                videoElem.style.display = 'none';
-                bgImage.style.display = 'none';
-                noMedia.style.display = 'block';
+                showAvatarAsBg(profile, bgImage, noMedia);
             }
 
             // تحديث الصوت
@@ -224,6 +191,18 @@
                 if (!audioElem.src || audioElem.getAttribute('data-src') !== currentUrl) {
                     loadAudio(0);
                 }
+            }
+        }
+
+        function showAvatarAsBg(profile, bgImage, noMedia) {
+            videoElem.style.display = 'none';
+            if (profile.avatar) {
+                bgImage.style.display = 'block';
+                bgImage.style.backgroundImage = `url('${profile.avatar}')`;
+                noMedia.style.display = 'none';
+            } else {
+                bgImage.style.display = 'none';
+                noMedia.style.display = 'block';
             }
         }
 

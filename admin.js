@@ -145,19 +145,16 @@ function replayMedia(type, index) {
     .then(() => alert("✅ تم إعادة تفعيل الميديا المختارة!"));
 }
 
-// دالة للتحقق من نوع الملف
-function isValidVideoFile(file) {
-    const validVideoTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime', 'video/x-msvideo'];
-    const validExtensions = ['.mp4', '.webm', '.ogv', '.mov', '.avi', '.mkv', '.flv', '.wmv'];
-    
-    // التحقق من نوع MIME
-    if (validVideoTypes.includes(file.type)) {
-        return true;
-    }
-    
-    // التحقق من الامتداد إذا لم يكن نوع MIME معروفاً
-    const fileName = file.name.toLowerCase();
-    return validExtensions.some(ext => fileName.endsWith(ext));
+// دالة للتحقق من نوع الملف وتوافقه مع Supabase
+function isValidFile(file, type) {
+    const validVideoTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+    const validAudioTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg'];
+    const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+    if (type === 'video') return validVideoTypes.includes(file.type) || file.name.toLowerCase().endsWith('.mp4');
+    if (type === 'audio') return validAudioTypes.includes(file.type) || file.name.toLowerCase().endsWith('.mp3');
+    if (type === 'avatar') return validImageTypes.includes(file.type);
+    return false;
 }
 
 async function uploadMedia(type) {
@@ -173,18 +170,17 @@ async function uploadMedia(type) {
     if (fileInput && fileInput.files.length > 0) {
         const file = fileInput.files[0];
         
-        // التحقق من نوع الملف للفيديو
-        if (type === 'video' && !isValidVideoFile(file)) {
-            if(statusMsg) statusMsg.innerText = "❌ خطأ: الملف يجب أن يكون فيديو صحيح (mp4, webm, ogv, mov, avi, mkv, flv, wmv)";
-            console.error("Invalid video file type:", file.type, file.name);
+        // التحقق من نوع الملف
+        if (!isValidFile(file, type)) {
+            let allowed = type === 'video' ? "mp4, webm" : (type === 'audio' ? "mp3" : "jpg, png, gif");
+            if(statusMsg) statusMsg.innerText = `❌ خطأ: نوع الملف غير مدعوم. المسموح: ${allowed}`;
             return;
         }
         
-        // التحقق من حجم الملف (حد أقصى 500 MB)
-        const maxSize = 500 * 1024 * 1024;
+        // التحقق من حجم الملف (الحد الأقصى لـ Supabase في هذا المشروع هو 50 MB)
+        const maxSize = 50 * 1024 * 1024; 
         if (file.size > maxSize) {
-            if(statusMsg) statusMsg.innerText = "❌ خطأ: حجم الملف كبير جداً (الحد الأقصى 500 MB)";
-            console.error("File size too large:", file.size);
+            if(statusMsg) statusMsg.innerText = "❌ خطأ: حجم الملف كبير جداً (الحد الأقصى 50 MB)";
             return;
         }
         
@@ -194,56 +190,31 @@ async function uploadMedia(type) {
         if(progressBar) progressBar.value = 10;
         
         try {
-            console.log(`Starting upload for ${type}:`, file.name, "Size:", file.size, "Type:", file.type);
             const fileName = `${type}_${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
             const bucketName = 'Abdallah';
 
+            if (!window.supabaseClient) throw new Error("Supabase client not initialized.");
+
             if(progressBar) progressBar.value = 30;
 
-            // التحقق من وجود Supabase client
-            if (!window.supabaseClient) {
-                throw new Error("Supabase client not initialized. Please refresh the page.");
-            }
-
-            console.log("Uploading to bucket:", bucketName, "File:", fileName);
             const { data, error } = await window.supabaseClient.storage
                 .from(bucketName)
-                .upload(fileName, file, {
-                    cacheControl: '3600',
-                    upsert: true
-                });
+                .upload(fileName, file, { cacheControl: '3600', upsert: true });
 
-            if (error) {
-                console.error("Supabase Upload Error Details:", error);
-                throw new Error(`Supabase Error: ${error.message || JSON.stringify(error)}`);
-            }
+            if (error) throw error;
 
             if(progressBar) progressBar.value = 80;
-            console.log("Supabase upload success data:", data);
             
-            // الحصول على الرابط العام للملف
             const { data: urlData } = window.supabaseClient.storage.from(bucketName).getPublicUrl(fileName);
             mediaUrl = urlData.publicUrl;
             
-            // التأكد من أن الرابط يعمل (إضافة timestamp لتجنب الكاش)
-            if (mediaUrl) {
-                mediaUrl = mediaUrl.includes('?') ? `${mediaUrl}&t=${Date.now()}` : `${mediaUrl}?t=${Date.now()}`;
-            }
-            
-            if (!mediaUrl) {
-                throw new Error("Failed to get public URL from Supabase");
-            }
-            
-            console.log("Public URL obtained:", mediaUrl);
-            
+            if (!mediaUrl) throw new Error("Failed to get public URL");
+
             if(progressBar) progressBar.value = 100;
             
             if (type === 'avatar') {
                 document.getElementById('admin-avatar-url').value = mediaUrl;
-                const profile = {
-                    ...currentData.profile,
-                    avatar: mediaUrl
-                };
+                const profile = { ...currentData.profile, avatar: mediaUrl };
                 await db.collection('siteData').doc('config').update({ profile });
             } else {
                 await saveMedia(`${type}s`, { url: mediaUrl, name: mediaName, timestamp: Date.now() });
@@ -253,21 +224,17 @@ async function uploadMedia(type) {
             setTimeout(() => { if(progressDiv) progressDiv.style.display = 'none'; }, 2000);
             fileInput.value = '';
         } catch (err) {
-            if(statusMsg) statusMsg.innerText = "❌ خطأ في الرفع: " + err.message;
+            if(statusMsg) statusMsg.innerText = "❌ خطأ: " + (err.message || "حدث خطأ أثناء الرفع");
             console.error('Upload Error:', err);
         }
     } else if (mediaUrl) {
-        // التحقق من أن الرابط صحيح
-        if (!mediaUrl.startsWith('http://') && !mediaUrl.startsWith('https://')) {
-            if(statusMsg) statusMsg.innerText = "❌ خطأ: الرابط يجب أن يبدأ بـ http:// أو https://";
+        if (!mediaUrl.startsWith('http')) {
+            if(statusMsg) statusMsg.innerText = "❌ خطأ: الرابط غير صحيح";
             return;
         }
         
         if (type === 'avatar') {
-            const profile = {
-                ...currentData.profile,
-                avatar: mediaUrl
-            };
+            const profile = { ...currentData.profile, avatar: mediaUrl };
             await db.collection('siteData').doc('config').update({ profile });
         } else {
             await saveMedia(`${type}s`, { url: mediaUrl, name: mediaName, timestamp: Date.now() });
@@ -285,10 +252,8 @@ function uploadAvatar() { uploadMedia('avatar'); }
 
 async function saveMedia(type, item) {
     const list = currentData[type] || [];
-    // منع التكرار بناءً على الرابط
     const exists = list.some(i => i.url === item.url);
     if (exists) {
-        // إذا كان موجوداً، انقله للمقدمة
         const index = list.findIndex(i => i.url === item.url);
         list.splice(index, 1);
     }
@@ -310,19 +275,15 @@ function removeItem(type, index) {
 }
 
 function saveProfileData() {
-    const avatarUrl = document.getElementById('admin-avatar-url').value;
     const profile = {
         ...currentData.profile,
         name: document.getElementById('admin-name').value,
         bio: document.getElementById('admin-bio').value,
-        avatar: avatarUrl,
-        visibility: document.getElementById('profile-visibility').value,
-        social: currentData.profile.social || {}
+        avatar: document.getElementById('admin-avatar-url').value,
+        visibility: document.getElementById('profile-visibility').value
     };
     db.collection('siteData').doc('config').update({ profile })
-    .then(() => {
-        alert("✅ تم حفظ بيانات البروفايل!");
-    });
+    .then(() => alert("✅ تم حفظ بيانات البروفايل!"));
 }
 
 function saveSocialLinks() {
