@@ -111,7 +111,7 @@ function renderHistory(containerId, list, type) {
     if (!container) return;
     container.innerHTML = '';
     
-    if (list.length === 0) {
+    if (!list || list.length === 0) {
         container.innerHTML = '<p style="color:#666; text-align:center; padding:20px;">لا يوجد تاريخ مضاف</p>';
         return;
     }
@@ -120,9 +120,9 @@ function renderHistory(containerId, list, type) {
         const div = document.createElement('div');
         div.className = 'history-item';
         div.innerHTML = `
-            <div style="display:flex; align-items:center; gap:10px;">
+            <div style="display:flex; align-items:center; gap:10px; flex:1; overflow:hidden;">
                 <i class="${type === 'videos' ? 'fas fa-video' : 'fas fa-music'}"></i>
-                <span title="${item.url}">${item.name || 'Unnamed'}</span>
+                <span title="${item.url}" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name || 'Unnamed'}</span>
             </div>
             <div style="display:flex; gap:5px;">
                 <button onclick="replayMedia('${type}', ${index})" title="إعادة تشغيل" style="background:none; border:none; color:#00ff88; cursor:pointer;">
@@ -137,16 +137,14 @@ function renderHistory(containerId, list, type) {
     });
 }
 
-// ميزة إعادة تشغيل الوسائط القديمة (جعلها هي الحالية)
 function replayMedia(type, index) {
     const list = [...(currentData[type] || [])];
     const item = list.splice(index, 1)[0];
-    list.unshift(item); // نقلها للأمام لتكون هي المفعلة حالياً
+    list.unshift(item);
     db.collection('siteData').doc('config').update({ [type]: list })
     .then(() => alert("✅ تم إعادة تفعيل الميديا المختارة!"));
 }
 
-// استعادة منطق الرفع المستقر باستخدام Supabase من نسخة يوم الاثنين
 async function uploadMedia(type) {
     const fileInput = document.getElementById(`${type}-file`);
     const urlInput = document.getElementById(`${type}-url`);
@@ -162,12 +160,14 @@ async function uploadMedia(type) {
         mediaName = file.name;
         if(statusMsg) statusMsg.innerText = "جاري الرفع إلى السيرفر...";
         if(progressDiv) progressDiv.style.display = 'block';
-        if(progressBar) progressBar.value = 0;
+        if(progressBar) progressBar.value = 10;
         
         try {
             console.log(`Starting upload for ${type}:`, file.name);
             const fileName = `${type}_${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
             const bucketName = 'Abdallah';
+
+            if(progressBar) progressBar.value = 30;
 
             const { data, error } = await window.supabaseClient.storage
                 .from(bucketName)
@@ -181,28 +181,26 @@ async function uploadMedia(type) {
                 throw error;
             }
 
+            if(progressBar) progressBar.value = 80;
             console.log("Supabase upload success:", data);
             const { data: urlData } = window.supabaseClient.storage.from(bucketName).getPublicUrl(fileName);
             mediaUrl = urlData.publicUrl;
-            console.log("Public URL generated:", mediaUrl);
+            
+            if(progressBar) progressBar.value = 100;
             
             if (type === 'avatar') {
                 document.getElementById('admin-avatar-url').value = mediaUrl;
                 const profile = {
                     ...currentData.profile,
-                    name: document.getElementById('admin-name').value,
-                    bio: document.getElementById('admin-bio').value,
-                    avatar: mediaUrl,
-                    visibility: document.getElementById('profile-visibility').value
+                    avatar: mediaUrl
                 };
                 await db.collection('siteData').doc('config').update({ profile });
-                currentData.profile = profile;
             } else {
                 await saveMedia(`${type}s`, { url: mediaUrl, name: mediaName, timestamp: Date.now() });
             }
             
             if(statusMsg) statusMsg.innerText = "✅ تم الرفع بنجاح!";
-            if(progressDiv) progressDiv.style.display = 'none';
+            setTimeout(() => { if(progressDiv) progressDiv.style.display = 'none'; }, 2000);
             fileInput.value = '';
         } catch (err) {
             if(statusMsg) statusMsg.innerText = "❌ خطأ في الرفع: " + err.message;
@@ -210,13 +208,16 @@ async function uploadMedia(type) {
         }
     } else if (mediaUrl) {
         if (type === 'avatar') {
-            // تحديث قيمة الرابط في الكائن قبل الحفظ
-            currentData.profile.avatar = mediaUrl;
-            saveProfileData();
+            const profile = {
+                ...currentData.profile,
+                avatar: mediaUrl
+            };
+            await db.collection('siteData').doc('config').update({ profile });
         } else {
-            saveMedia(`${type}s`, { url: mediaUrl, name: mediaName, timestamp: Date.now() });
+            await saveMedia(`${type}s`, { url: mediaUrl, name: mediaName, timestamp: Date.now() });
         }
         if(urlInput) urlInput.value = '';
+        if(statusMsg) statusMsg.innerText = "✅ تم الإضافة بنجاح!";
     } else {
         alert("من فضلك أدخل رابطاً أو اختر ملفاً!");
     }
@@ -228,6 +229,13 @@ function uploadAvatar() { uploadMedia('avatar'); }
 
 async function saveMedia(type, item) {
     const list = currentData[type] || [];
+    // منع التكرار بناءً على الرابط
+    const exists = list.some(i => i.url === item.url);
+    if (exists) {
+        // إذا كان موجوداً، انقله للمقدمة
+        const index = list.findIndex(i => i.url === item.url);
+        list.splice(index, 1);
+    }
     list.unshift(item);
     try {
         await db.collection('siteData').doc('config').update({ [type]: list });
@@ -252,11 +260,11 @@ function saveProfileData() {
         name: document.getElementById('admin-name').value,
         bio: document.getElementById('admin-bio').value,
         avatar: avatarUrl,
-        visibility: document.getElementById('profile-visibility').value
+        visibility: document.getElementById('profile-visibility').value,
+        social: currentData.profile.social || {}
     };
     db.collection('siteData').doc('config').update({ profile })
     .then(() => {
-        currentData.profile = profile; // تحديث البيانات المحلية
         alert("✅ تم حفظ بيانات البروفايل!");
     });
 }

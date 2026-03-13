@@ -29,6 +29,10 @@ if (typeof firebase !== 'undefined') {
 
 // تهيئة سوبابيس
 if (typeof supabase !== 'undefined') {
-    window.supabaseClient = supabase.createClient(supabaseConfig.url, supabaseConfig.key);
-    console.log("Supabase initialized");
+    try {
+        window.supabaseClient = supabase.createClient(supabaseConfig.url, supabaseConfig.key);
+        console.log("Supabase initialized:", window.supabaseClient);
+    } catch (e) {
+        console.error("Supabase initialization failed:", e);
+    }
 }

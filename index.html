@@ -150,7 +150,13 @@
             for (let key in social) {
                 if (social[key]) {
                     const a = document.createElement('a');
-                    a.href = social[key].startsWith('http') ? social[key] : `https://${key}.com/${social[key]}`;
+                    let url = social[key].trim();
+                    if (!url.startsWith('http')) {
+                        if (key === 'discord') url = `https://discord.com/users/${url}`;
+                        else if (key === 'tiktok') url = `https://tiktok.com/@${url}`;
+                        else url = `https://${key}.com/${url}`;
+                    }
+                    a.href = url;
                     a.target = "_blank";
                     a.innerHTML = `<i class="${icons[key] || 'fas fa-link'}"></i>`;
                     socialDiv.appendChild(a);
@@ -163,7 +169,8 @@
             
             if (siteData.videos && siteData.videos.length > 0) {
                 const videoUrl = siteData.videos[0].url;
-                if (videoElem.src !== videoUrl) {
+                if (videoElem.getAttribute('data-src') !== videoUrl) {
+                    videoElem.setAttribute('data-src', videoUrl);
                     videoElem.src = videoUrl;
                     videoElem.load();
                 }
@@ -186,7 +193,8 @@
 
             // تحديث الصوت
             if (siteData.audios && siteData.audios.length > 0) {
-                if (!audioElem.src || (siteData.audios[currentAudioIndex] && audioElem.src !== siteData.audios[currentAudioIndex].url)) {
+                const currentUrl = siteData.audios[currentAudioIndex] ? siteData.audios[currentAudioIndex].url : '';
+                if (!audioElem.src || audioElem.getAttribute('data-src') !== currentUrl) {
                     loadAudio(0);
                 }
             }
@@ -196,6 +204,7 @@
             if (!siteData.audios || siteData.audios.length === 0) return;
             currentAudioIndex = (index + siteData.audios.length) % siteData.audios.length;
             const audio = siteData.audios[currentAudioIndex];
+            audioElem.setAttribute('data-src', audio.url);
             audioElem.src = audio.url;
             audioElem.load();
             document.getElementById('track-title').innerText = audio.name || "صوت مضاف";
