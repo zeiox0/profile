@@ -28,15 +28,14 @@ if (typeof firebase !== 'undefined') {
     console.log("Firebase initialized");
 }
 
-// تهيئة سوبابيس
+// تهيئة سوبابيس فوراً
 if (typeof supabase !== 'undefined') {
     try {
-        // استخدام الطريقة الصحيحة لتهيئة العميل
         window.supabaseClient = supabase.createClient(supabaseConfig.url, supabaseConfig.key);
-        console.log("Supabase initialized successfully");
+        console.log("Supabase Client Initialized:", window.supabaseClient);
     } catch (e) {
-        console.error("Supabase initialization failed:", e);
+        console.error("Supabase initialization error:", e);
     }
 } else {
-    console.warn("Supabase library not found. Please ensure the script tag is included.");
+    console.error("Supabase library is missing! Check script tags in HTML.");
 }

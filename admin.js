@@ -1,20 +1,20 @@
 const AUTHORIZED_EMAIL = "abdallah.ali2812@gmail.com";
 let currentData = {
-    videos: [],
-    audios: [],
-    images: [],
-    profile: {
-        name: "Abdallah",
-        bio: "Hi I 👋",
-        avatar: "",
-        visibility: "public",
-        social: {
-            discord: "", youtube: "", twitter: "", instagram: "", tiktok: "", github: ""
-        }
-    }
+    videos: [], audios: [], images: [],
+    profile: { name: "Abdallah", bio: "Hi I 👋", avatar: "", visibility: "public", social: {} }
 };
 
-// تبديل الأقسام في لوحة التحكم
+// وظيفة لانتظار تهيئة سوبابيس
+async function waitForSupabase() {
+    let attempts = 0;
+    while (!window.supabaseClient && attempts < 10) {
+        console.log("Waiting for Supabase client... attempt", attempts + 1);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        attempts++;
+    }
+    return !!window.supabaseClient;
+}
+
 function switchSection(sectionId, element) {
     document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
@@ -43,13 +43,13 @@ function attemptLogin() {
     }
 
     auth.signInWithEmailAndPassword(email, pass)
-    .then((userCredential) => {
+    .then(() => {
         document.getElementById('login-overlay').style.display = 'none';
         document.getElementById('admin-panel').style.display = 'flex';
         loadData(); 
     })
     .catch((error) => {
-        errorMsg.innerText = "خطأ: " + (error.message || "الباسورد غلط أو الحساب غير مفعل.");
+        errorMsg.innerText = "خطأ: " + (error.message || "الباسورد غلط.");
         errorMsg.style.display = "block";
     });
 }
@@ -63,9 +63,6 @@ function loadData() {
         } else {
             db.collection('siteData').doc('config').set(currentData);
         }
-    }, error => {
-        console.error("Firestore Snapshot Error:", error);
-        alert("خطأ في الاتصال بـ Firebase: " + error.message);
     });
 }
 
@@ -91,55 +88,41 @@ function renderAdminPanel() {
 function renderHistory(containerId, list, type) {
     const container = document.getElementById(containerId);
     if (!container) return;
-    container.innerHTML = '';
-    
-    if (!list || list.length === 0) {
-        container.innerHTML = '<p style="color:#666; text-align:center; padding:20px;">لا يوجد تاريخ مضاف</p>';
-        return;
-    }
-
-    list.forEach((item, index) => {
-        const div = document.createElement('div');
-        div.className = 'history-item';
-        div.innerHTML = `
-            <div style="display:flex; align-items:center; gap:10px; flex:1; overflow:hidden;">
+    container.innerHTML = list && list.length > 0 ? list.map((item, index) => `
+        <div class="history-item">
+            <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
                 <i class="${type === 'videos' ? 'fas fa-video' : 'fas fa-music'}"></i>
-                <span title="${item.url}" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name || 'Unnamed'}</span>
+                <span>${item.name || 'Unnamed'}</span>
             </div>
             <div style="display:flex; gap:5px;">
-                <button onclick="replayMedia('${type}', ${index})" title="إعادة تشغيل" style="background:none; border:none; color:#00ff88; cursor:pointer;"><i class="fas fa-play-circle"></i></button>
-                <button onclick="removeItem('${type}', ${index})" title="حذف" style="background:none; border:none; color:#ff4d4d; cursor:pointer;"><i class="fas fa-trash"></i></button>
+                <button onclick="replayMedia('${type}', ${index})" style="background:none; border:none; color:#00ff88; cursor:pointer;"><i class="fas fa-play-circle"></i></button>
+                <button onclick="removeItem('${type}', ${index})" style="background:none; border:none; color:#ff4d4d; cursor:pointer;"><i class="fas fa-trash"></i></button>
             </div>
-        `;
-        container.appendChild(div);
-    });
+        </div>
+    `).join('') : '<p style="color:#666; text-align:center; padding:20px;">لا يوجد تاريخ</p>';
 }
 
 function replayMedia(type, index) {
     const list = [...(currentData[type] || [])];
     const item = list.splice(index, 1)[0];
     list.unshift(item);
-    db.collection('siteData').doc('config').update({ [type]: list })
-    .then(() => alert("✅ تم إعادة تفعيل الميديا المختارة!"));
+    db.collection('siteData').doc('config').update({ [type]: list }).then(() => alert("✅ تم التحديث!"));
 }
 
-// دالة للتحقق من توافق الملف مع قيود سوبابيس المحددة في هذا المشروع
-function isValidFileForSupabase(file, type) {
-    const maxSize = 50 * 1024 * 1024; // 50MB هو الحد الأقصى للباكيت Abdallah
-    if (file.size > maxSize) return { valid: false, msg: "حجم الملف كبير جداً. الحد الأقصى هو 50 ميجا بايت." };
-
-    const allowedVideos = ['video/mp4'];
-    const allowedAudios = ['audio/mpeg', 'audio/mp3'];
-    const allowedImages = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-
-    if (type === 'video' && !allowedVideos.includes(file.type)) return { valid: false, msg: "نوع الفيديو غير مدعوم. يرجى استخدام mp4 فقط." };
-    if (type === 'audio' && !allowedAudios.includes(file.type)) return { valid: false, msg: "نوع الصوت غير مدعوم. يرجى استخدام mp3 فقط." };
-    if (type === 'avatar' && !allowedImages.includes(file.type)) return { valid: false, msg: "نوع الصورة غير مدعوم. يرجى استخدام jpg أو png أو gif." };
-
-    return { valid: true };
+function removeItem(type, index) {
+    if (!confirm("حذف؟")) return;
+    const list = [...(currentData[type] || [])];
+    list.splice(index, 1);
+    db.collection('siteData').doc('config').update({ [type]: list });
 }
 
 async function uploadMedia(type) {
+    const isSupabaseReady = await waitForSupabase();
+    if (!isSupabaseReady) {
+        alert("❌ خطأ: لم يتم تحميل سوبابيس. يرجى تحديث الصفحة.");
+        return;
+    }
+
     const fileInput = document.getElementById(`${type}-file`);
     const urlInput = document.getElementById(`${type}-url`);
     const statusMsg = document.getElementById(`${type}-status-msg`);
@@ -151,54 +134,44 @@ async function uploadMedia(type) {
 
     if (fileInput && fileInput.files.length > 0) {
         const file = fileInput.files[0];
-        const check = isValidFileForSupabase(file, type);
-        if (!check.valid) {
-            if(statusMsg) statusMsg.innerText = `❌ ${check.msg}`;
+        const maxSize = 50 * 1024 * 1024;
+        if (file.size > maxSize) {
+            if(statusMsg) statusMsg.innerText = "❌ الحجم كبير جداً (أقصى حد 50MB)";
             return;
         }
         
         mediaName = file.name;
-        if(statusMsg) statusMsg.innerText = "جاري الرفع إلى سوبابيس...";
+        if(statusMsg) statusMsg.innerText = "جاري الرفع...";
         if(progressDiv) progressDiv.style.display = 'block';
         if(progressBar) progressBar.value = 20;
         
         try {
             const fileName = `${type}_${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
-            const bucketName = 'Abdallah';
-            if (!window.supabaseClient) throw new Error("لم يتم تهيئة مكتبة سوبابيس بشكل صحيح.");
-
-            if(progressBar) progressBar.value = 40;
             const { data, error } = await window.supabaseClient.storage
-                .from(bucketName)
+                .from('Abdallah')
                 .upload(fileName, file, { cacheControl: '3600', upsert: true });
 
             if (error) throw error;
 
             if(progressBar) progressBar.value = 80;
-            const { data: urlData } = window.supabaseClient.storage.from(bucketName).getPublicUrl(fileName);
+            const { data: urlData } = window.supabaseClient.storage.from('Abdallah').getPublicUrl(fileName);
             mediaUrl = urlData.publicUrl;
             
             if(progressBar) progressBar.value = 100;
             if (type === 'avatar') {
-                document.getElementById('admin-avatar-url').value = mediaUrl;
                 const profile = { ...currentData.profile, avatar: mediaUrl };
                 await db.collection('siteData').doc('config').update({ profile });
             } else {
                 await saveMedia(`${type}s`, { url: mediaUrl, name: mediaName, timestamp: Date.now() });
             }
-            
-            if(statusMsg) statusMsg.innerText = "✅ تم الرفع بنجاح!";
+            if(statusMsg) statusMsg.innerText = "✅ نجح الرفع!";
             setTimeout(() => { if(progressDiv) progressDiv.style.display = 'none'; }, 2000);
             fileInput.value = '';
         } catch (err) {
-            if(statusMsg) statusMsg.innerText = "❌ خطأ سوبابيس: " + (err.message || "حدث خطأ غير متوقع");
-            console.error('Supabase Error:', err);
+            if(statusMsg) statusMsg.innerText = "❌ خطأ: " + err.message;
+            console.error(err);
         }
     } else if (mediaUrl) {
-        if (!mediaUrl.startsWith('http')) {
-            if(statusMsg) statusMsg.innerText = "❌ خطأ: الرابط غير صحيح";
-            return;
-        }
         if (type === 'avatar') {
             const profile = { ...currentData.profile, avatar: mediaUrl };
             await db.collection('siteData').doc('config').update({ profile });
@@ -206,38 +179,21 @@ async function uploadMedia(type) {
             await saveMedia(`${type}s`, { url: mediaUrl, name: mediaName, timestamp: Date.now() });
         }
         if(urlInput) urlInput.value = '';
-        if(statusMsg) statusMsg.innerText = "✅ تم الإضافة بنجاح!";
-    } else {
-        alert("من فضلك أدخل رابطاً أو اختر ملفاً!");
+        if(statusMsg) statusMsg.innerText = "✅ تم الإضافة!";
     }
+}
+
+async function saveMedia(type, item) {
+    const list = currentData[type] || [];
+    const exists = list.some(i => i.url === item.url);
+    if (exists) list.splice(list.findIndex(i => i.url === item.url), 1);
+    list.unshift(item);
+    await db.collection('siteData').doc('config').update({ [type]: list });
 }
 
 function uploadVideo() { uploadMedia('video'); }
 function uploadAudio() { uploadMedia('audio'); }
 function uploadAvatar() { uploadMedia('avatar'); }
-
-async function saveMedia(type, item) {
-    const list = currentData[type] || [];
-    const exists = list.some(i => i.url === item.url);
-    if (exists) {
-        const index = list.findIndex(i => i.url === item.url);
-        list.splice(index, 1);
-    }
-    list.unshift(item);
-    try {
-        await db.collection('siteData').doc('config').update({ [type]: list });
-        alert("✅ تم الحفظ بنجاح!");
-    } catch (err) {
-        alert("❌ خطأ في الحفظ: " + err.message);
-    }
-}
-
-function removeItem(type, index) {
-    if (!confirm("هل أنت متأكد من الحذف؟")) return;
-    const list = [...(currentData[type] || [])];
-    list.splice(index, 1);
-    db.collection('siteData').doc('config').update({ [type]: list });
-}
 
 function saveProfileData() {
     const profile = {
@@ -247,7 +203,7 @@ function saveProfileData() {
         avatar: document.getElementById('admin-avatar-url').value,
         visibility: document.getElementById('profile-visibility').value
     };
-    db.collection('siteData').doc('config').update({ profile }).then(() => alert("✅ تم حفظ بيانات البروفايل!"));
+    db.collection('siteData').doc('config').update({ profile }).then(() => alert("✅ تم الحفظ!"));
 }
 
 function saveSocialLinks() {
@@ -260,32 +216,12 @@ function saveSocialLinks() {
         github: document.getElementById('social-github').value
     };
     const profile = { ...currentData.profile, social };
-    db.collection('siteData').doc('config').update({ profile }).then(() => alert("✅ تم حفظ الروابط الاجتماعية!"));
+    db.collection('siteData').doc('config').update({ profile }).then(() => alert("✅ تم الحفظ!"));
 }
 
 function updateLivePreview() {
-    const previewFrame = document.getElementById('live-preview-frame');
-    if (previewFrame) previewFrame.src = 'index.html?preview=' + Date.now();
+    const frame = document.getElementById('live-preview-frame');
+    if (frame) frame.src = 'index.html?t=' + Date.now();
 }
 
 function logout() { auth.signOut().then(() => location.reload()); }
-
-function searchOnlineVideos() {
-    const query = document.getElementById('video-search').value.toLowerCase();
-    const results = document.getElementById('online-video-results');
-    const library = [
-        { name: "Nature Relax", url: "https://www.w3schools.com/html/mov_bbb.mp4" },
-        { name: "Abstract Motion", url: "https://vjs.zencdn.net/v/oceans.mp4" }
-    ];
-    const filtered = library.filter(v => v.name.toLowerCase().includes(query));
-    results.innerHTML = filtered.map(v => `
-        <div class="history-item">
-            <span>${v.name}</span>
-            <button onclick="document.getElementById('video-url').value='${v.url}'; alert('تم اختيار الفيديو من المكتبة')" class="admin-btn small" style="padding:2px 8px; font-size:12px;">اختيار</button>
-        </div>
-    `).join('') || '<p style="color:#666; text-align:center;">لا توجد نتائج</p>';
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('video-search')) searchOnlineVideos();
-});

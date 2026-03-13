@@ -6,11 +6,12 @@
     <title>إعدادات المطور - Abdallah</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- مكتبات Firebase و Supabase -->
+    <!-- استدعاء مكتبة Supabase أولاً لضمان توفرها لـ config.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- مكتبات Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="admin-body">
     <!-- شاشة تسجيل الدخول -->
@@ -24,47 +25,30 @@
         </div>
     </div>
 
-    <!-- لوحة التحكم الجديدة -->
+    <!-- لوحة التحكم -->
     <div id="admin-panel" class="admin-layout" style="display: none;">
-        <!-- القائمة الجانبية (من اليمين) -->
         <aside class="sidebar">
-            <div class="sidebar-header">
-                <h3>⚙️ إعدادات المطور</h3>
-            </div>
+            <div class="sidebar-header"><h3>⚙️ إعدادات المطور</h3></div>
             <nav class="sidebar-menu">
-                <div class="menu-item active" onclick="switchSection('video-section', this)">
-                    <i class="fas fa-video"></i>
-                    <span>الفيديوهات</span>
-                </div>
-                <div class="menu-item" onclick="switchSection('audio-section', this)">
-                    <i class="fas fa-music"></i>
-                    <span>الأصوات</span>
-                </div>
-                <div class="menu-item" onclick="switchSection('profile-section', this)">
-                    <i class="fas fa-user-circle"></i>
-                    <span>البروفايل</span>
-                </div>
-                <div class="menu-item" onclick="switchSection('preview-section', this)">
-                    <i class="fas fa-eye"></i>
-                    <span>المعاينة المباشرة</span>
-                </div>
+                <div class="menu-item active" onclick="switchSection('video-section', this)"><i class="fas fa-video"></i><span>الفيديوهات</span></div>
+                <div class="menu-item" onclick="switchSection('audio-section', this)"><i class="fas fa-music"></i><span>الأصوات</span></div>
+                <div class="menu-item" onclick="switchSection('profile-section', this)"><i class="fas fa-user-circle"></i><span>البروفايل</span></div>
+                <div class="menu-item" onclick="switchSection('preview-section', this)"><i class="fas fa-eye"></i><span>المعاينة</span></div>
             </nav>
             <div class="sidebar-footer" style="padding: 20px; border-top: 1px solid #333;">
                 <button onclick="logout()" class="admin-btn secondary" style="width: 100%;">تسجيل خروج</button>
             </div>
         </aside>
 
-        <!-- المحتوى الرئيسي -->
         <main class="admin-main">
-            <!-- قسم الفيديوهات -->
             <section id="video-section" class="admin-section active">
                 <div class="split-view">
                     <div class="upload-area">
                         <div class="admin-card">
-                            <h3>🎬 رفع فيديو</h3>
+                            <h3>🎬 رفع فيديو (mp4 فقط، حد أقصى 50MB)</h3>
                             <div class="input-group">
                                 <label>من الجهاز:</label>
-                                <input type="file" id="video-file" class="admin-input" accept="video/*">
+                                <input type="file" id="video-file" class="admin-input" accept="video/mp4">
                                 <label>أو من رابط:</label>
                                 <input type="text" id="video-url" class="admin-input" placeholder="https://...">
                                 <button onclick="uploadVideo()" class="admin-btn">رفع الفيديو</button>
@@ -74,36 +58,24 @@
                                 <p id="video-status-msg" style="margin-top:10px; font-size:14px;"></p>
                             </div>
                         </div>
-                        <div class="admin-card">
-                            <h3>🔍 مكتبة الفيديوهات (أونلاين)</h3>
-                            <input type="text" id="video-search" class="admin-input" placeholder="بحث في المكتبة..." oninput="searchOnlineVideos()">
-                            <div id="online-video-results" class="history-list">
-                                <p style="color:#666; text-align:center;">جاري تحميل المكتبة...</p>
-                            </div>
-                        </div>
                     </div>
                     <div class="history-area">
                         <div class="admin-card">
-                            <h3>📜 تاريخ الفيديوهات المضافة</h3>
-                            <div id="video-history" class="history-list">
-                                <!-- تظهر هنا الفيديوهات المضافة مسبقاً -->
-                            </div>
+                            <h3>📜 تاريخ الفيديوهات</h3>
+                            <div id="video-history" class="history-list"></div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- قسم الأصوات -->
             <section id="audio-section" class="admin-section">
                 <div class="split-view">
                     <div class="upload-area">
                         <div class="admin-card">
-                            <h3>🎵 إضافة صوت</h3>
+                            <h3>🎵 إضافة صوت (mp3 فقط)</h3>
                             <div class="input-group">
-                                <label>تحميل صوت من الجهاز:</label>
-                                <input type="file" id="audio-file" class="admin-input" accept="audio/*">
-                                <label>أو من رابط صوت:</label>
-                                <input type="text" id="audio-url" class="admin-input" placeholder="رابط ملف mp3">
+                                <input type="file" id="audio-file" class="admin-input" accept="audio/mpeg">
+                                <input type="text" id="audio-url" class="admin-input" placeholder="رابط mp3">
                                 <button onclick="uploadAudio()" class="admin-btn">إضافة الصوت</button>
                                 <div id="audio-progress-container" style="display:none; margin-top:10px;">
                                     <progress id="audio-progress-bar" value="0" max="100" style="width:100%"></progress>
@@ -115,80 +87,61 @@
                     <div class="history-area">
                         <div class="admin-card">
                             <h3>📜 تاريخ الأصوات</h3>
-                            <div id="audio-history" class="history-list">
-                                <!-- تظهر هنا الأصوات المضافة مسبقاً -->
-                            </div>
+                            <div id="audio-history" class="history-list"></div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- قسم البروفايل -->
             <section id="profile-section" class="admin-section">
                 <div class="admin-card">
                     <h3>👤 تعديل الملف الشخصي</h3>
                     <div class="split-view">
                         <div>
-                            <label>الاسم الظاهر:</label>
-                            <input type="text" id="admin-name" class="admin-input" placeholder="اسمك">
+                            <label>الاسم:</label><input type="text" id="admin-name" class="admin-input">
                             <label>صورة البروفايل:</label>
-                            <div class="input-group">
-                                <input type="file" id="avatar-file" class="admin-input" accept="image/*">
-                                <input type="text" id="admin-avatar-url" class="admin-input" placeholder="أو رابط الصورة">
-                                <button onclick="uploadAvatar()" class="admin-btn small">رفع الصورة</button>
-                                <div id="avatar-progress-container" style="display:none; margin-top:5px;">
-                                    <progress id="avatar-progress-bar" value="0" max="100" style="width:100%"></progress>
-                                </div>
-                                <p id="avatar-status-msg" style="margin-top:5px; font-size:12px;"></p>
-                            </div>
+                            <input type="file" id="avatar-file" class="admin-input" accept="image/*">
+                            <input type="text" id="admin-avatar-url" class="admin-input">
+                            <button onclick="uploadAvatar()" class="admin-btn small">رفع الصورة</button>
+                            <div id="avatar-progress-container" style="display:none;"><progress id="avatar-progress-bar" value="0" max="100"></progress></div>
+                            <p id="avatar-status-msg"></p>
                         </div>
                         <div>
-                            <label>الوصف (Bio):</label>
-                            <textarea id="admin-bio" class="admin-input" style="height: 100px;" placeholder="اكتب نبذة عنك..."></textarea>
+                            <label>الوصف (Bio):</label><textarea id="admin-bio" class="admin-input" style="height: 100px;"></textarea>
                             <label>الخصوصية:</label>
                             <select id="profile-visibility" class="admin-input">
-                                <option value="public">عام (يظهر للجميع)</option>
-                                <option value="private">خاص (مخفي)</option>
+                                <option value="public">عام</option>
+                                <option value="private">خاص</option>
                             </select>
                         </div>
                     </div>
                     <button onclick="saveProfileData()" class="admin-btn">💾 حفظ التغييرات</button>
                 </div>
-
                 <div class="admin-card">
-                    <h3>🔗 المواقع الاجتماعية</h3>
+                    <h3>🔗 الروابط الاجتماعية</h3>
                     <div class="grid-view" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                         <div>
-                            <label>ديسكورد (Discord):</label>
-                            <input type="text" id="social-discord" class="admin-input" placeholder="رابط السيرفر">
-                            <label>يوتيوب (YouTube):</label>
-                            <input type="text" id="social-youtube" class="admin-input" placeholder="رابط القناة">
-                            <label>تويتر/إكس (X):</label>
-                            <input type="text" id="social-twitter" class="admin-input" placeholder="رابط الحساب">
+                            <label>ديسكورد:</label><input type="text" id="social-discord" class="admin-input">
+                            <label>يوتيوب:</label><input type="text" id="social-youtube" class="admin-input">
+                            <label>تويتر:</label><input type="text" id="social-twitter" class="admin-input">
                         </div>
                         <div>
-                            <label>إنستقرام (Instagram):</label>
-                            <input type="text" id="social-instagram" class="admin-input" placeholder="رابط الحساب">
-                            <label>تيك توك (TikTok):</label>
-                            <input type="text" id="social-tiktok" class="admin-input" placeholder="رابط الحساب">
-                            <label>جيت هاب (GitHub):</label>
-                            <input type="text" id="social-github" class="admin-input" placeholder="رابط الحساب">
+                            <label>إنستقرام:</label><input type="text" id="social-instagram" class="admin-input">
+                            <label>تيك توك:</label><input type="text" id="social-tiktok" class="admin-input">
+                            <label>جيت هاب:</label><input type="text" id="social-github" class="admin-input">
                         </div>
                     </div>
                     <button onclick="saveSocialLinks()" class="admin-btn">💾 حفظ الروابط</button>
                 </div>
             </section>
 
-            <!-- قسم المعاينة المباشرة (Live Preview) -->
             <section id="preview-section" class="admin-section">
                 <div class="admin-card">
-                    <h3>👁️ المعاينة المباشرة (Live Preview)</h3>
-                    <div class="preview-container" style="position: relative; width: 100%; height: 600px; border: 2px solid #333; border-radius: 10px; overflow: hidden; background: #000;">
+                    <h3>👁️ المعاينة المباشرة</h3>
+                    <div class="preview-container" style="width: 100%; height: 600px; border: 2px solid #333; border-radius: 10px; overflow: hidden; background: #000;">
                         <iframe id="live-preview-frame" src="index.html" style="width: 100%; height: 100%; border: none;"></iframe>
                     </div>
-                    <div style="margin-top: 15px; text-align: center;">
-                        <button onclick="updateLivePreview()" class="admin-btn secondary"><i class="fas fa-sync"></i> تحديث المعاينة</button>
-                    </div>
+                    <button onclick="updateLivePreview()" class="admin-btn secondary" style="margin-top:15px;"><i class="fas fa-sync"></i> تحديث</button>
                 </div>
             </section>
         </main>
