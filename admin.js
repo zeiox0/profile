@@ -9,12 +9,7 @@ let currentData = {
         avatar: "",
         visibility: "public",
         social: {
-            discord: "",
-            youtube: "",
-            twitter: "",
-            instagram: "",
-            tiktok: "",
-            github: ""
+            discord: "", youtube: "", twitter: "", instagram: "", tiktok: "", github: ""
         }
     }
 };
@@ -23,20 +18,15 @@ let currentData = {
 function switchSection(sectionId, element) {
     document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-    
     document.getElementById(sectionId).classList.add('active');
     element.classList.add('active');
-    
-    if(sectionId === 'preview-section') {
-        updateLivePreview();
-    }
+    if(sectionId === 'preview-section') updateLivePreview();
 }
 
 function attemptLogin() {
     const emailInput = document.getElementById('email');
     const passInput = document.getElementById('password');
     const errorMsg = document.getElementById('error-msg');
-    
     const email = emailInput.value.trim();
     const pass = passInput.value;
 
@@ -52,34 +42,26 @@ function attemptLogin() {
         return;
     }
 
-    console.log("Attempting login for:", email);
     auth.signInWithEmailAndPassword(email, pass)
     .then((userCredential) => {
-        console.log("Login successful:", userCredential.user.email);
         document.getElementById('login-overlay').style.display = 'none';
         document.getElementById('admin-panel').style.display = 'flex';
         loadData(); 
     })
     .catch((error) => {
-        console.error("Login error:", error);
         errorMsg.innerText = "خطأ: " + (error.message || "الباسورد غلط أو الحساب غير مفعل.");
         errorMsg.style.display = "block";
     });
 }
 
 function loadData() {
-    console.log("Attempting to load data from Firestore...");
     db.collection('siteData').doc('config').onSnapshot(doc => {
         if(doc.exists) {
-            console.log("Data loaded successfully:", doc.data());
             currentData = doc.data();
             renderAdminPanel();
             updateLivePreview();
         } else {
-            console.log("No config document found, creating default...");
-            db.collection('siteData').doc('config').set(currentData)
-                .then(() => console.log("Default config created"))
-                .catch(err => console.error("Error creating default config:", err));
+            db.collection('siteData').doc('config').set(currentData);
         }
     }, error => {
         console.error("Firestore Snapshot Error:", error);
@@ -125,12 +107,8 @@ function renderHistory(containerId, list, type) {
                 <span title="${item.url}" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name || 'Unnamed'}</span>
             </div>
             <div style="display:flex; gap:5px;">
-                <button onclick="replayMedia('${type}', ${index})" title="إعادة تشغيل" style="background:none; border:none; color:#00ff88; cursor:pointer;">
-                    <i class="fas fa-play-circle"></i>
-                </button>
-                <button onclick="removeItem('${type}', ${index})" title="حذف" style="background:none; border:none; color:#ff4d4d; cursor:pointer;">
-                    <i class="fas fa-trash"></i>
-                </button>
+                <button onclick="replayMedia('${type}', ${index})" title="إعادة تشغيل" style="background:none; border:none; color:#00ff88; cursor:pointer;"><i class="fas fa-play-circle"></i></button>
+                <button onclick="removeItem('${type}', ${index})" title="حذف" style="background:none; border:none; color:#ff4d4d; cursor:pointer;"><i class="fas fa-trash"></i></button>
             </div>
         `;
         container.appendChild(div);
@@ -145,16 +123,20 @@ function replayMedia(type, index) {
     .then(() => alert("✅ تم إعادة تفعيل الميديا المختارة!"));
 }
 
-// دالة للتحقق من نوع الملف وتوافقه مع Supabase
-function isValidFile(file, type) {
-    const validVideoTypes = ['video/mp4', 'video/webm', 'video/ogg'];
-    const validAudioTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg'];
-    const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+// دالة للتحقق من توافق الملف مع قيود سوبابيس المحددة في هذا المشروع
+function isValidFileForSupabase(file, type) {
+    const maxSize = 50 * 1024 * 1024; // 50MB هو الحد الأقصى للباكيت Abdallah
+    if (file.size > maxSize) return { valid: false, msg: "حجم الملف كبير جداً. الحد الأقصى هو 50 ميجا بايت." };
 
-    if (type === 'video') return validVideoTypes.includes(file.type) || file.name.toLowerCase().endsWith('.mp4');
-    if (type === 'audio') return validAudioTypes.includes(file.type) || file.name.toLowerCase().endsWith('.mp3');
-    if (type === 'avatar') return validImageTypes.includes(file.type);
-    return false;
+    const allowedVideos = ['video/mp4'];
+    const allowedAudios = ['audio/mpeg', 'audio/mp3'];
+    const allowedImages = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+    if (type === 'video' && !allowedVideos.includes(file.type)) return { valid: false, msg: "نوع الفيديو غير مدعوم. يرجى استخدام mp4 فقط." };
+    if (type === 'audio' && !allowedAudios.includes(file.type)) return { valid: false, msg: "نوع الصوت غير مدعوم. يرجى استخدام mp3 فقط." };
+    if (type === 'avatar' && !allowedImages.includes(file.type)) return { valid: false, msg: "نوع الصورة غير مدعوم. يرجى استخدام jpg أو png أو gif." };
+
+    return { valid: true };
 }
 
 async function uploadMedia(type) {
@@ -169,34 +151,23 @@ async function uploadMedia(type) {
 
     if (fileInput && fileInput.files.length > 0) {
         const file = fileInput.files[0];
-        
-        // التحقق من نوع الملف
-        if (!isValidFile(file, type)) {
-            let allowed = type === 'video' ? "mp4, webm" : (type === 'audio' ? "mp3" : "jpg, png, gif");
-            if(statusMsg) statusMsg.innerText = `❌ خطأ: نوع الملف غير مدعوم. المسموح: ${allowed}`;
-            return;
-        }
-        
-        // التحقق من حجم الملف (الحد الأقصى لـ Supabase في هذا المشروع هو 50 MB)
-        const maxSize = 50 * 1024 * 1024; 
-        if (file.size > maxSize) {
-            if(statusMsg) statusMsg.innerText = "❌ خطأ: حجم الملف كبير جداً (الحد الأقصى 50 MB)";
+        const check = isValidFileForSupabase(file, type);
+        if (!check.valid) {
+            if(statusMsg) statusMsg.innerText = `❌ ${check.msg}`;
             return;
         }
         
         mediaName = file.name;
-        if(statusMsg) statusMsg.innerText = "جاري الرفع إلى السيرفر...";
+        if(statusMsg) statusMsg.innerText = "جاري الرفع إلى سوبابيس...";
         if(progressDiv) progressDiv.style.display = 'block';
-        if(progressBar) progressBar.value = 10;
+        if(progressBar) progressBar.value = 20;
         
         try {
             const fileName = `${type}_${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
             const bucketName = 'Abdallah';
+            if (!window.supabaseClient) throw new Error("لم يتم تهيئة مكتبة سوبابيس بشكل صحيح.");
 
-            if (!window.supabaseClient) throw new Error("Supabase client not initialized.");
-
-            if(progressBar) progressBar.value = 30;
-
+            if(progressBar) progressBar.value = 40;
             const { data, error } = await window.supabaseClient.storage
                 .from(bucketName)
                 .upload(fileName, file, { cacheControl: '3600', upsert: true });
@@ -204,14 +175,10 @@ async function uploadMedia(type) {
             if (error) throw error;
 
             if(progressBar) progressBar.value = 80;
-            
             const { data: urlData } = window.supabaseClient.storage.from(bucketName).getPublicUrl(fileName);
             mediaUrl = urlData.publicUrl;
             
-            if (!mediaUrl) throw new Error("Failed to get public URL");
-
             if(progressBar) progressBar.value = 100;
-            
             if (type === 'avatar') {
                 document.getElementById('admin-avatar-url').value = mediaUrl;
                 const profile = { ...currentData.profile, avatar: mediaUrl };
@@ -224,15 +191,14 @@ async function uploadMedia(type) {
             setTimeout(() => { if(progressDiv) progressDiv.style.display = 'none'; }, 2000);
             fileInput.value = '';
         } catch (err) {
-            if(statusMsg) statusMsg.innerText = "❌ خطأ: " + (err.message || "حدث خطأ أثناء الرفع");
-            console.error('Upload Error:', err);
+            if(statusMsg) statusMsg.innerText = "❌ خطأ سوبابيس: " + (err.message || "حدث خطأ غير متوقع");
+            console.error('Supabase Error:', err);
         }
     } else if (mediaUrl) {
         if (!mediaUrl.startsWith('http')) {
             if(statusMsg) statusMsg.innerText = "❌ خطأ: الرابط غير صحيح";
             return;
         }
-        
         if (type === 'avatar') {
             const profile = { ...currentData.profile, avatar: mediaUrl };
             await db.collection('siteData').doc('config').update({ profile });
@@ -262,7 +228,6 @@ async function saveMedia(type, item) {
         await db.collection('siteData').doc('config').update({ [type]: list });
         alert("✅ تم الحفظ بنجاح!");
     } catch (err) {
-        console.error("Error saving media:", err);
         alert("❌ خطأ في الحفظ: " + err.message);
     }
 }
@@ -282,8 +247,7 @@ function saveProfileData() {
         avatar: document.getElementById('admin-avatar-url').value,
         visibility: document.getElementById('profile-visibility').value
     };
-    db.collection('siteData').doc('config').update({ profile })
-    .then(() => alert("✅ تم حفظ بيانات البروفايل!"));
+    db.collection('siteData').doc('config').update({ profile }).then(() => alert("✅ تم حفظ بيانات البروفايل!"));
 }
 
 function saveSocialLinks() {
@@ -296,20 +260,15 @@ function saveSocialLinks() {
         github: document.getElementById('social-github').value
     };
     const profile = { ...currentData.profile, social };
-    db.collection('siteData').doc('config').update({ profile })
-    .then(() => alert("✅ تم حفظ الروابط الاجتماعية!"));
+    db.collection('siteData').doc('config').update({ profile }).then(() => alert("✅ تم حفظ الروابط الاجتماعية!"));
 }
 
 function updateLivePreview() {
     const previewFrame = document.getElementById('live-preview-frame');
-    if (previewFrame) {
-        previewFrame.src = 'index.html?preview=' + Date.now();
-    }
+    if (previewFrame) previewFrame.src = 'index.html?preview=' + Date.now();
 }
 
-function logout() {
-    auth.signOut().then(() => location.reload());
-}
+function logout() { auth.signOut().then(() => location.reload()); }
 
 function searchOnlineVideos() {
     const query = document.getElementById('video-search').value.toLowerCase();

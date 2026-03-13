@@ -1,3 +1,4 @@
+
 // إعدادات فايربيس (Firebase)
 const firebaseConfig = {
   apiKey: "AIzaSyDoj4s2xxV94PkXdi1Oa2RRL-O-Iw3FQCI",
@@ -9,7 +10,7 @@ const firebaseConfig = {
   measurementId: "G-WPZ1KM4JJ9"
 };
 
-// إعدادات سوبابيس (Supabase) المستعادة من نسخة يوم الاثنين
+// إعدادات سوبابيس (Supabase)
 const supabaseConfig = {
     url: "https://mtdevelmgoinumifpcpb.supabase.co",
     key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10ZGV2ZWxtZ29pbnVtaWZwY3BiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3NzM0MTMsImV4cCI6MjA4ODM0OTQxM30.xronBSbgZPVd79VDTEoLuB3XsCwQwGfB_uCW2hPIlMQ"
@@ -30,9 +31,12 @@ if (typeof firebase !== 'undefined') {
 // تهيئة سوبابيس
 if (typeof supabase !== 'undefined') {
     try {
+        // استخدام الطريقة الصحيحة لتهيئة العميل
         window.supabaseClient = supabase.createClient(supabaseConfig.url, supabaseConfig.key);
-        console.log("Supabase initialized:", window.supabaseClient);
+        console.log("Supabase initialized successfully");
     } catch (e) {
         console.error("Supabase initialization failed:", e);
     }
+} else {
+    console.warn("Supabase library not found. Please ensure the script tag is included.");
 }
