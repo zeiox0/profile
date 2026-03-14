@@ -243,6 +243,134 @@
             color: white;
         }
 
+        /* ========== نظام الإشعارات (Toast Notifications) ========== */
+        .notification {
+            background: rgba(10, 14, 39, 0.95);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 20px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+            animation: slideInRight 0.3s ease-out;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .notification.success {
+            border-color: var(--primary);
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .notification.error {
+            border-color: var(--secondary);
+            background: rgba(255, 77, 77, 0.1);
+        }
+
+        .notification.info {
+            border-color: #00bfff;
+            background: rgba(0, 191, 255, 0.1);
+        }
+
+        .notification.warning {
+            border-color: #ffb84d;
+            background: rgba(255, 180, 77, 0.1);
+        }
+
+        .notification-icon {
+            font-size: 20px;
+            min-width: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notification.success .notification-icon {
+            color: var(--primary);
+        }
+
+        .notification.error .notification-icon {
+            color: var(--secondary);
+        }
+
+        .notification.info .notification-icon {
+            color: #00bfff;
+        }
+
+        .notification.warning .notification-icon {
+            color: #ffb84d;
+        }
+
+        .notification-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .notification-title {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .notification-message {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0;
+            transition: color 0.3s;
+        }
+
+        .notification-close:hover {
+            color: var(--text);
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(400px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(400px);
+            }
+        }
+
+        .notification.removing {
+            animation: slideOutRight 0.3s ease-out forwards;
+        }
+
+        @media (max-width: 768px) {
+            #notifications-container {
+                left: 10px !important;
+                right: 10px !important;
+                max-width: none !important;
+            }
+
+            .notification {
+                min-width: auto;
+            }
+        }
+
         /* ========== المحتوى الرئيسي ========== */
         .admin-main {
             flex: 1;
@@ -641,6 +769,17 @@
     </style>
 </head>
 <body>
+    <!-- حاوية الإشعارات -->
+    <div id="notifications-container" style="
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 2000;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 400px;
+    "></div>
     <!-- شاشة الدخول -->
     <div id="login-overlay">
         <div class="login-card">

@@ -596,3 +596,177 @@ window.loadAllData = async function() {
     if (originalLoadAllData) await originalLoadAllData.call(this);
     loadCloudLibrary();
 };
+
+
+// ========== نظام الإشعارات (Toast Notifications) ==========
+function showNotification(type, title, message, duration = 4000) {
+    const container = document.getElementById('notifications-container');
+    if (!container) return;
+
+    // إنشاء عنصر الإشعار
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+
+    // تحديد الأيقونة حسب النوع
+    let icon = '';
+    switch(type) {
+        case 'success':
+            icon = '<i class="fas fa-check-circle"></i>';
+            break;
+        case 'error':
+            icon = '<i class="fas fa-exclamation-circle"></i>';
+            break;
+        case 'info':
+            icon = '<i class="fas fa-info-circle"></i>';
+            break;
+        case 'warning':
+            icon = '<i class="fas fa-warning"></i>';
+            break;
+    }
+
+    notification.innerHTML = `
+        <div class="notification-icon">${icon}</div>
+        <div class="notification-content">
+            <div class="notification-title">${title}</div>
+            <div class="notification-message">${message}</div>
+        </div>
+        <button class="notification-close" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+
+    container.appendChild(notification);
+
+    // إزالة الإشعار تلقائياً بعد المدة المحددة
+    if (duration > 0) {
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.classList.add('removing');
+                setTimeout(() => notification.remove(), 300);
+            }
+        }, duration);
+    }
+}
+
+// ========== اختصارات الإشعارات ==========
+function showSuccess(title, message) {
+    showNotification('success', title, message);
+}
+
+function showError(title, message) {
+    showNotification('error', title, message);
+}
+
+function showInfo(title, message) {
+    showNotification('info', title, message);
+}
+
+function showWarning(title, message) {
+    showNotification('warning', title, message);
+}
+
+// ========== تحديث دوال الرفع لإضافة الإشعارات ==========
+const originalUploadVideo = window.uploadVideo;
+window.uploadVideo = async function() {
+    try {
+        const fileInput = document.getElementById('video-input');
+        if (!fileInput || !fileInput.files.length) {
+            showError('❌ خطأ', 'يرجى اختيار ملف فيديو');
+            return;
+        }
+
+        const file = fileInput.files[0];
+        showInfo('⏳ جاري الرفع', `جاري رفع الفيديو: ${file.name}`);
+
+        if (originalUploadVideo) {
+            await originalUploadVideo.call(this);
+            showSuccess('✅ تم بنجاح', `تم رفع الفيديو: ${file.name}`);
+        }
+    } catch (error) {
+        showError('❌ فشل الرفع', error.message || 'حدث خطأ أثناء رفع الفيديو');
+        console.error('Upload error:', error);
+    }
+};
+
+const originalUploadAudio = window.uploadAudio;
+window.uploadAudio = async function() {
+    try {
+        const fileInput = document.getElementById('audio-input');
+        if (!fileInput || !fileInput.files.length) {
+            showError('❌ خطأ', 'يرجى اختيار ملف صوتي');
+            return;
+        }
+
+        const file = fileInput.files[0];
+        showInfo('⏳ جاري الرفع', `جاري رفع الصوت: ${file.name}`);
+
+        if (originalUploadAudio) {
+            await originalUploadAudio.call(this);
+            showSuccess('✅ تم بنجاح', `تم رفع الصوت: ${file.name}`);
+        }
+    } catch (error) {
+        showError('❌ فشل الرفع', error.message || 'حدث خطأ أثناء رفع الصوت');
+        console.error('Upload error:', error);
+    }
+};
+
+// ========== إشعارات عند حفظ البيانات ==========
+const originalSaveProfile = window.saveProfile;
+window.saveProfile = async function() {
+    try {
+        showInfo('⏳ جاري الحفظ', 'جاري حفظ بيانات البروفايل...');
+        
+        if (originalSaveProfile) {
+            await originalSaveProfile.call(this);
+            showSuccess('✅ تم الحفظ', 'تم حفظ بيانات البروفايل بنجاح');
+        }
+    } catch (error) {
+        showError('❌ فشل الحفظ', error.message || 'حدث خطأ أثناء حفظ البيانات');
+        console.error('Save error:', error);
+    }
+};
+
+// ========== إشعارات عند حذف الملفات ==========
+function deleteWithNotification(itemId, itemName, deleteFunction) {
+    if (confirm(`هل تريد حذف: ${itemName}؟`)) {
+        try {
+            showInfo('⏳ جاري الحذف', `جاري حذف: ${itemName}`);
+            deleteFunction(itemId);
+            showSuccess('✅ تم الحذف', `تم حذف: ${itemName} بنجاح`);
+        } catch (error) {
+            showError('❌ فشل الحذف', error.message || 'حدث خطأ أثناء الحذف');
+            console.error('Delete error:', error);
+        }
+    }
+}
+
+// ========== إشعارات عند إضافة من المكتبة ==========
+const originalAddVideoFromLibrary = window.addVideoFromLibrary;
+window.addVideoFromLibrary = async function(videoUrl, videoName) {
+    try {
+        showInfo('⏳ جاري الإضافة', `جاري إضافة: ${videoName}`);
+        
+        if (originalAddVideoFromLibrary) {
+            await originalAddVideoFromLibrary.call(this, videoUrl, videoName);
+            showSuccess('✅ تمت الإضافة', `تم إضافة الفيديو: ${videoName} بنجاح`);
+        }
+    } catch (error) {
+        showError('❌ فشل الإضافة', error.message || 'حدث خطأ أثناء الإضافة');
+        console.error('Add error:', error);
+    }
+};
+
+const originalAddAudioFromLibrary = window.addAudioFromLibrary;
+window.addAudioFromLibrary = async function(audioUrl, audioName) {
+    try {
+        showInfo('⏳ جاري الإضافة', `جاري إضافة: ${audioName}`);
+        
+        if (originalAddAudioFromLibrary) {
+            await originalAddAudioFromLibrary.call(this, audioUrl, audioName);
+            showSuccess('✅ تمت الإضافة', `تم إضافة الصوت: ${audioName} بنجاح`);
+        }
+    } catch (error) {
+        showError('❌ فشل الإضافة', error.message || 'حدث خطأ أثناء الإضافة');
+        console.error('Add error:', error);
+    }
+};
