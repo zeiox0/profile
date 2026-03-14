@@ -1,10 +1,9 @@
-const AUTHORIZED_EMAIL = "abdallah.ali2812@gmail.com";
 let currentData = {
     videos: [], audios: [], images: [],
     profile: { name: "Abdallah", bio: "Hi I 👋", avatar: "", visibility: "public", social: {} }
 };
 
-// وظيفة لانتظار تهيئة سوبابيس مع محاولة إنشائه إذا لم يكن موجوداً
+// وظيفة لانتظار تهيئة سوبابيس مع محاولة إنشاءه إذا لم يكن موجوداً
 async function waitForSupabase() {
     let attempts = 0;
     while (attempts < 20) {
@@ -33,6 +32,58 @@ async function waitForSupabase() {
     }
     return false;
 }
+
+// ========== نظام الإشعارات (Toast Notifications) ==========
+function showNotification(type, title, message, duration = 4000) {
+    const container = document.getElementById('notifications-container');
+    if (!container) return;
+
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+
+    let icon = '';
+    switch(type) {
+        case 'success':
+            icon = '<i class="fas fa-check-circle"></i>';
+            break;
+        case 'error':
+            icon = '<i class="fas fa-exclamation-circle"></i>';
+            break;
+        case 'info':
+            icon = '<i class="fas fa-info-circle"></i>';
+            break;
+        case 'warning':
+            icon = '<i class="fas fa-warning"></i>';
+            break;
+    }
+
+    notification.innerHTML = `
+        <div class="notification-icon">${icon}</div>
+        <div class="notification-content">
+            <div class="notification-title">${title}</div>
+            <div class="notification-message">${message}</div>
+        </div>
+        <button class="notification-close" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+
+    container.appendChild(notification);
+
+    if (duration > 0) {
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.classList.add('removing');
+                setTimeout(() => notification.remove(), 300);
+            }
+        }, duration);
+    }
+}
+
+function showSuccess(title, message) { showNotification('success', title, message); }
+function showError(title, message) { showNotification('error', title, message); }
+function showInfo(title, message) { showNotification('info', title, message); }
+function showWarning(title, message) { showNotification('warning', title, message); }
 
 function switchSection(sectionId, element) {
     document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
@@ -99,45 +150,49 @@ function renderAdminPanel() {
     document.getElementById('social-instagram').value = social.instagram || "";
     document.getElementById('social-tiktok').value = social.tiktok || "";
     document.getElementById('social-github').value = social.github || "";
-
-    renderHistory('video-history', currentData.videos || [], 'videos');
-    renderHistory('audio-history', currentData.audios || [], 'audios');
+    
+    loadVideoHistory();
+    loadAudioHistory();
+    loadStudioGallery();
+    loadCloudLibrary();
 }
 
-function renderHistory(containerId, list, type) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    container.innerHTML = list && list.length > 0 ? list.map((item, index) => `
-        <div class="history-item">
-            <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                <i class="${type === 'videos' ? 'fas fa-video' : 'fas fa-music'}"></i>
-                <span>${item.name || 'Unnamed'}</span>
-            </div>
-            <div style="display:flex; gap:5px;">
-                <button onclick="replayMedia('${type}', ${index})" style="background:none; border:none; color:#00ff88; cursor:pointer;"><i class="fas fa-play-circle"></i></button>
-                <button onclick="removeItem('${type}', ${index})" style="background:none; border:none; color:#ff4d4d; cursor:pointer;"><i class="fas fa-trash"></i></button>
-            </div>
-        </div>
-    `).join('') : '<p style="color:#666; text-align:center; padding:20px;">لا يوجد تاريخ</p>';
+function loadVideoHistory() {
+    const list = document.getElementById('video-history');
+    if (!list) return;
+    list.innerHTML = '';
+    const videos = currentData.videos || [];
+    videos.forEach(video => {
+        const item = document.createElement('div');
+        item.style.cssText = 'padding: 10px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;';
+        item.innerHTML = `
+            <span>${video.name}</span>
+            <button onclick="deleteVideo('${video.url}')" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">حذف</button>
+        `;
+        list.appendChild(item);
+    });
 }
 
-function replayMedia(type, index) {
-    const list = [...(currentData[type] || [])];
-    const item = list.splice(index, 1)[0];
-    list.unshift(item);
-    db.collection('siteData').doc('config').update({ [type]: list }).then(() => alert("✅ تم التحديث!"));
+function loadAudioHistory() {
+    const list = document.getElementById('audio-history');
+    if (!list) return;
+    list.innerHTML = '';
+    const audios = currentData.audios || [];
+    audios.forEach(audio => {
+        const item = document.createElement('div');
+        item.style.cssText = 'padding: 10px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;';
+        item.innerHTML = `
+            <span>${audio.name}</span>
+            <button onclick="deleteAudio('${audio.url}')" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">حذف</button>
+        `;
+        list.appendChild(item);
+    });
 }
 
-function removeItem(type, index) {
-    if (!confirm("حذف؟")) return;
-    const list = [...(currentData[type] || [])];
-    list.splice(index, 1);
-    db.collection('siteData').doc('config').update({ [type]: list });
-}
-
+// ========== دالة الرفع الموحدة مع الإشعارات ==========
 async function uploadMedia(type) {
-    const fileInput = document.getElementById(`${type}-file`);
-    const urlInput = document.getElementById(`${type}-url`);
+    const fileInput = document.getElementById(`${type}-input`);
+    const urlInput = document.getElementById(`${type}-url-input`);
     const statusMsg = document.getElementById(`${type}-status-msg`);
     const progressBar = document.getElementById(`${type}-progress-bar`);
     const progressDiv = document.getElementById(`${type}-progress-container`);
@@ -146,27 +201,25 @@ async function uploadMedia(type) {
     let mediaName = "ميديا من رابط";
 
     if (fileInput && fileInput.files.length > 0) {
-        // رفع ملف - نحتاج Supabase
-        if(statusMsg) { statusMsg.innerText = "جاري التحضير..."; statusMsg.style.color = "#aaa"; }
-        
-        const isSupabaseReady = await waitForSupabase();
-        if (!isSupabaseReady) {
-            if(statusMsg) { statusMsg.innerText = "❌ خطأ: فشل الاتصال بخادم الرفع. يرجى تحديث الصفحة والمحاولة مجدداً."; statusMsg.style.color = "#ff4d4d"; }
-            return;
-        }
-
         const file = fileInput.files[0];
         const maxSize = 50 * 1024 * 1024;
+        
         if (file.size > maxSize) {
-            if(statusMsg) { statusMsg.innerText = "❌ الحجم كبير جداً (أقصى حد 50MB)"; statusMsg.style.color = "#ff4d4d"; }
+            showError('❌ خطأ', 'الحجم كبير جداً (أقصى حد 50MB)');
             return;
         }
         
         mediaName = file.name;
-        if(statusMsg) { statusMsg.innerText = "جاري الرفع..."; statusMsg.style.color = "#aaa"; }
+        showInfo('⏳ جاري الرفع', `رفع ${type}: ${mediaName}`);
         if(progressDiv) progressDiv.style.display = 'block';
         if(progressBar) progressBar.value = 20;
         
+        const isSupabaseReady = await waitForSupabase();
+        if (!isSupabaseReady) {
+            showError('❌ خطأ', 'فشل الاتصال بخادم الرفع. يرجى تحديث الصفحة والمحاولة مجدداً.');
+            return;
+        }
+
         try {
             const fileName = `${type}_${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
             const { data, error } = await window.supabaseClient.storage
@@ -186,30 +239,33 @@ async function uploadMedia(type) {
             } else {
                 await saveMedia(`${type}s`, { url: mediaUrl, name: mediaName, timestamp: Date.now() });
             }
-            if(statusMsg) { statusMsg.innerText = "✅ نجح الرفع!"; statusMsg.style.color = "#00ff88"; }
+            
+            showSuccess('✅ تم بنجاح', `تم رفع ${mediaName}`);
             setTimeout(() => { 
                 if(progressDiv) progressDiv.style.display = 'none';
                 if(statusMsg) statusMsg.innerText = '';
             }, 3000);
             fileInput.value = '';
         } catch (err) {
-            if(statusMsg) { statusMsg.innerText = "❌ خطأ في الرفع: " + err.message; statusMsg.style.color = "#ff4d4d"; }
+            showError('❌ فشل الرفع', err.message);
             if(progressDiv) progressDiv.style.display = 'none';
             console.error("Upload error:", err);
         }
     } else if (mediaUrl) {
-        // إضافة من رابط - لا تحتاج Supabase
-        if (type === 'avatar') {
-            const profile = { ...currentData.profile, avatar: mediaUrl };
-            await db.collection('siteData').doc('config').update({ profile });
-        } else {
-            await saveMedia(`${type}s`, { url: mediaUrl, name: mediaName, timestamp: Date.now() });
+        try {
+            if (type === 'avatar') {
+                const profile = { ...currentData.profile, avatar: mediaUrl };
+                await db.collection('siteData').doc('config').update({ profile });
+            } else {
+                await saveMedia(`${type}s`, { url: mediaUrl, name: mediaName, timestamp: Date.now() });
+            }
+            showSuccess('✅ تمت الإضافة', `تم إضافة ${mediaName}`);
+            if(urlInput) urlInput.value = '';
+        } catch (err) {
+            showError('❌ خطأ', err.message);
         }
-        if(urlInput) urlInput.value = '';
-        if(statusMsg) { statusMsg.innerText = "✅ تم الإضافة!"; statusMsg.style.color = "#00ff88"; }
-        setTimeout(() => { if(statusMsg) statusMsg.innerText = ''; }, 3000);
     } else {
-        if(statusMsg) { statusMsg.innerText = "⚠️ يرجى اختيار ملف أو إدخال رابط"; statusMsg.style.color = "#ffaa00"; }
+        showWarning('⚠️ تنبيه', 'يرجى اختيار ملف أو إدخال رابط');
     }
 }
 
@@ -233,7 +289,9 @@ function saveProfileData() {
         avatar: document.getElementById('admin-avatar-url').value,
         visibility: document.getElementById('profile-visibility').value
     };
-    db.collection('siteData').doc('config').update({ profile }).then(() => alert("✅ تم الحفظ!"));
+    db.collection('siteData').doc('config').update({ profile })
+        .then(() => showSuccess('✅ تم الحفظ', 'تم حفظ بيانات البروفايل بنجاح'))
+        .catch(err => showError('❌ خطأ', err.message));
 }
 
 function saveSocialLinks() {
@@ -246,7 +304,33 @@ function saveSocialLinks() {
         github: document.getElementById('social-github').value
     };
     const profile = { ...currentData.profile, social };
-    db.collection('siteData').doc('config').update({ profile }).then(() => alert("✅ تم الحفظ!"));
+    db.collection('siteData').doc('config').update({ profile })
+        .then(() => showSuccess('✅ تم الحفظ', 'تم حفظ الروابط الاجتماعية بنجاح'))
+        .catch(err => showError('❌ خطأ', err.message));
+}
+
+function deleteVideo(url) {
+    if (confirm('هل تريد حذف هذا الفيديو؟')) {
+        const videos = (currentData.videos || []).filter(v => v.url !== url);
+        db.collection('siteData').doc('config').update({ videos })
+            .then(() => {
+                showSuccess('✅ تم الحذف', 'تم حذف الفيديو بنجاح');
+                loadVideoHistory();
+            })
+            .catch(err => showError('❌ خطأ', err.message));
+    }
+}
+
+function deleteAudio(url) {
+    if (confirm('هل تريد حذف هذا الصوت؟')) {
+        const audios = (currentData.audios || []).filter(a => a.url !== url);
+        db.collection('siteData').doc('config').update({ audios })
+            .then(() => {
+                showSuccess('✅ تم الحذف', 'تم حذف الصوت بنجاح');
+                loadAudioHistory();
+            })
+            .catch(err => showError('❌ خطأ', err.message));
+    }
 }
 
 function updateLivePreview() {
@@ -256,7 +340,6 @@ function updateLivePreview() {
 
 function logout() { auth.signOut().then(() => location.reload()); }
 
-// إضافة مستمع لحدث Enter في شاشة الدخول
 document.addEventListener('DOMContentLoaded', () => {
     const passInput = document.getElementById('password');
     if (passInput) {
@@ -270,18 +353,19 @@ document.addEventListener('DOMContentLoaded', () => {
 async function uploadStudioImage() {
     const fileInput = document.getElementById('studio-file');
     if (!fileInput.files.length) {
-        alert('اختر صورة');
+        showWarning('⚠️ تنبيه', 'اختر صورة');
         return;
     }
 
     const file = fileInput.files[0];
     const isSupabaseReady = await waitForSupabase();
     if (!isSupabaseReady) {
-        alert('خطأ: فشل الاتصال بخادم الرفع');
+        showError('❌ خطأ', 'فشل الاتصال بخادم الرفع');
         return;
     }
 
     try {
+        showInfo('⏳ جاري الرفع', `رفع الصورة: ${file.name}`);
         const fileName = 'studio_' + Date.now() + '_' + file.name.replace(/\s+/g, '_');
         const { data, error } = await window.supabaseClient.storage
             .from('Abdallah')
@@ -297,205 +381,50 @@ async function uploadStudioImage() {
 
         fileInput.value = '';
         loadStudioGallery();
-        alert('تم رفع الصورة بنجاح!');
+        showSuccess('✅ تم بنجاح', 'تم رفع الصورة بنجاح');
     } catch (err) {
-        alert('خطأ في الرفع: ' + err.message);
+        showError('❌ فشل الرفع', err.message);
+        console.error('Upload error:', err);
     }
 }
 
 function loadStudioGallery() {
     const gallery = document.getElementById('studio-gallery');
-    const images = currentData.studioImages || [];
+    if (!gallery) return;
     gallery.innerHTML = '';
-    images.forEach((img, index) => {
-        const item = document.createElement('div');
-        item.style.cssText = 'position: relative; cursor: pointer; border-radius: 8px; overflow: hidden; border: 1px solid #333;';
-        item.innerHTML = '<img src="' + img.url + '" style="width: 100%; height: 100px; object-fit: cover;"><div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s;" class="img-overlay"><button onclick="deleteStudioImage(' + index + ')" style="background: #ff4d4d; border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer;">حذف</button></div>';
-        item.addEventListener('mouseenter', function() { this.querySelector('.img-overlay').style.opacity = '1'; });
-        item.addEventListener('mouseleave', function() { this.querySelector('.img-overlay').style.opacity = '0'; });
-        gallery.appendChild(item);
+    const images = currentData.studioImages || [];
+    images.forEach(img => {
+        const div = document.createElement('div');
+        div.style.cssText = 'position: relative; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 8px;';
+        div.innerHTML = `
+            <img src="${img.url}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 4px; margin-bottom: 8px;">
+            <button onclick="deleteStudioImage('${img.url}')" class="btn btn-secondary" style="width: 100%; padding: 5px;">حذف</button>
+        `;
+        gallery.appendChild(div);
     });
 }
 
-async function deleteStudioImage(index) {
-    if (!confirm('هل أنت متأكد؟')) return;
-    const studioImages = currentData.studioImages || [];
-    studioImages.splice(index, 1);
-    await db.collection('siteData').doc('config').update({ studioImages });
-}
-
-// ========== قائمة المهام ==========
-async function addTodo() {
-    const input = document.getElementById('todo-input');
-    const text = input.value.trim();
-    if (!text) return;
-
-    const todos = currentData.todos || [];
-    todos.unshift({ text: text, completed: false, timestamp: Date.now() });
-    await db.collection('siteData').doc('config').update({ todos });
-    input.value = '';
-    loadTodoList();
-}
-
-async function toggleTodo(index) {
-    const todos = currentData.todos || [];
-    todos[index].completed = !todos[index].completed;
-    await db.collection('siteData').doc('config').update({ todos });
-}
-
-async function deleteTodo(index) {
-    const todos = currentData.todos || [];
-    todos.splice(index, 1);
-    await db.collection('siteData').doc('config').update({ todos });
-}
-
-function loadTodoList() {
-    const list = document.getElementById('todo-list');
-    const todos = currentData.todos || [];
-    list.innerHTML = '';
-    todos.forEach(function(todo, index) {
-        const item = document.createElement('div');
-        item.style.cssText = 'display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(0,255,136,0.05); border-radius: 6px; border: 1px solid #333;';
-        item.innerHTML = '<input type="checkbox" ' + (todo.completed ? 'checked' : '') + ' onchange="toggleTodo(' + index + ')" style="cursor: pointer;"><span style="flex: 1; ' + (todo.completed ? 'text-decoration: line-through; color: #666;' : '') + '">' + todo.text + '</span><button onclick="deleteTodo(' + index + ')" style="background: none; border: none; color: #ff4d4d; cursor: pointer;">حذف</button>';
-        list.appendChild(item);
-    });
-}
-
-// ========== صندوق الرسائل ==========
-function loadMessages() {
-    const list = document.getElementById('messages-list');
-    const noMessages = document.getElementById('no-messages');
-    const messages = currentData.messages || [];
-    
-    if (messages.length === 0) {
-        list.style.display = 'none';
-        noMessages.style.display = 'block';
-        return;
+function deleteStudioImage(url) {
+    if (confirm('هل تريد حذف هذه الصورة؟')) {
+        const studioImages = (currentData.studioImages || []).filter(img => img.url !== url);
+        db.collection('siteData').doc('config').update({ studioImages })
+            .then(() => {
+                showSuccess('✅ تم الحذف', 'تم حذف الصورة بنجاح');
+                loadStudioGallery();
+            })
+            .catch(err => showError('❌ خطأ', err.message));
     }
-    
-    list.style.display = 'flex';
-    noMessages.style.display = 'block';
-    list.innerHTML = '';
-    
-    messages.forEach(function(msg) {
-        const item = document.createElement('div');
-        item.style.cssText = 'padding: 12px; background: rgba(0,255,136,0.05); border-left: 3px solid #00ff88; border-radius: 4px;';
-        item.innerHTML = '<div style="font-weight: bold; color: #00ff88;">' + (msg.name || 'بدون اسم') + '</div><div style="font-size: 12px; color: #999; margin: 5px 0;">' + (msg.email || 'بدون بريد') + '</div><div style="margin: 8px 0;">' + msg.message + '</div><div style="font-size: 11px; color: #666;">' + new Date(msg.timestamp).toLocaleString('ar-SA') + '</div>';
-        list.appendChild(item);
-    });
 }
 
-// ========== تحميل البيانات الجديدة ==========
-function loadNewData() {
-    loadStudioGallery();
-    loadTodoList();
-    loadMessages();
-}
-
-
-// ========== تخصيص المظهر ==========
-function updateCustomization() {
-    const primaryColor = document.getElementById('primary-color').value;
-    const secondaryColor = document.getElementById('secondary-color').value;
-    const playerStyle = document.getElementById('player-style').value;
-    const playerPosition = document.getElementById('player-position').value;
-    const enableAnimations = document.getElementById('enable-animations').checked;
-    const enableParticles = document.getElementById('enable-particles').checked;
-    const enableGlow = document.getElementById('enable-glow').checked;
-    const enableSidebar = document.getElementById('enable-sidebar').checked;
-    
-    const customization = {
-        colors: { primary: primaryColor, secondary: secondaryColor },
-        player: { style: playerStyle, position: playerPosition },
-        animations: { enabled: enableAnimations, particles: enableParticles, glow: enableGlow },
-        sidebar: { enabled: enableSidebar }
-    };
-    
-    localStorage.setItem('customization', JSON.stringify(customization));
-}
-
-async function saveCustomization() {
-    updateCustomization();
-    const customization = JSON.parse(localStorage.getItem('customization') || '{}');
-    await db.collection('siteData').doc('config').update({ customization });
-    alert('تم حفظ التخصيص بنجاح!');
-    updateLivePreview();
-}
-
-function loadCustomization() {
-    if (typeof db === 'undefined') return setTimeout(loadCustomization, 500);
-    
-    db.collection('siteData').doc('config').onSnapshot((doc) => {
-        if (doc.exists && doc.data().customization) {
-            const custom = doc.data().customization;
-            if (custom.colors) {
-                const primaryInput = document.getElementById('primary-color');
-                const secondaryInput = document.getElementById('secondary-color');
-                if (primaryInput) primaryInput.value = custom.colors.primary || '#00ff88';
-                if (secondaryInput) secondaryInput.value = custom.colors.secondary || '#ff4d4d';
-            }
-            if (custom.player) {
-                const playerStyleSelect = document.getElementById('player-style');
-                const playerPosSelect = document.getElementById('player-position');
-                if (playerStyleSelect) playerStyleSelect.value = custom.player.style || 'minimal';
-                if (playerPosSelect) playerPosSelect.value = custom.player.position || 'bottom';
-            }
-            if (custom.animations) {
-                const animCheckbox = document.getElementById('enable-animations');
-                const particlesCheckbox = document.getElementById('enable-particles');
-                const glowCheckbox = document.getElementById('enable-glow');
-                if (animCheckbox) animCheckbox.checked = custom.animations.enabled !== false;
-                if (particlesCheckbox) particlesCheckbox.checked = custom.animations.particles || false;
-                if (glowCheckbox) glowCheckbox.checked = custom.animations.glow !== false;
-            }
-            if (custom.sidebar) {
-                const sidebarCheckbox = document.getElementById('enable-sidebar');
-                if (sidebarCheckbox) sidebarCheckbox.checked = custom.sidebar.enabled !== false;
-            }
-        }
-    });
-}
-
-// ========== تحميل جميع البيانات عند الدخول ==========
-function loadAllData() {
-    if (typeof db === 'undefined') return setTimeout(loadAllData, 500);
-    
-    db.collection('siteData').doc('config').onSnapshot((doc) => {
-        if (doc.exists) {
-            currentData = doc.data();
-            loadNewData();
-            loadCustomization();
-        }
-    });
-}
-
-// استدعاء تحميل البيانات عند الدخول الناجح
-if (typeof attemptLogin !== 'undefined') {
-    const originalAttemptLogin = window.attemptLogin;
-    window.attemptLogin = async function() {
-        await originalAttemptLogin.call(this);
-        if (!document.getElementById('login-overlay').style.display || document.getElementById('login-overlay').style.display === 'none') {
-            loadAllData();
-        }
-    };
-}
-
-
-// ========== المكتبة السحابية (Cloud Library) ==========
+// ========== المكتبة السحابية ==========
 const cloudLibrary = {
     videos: [
         { name: 'شاطئ هادئ', url: 'https://commondatastorage.googleapis.com/gtv-videos-library/sample/BigBuckBunny.mp4', thumbnail: '🏖️' },
-        { name: 'غابة خضراء', url: 'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ElephantsDream.mp4', thumbnail: '🌲' },
-        { name: 'مدينة ليلاً', url: 'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerBlazes.mp4', thumbnail: '🌃' },
-        { name: 'جبال مغطاة بالثلج', url: 'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerEscapes.mp4', thumbnail: '⛰️' },
-        { name: 'محيط أزرق', url: 'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerFun.mp4', thumbnail: '🌊' }
+        { name: 'غابة خضراء', url: 'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ElephantsDream.mp4', thumbnail: '🌲' }
     ],
     audios: [
         { name: 'موسيقى هادئة', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', thumbnail: '🎵' },
-        { name: 'موسيقى استرخاء', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3', thumbnail: '🧘' },
-        { name: 'موسيقى طاقة', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3', thumbnail: '⚡' },
-        { name: 'موسيقى عمل', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3', thumbnail: '💼' },
-        { name: 'موسيقى حفلة', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3', thumbnail: '🎉' }
+        { name: 'موسيقى استرخاء', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3', thumbnail: '🧘' }
     ]
 };
 
@@ -503,270 +432,57 @@ function loadCloudLibrary() {
     const videosContainer = document.getElementById('library-videos');
     const audiosContainer = document.getElementById('library-audios');
     
-    if (!videosContainer || !audiosContainer) return;
+    if (videosContainer) {
+        videosContainer.innerHTML = '';
+        cloudLibrary.videos.forEach(video => {
+            const card = document.createElement('div');
+            card.style.cssText = 'background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); border-radius: 8px; padding: 15px; text-align: center; cursor: pointer;';
+            card.innerHTML = `
+                <div style="font-size: 40px; margin-bottom: 10px;">${video.thumbnail}</div>
+                <div style="font-weight: bold; margin-bottom: 10px;">${video.name}</div>
+                <button onclick="addVideoFromLibrary('${video.url}', '${video.name}')" class="btn" style="width: 100%; padding: 8px; font-size: 12px;">إضافة</button>
+            `;
+            videosContainer.appendChild(card);
+        });
+    }
     
-    // تحميل الفيديوهات
-    videosContainer.innerHTML = '';
-    cloudLibrary.videos.forEach(video => {
-        const card = document.createElement('div');
-        card.style.cssText = `
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-        `;
-        card.onmouseover = () => card.style.background = 'rgba(0, 255, 136, 0.1)';
-        card.onmouseout = () => card.style.background = 'rgba(255, 255, 255, 0.05)';
-        
-        card.innerHTML = `
-            <div style="font-size: 40px; margin-bottom: 10px;">${video.thumbnail}</div>
-            <div style="font-weight: bold; margin-bottom: 10px;">${video.name}</div>
-            <button onclick="addVideoFromLibrary('${video.url}', '${video.name}')" class="btn" style="width: 100%; padding: 8px; font-size: 12px;">
-                <i class="fas fa-plus"></i> إضافة
-            </button>
-        `;
-        videosContainer.appendChild(card);
-    });
-    
-    // تحميل الأصوات
-    audiosContainer.innerHTML = '';
-    cloudLibrary.audios.forEach(audio => {
-        const card = document.createElement('div');
-        card.style.cssText = `
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-        `;
-        card.onmouseover = () => card.style.background = 'rgba(0, 255, 136, 0.1)';
-        card.onmouseout = () => card.style.background = 'rgba(255, 255, 255, 0.05)';
-        
-        card.innerHTML = `
-            <div style="font-size: 40px; margin-bottom: 10px;">${audio.thumbnail}</div>
-            <div style="font-weight: bold; margin-bottom: 10px;">${audio.name}</div>
-            <div style="display: flex; gap: 5px;">
-                <button onclick="playAudioPreview('${audio.url}', '${audio.name}')" class="btn btn-secondary" style="flex: 1; padding: 8px; font-size: 12px;">
-                    <i class="fas fa-play"></i>
-                </button>
-                <button onclick="addAudioFromLibrary('${audio.url}', '${audio.name}')" class="btn" style="flex: 1; padding: 8px; font-size: 12px;">
-                    <i class="fas fa-plus"></i>
-                </button>
-            </div>
-        `;
-        audiosContainer.appendChild(card);
-    });
+    if (audiosContainer) {
+        audiosContainer.innerHTML = '';
+        cloudLibrary.audios.forEach(audio => {
+            const card = document.createElement('div');
+            card.style.cssText = 'background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); border-radius: 8px; padding: 15px; text-align: center; cursor: pointer;';
+            card.innerHTML = `
+                <div style="font-size: 40px; margin-bottom: 10px;">${audio.thumbnail}</div>
+                <div style="font-weight: bold; margin-bottom: 10px;">${audio.name}</div>
+                <button onclick="addAudioFromLibrary('${audio.url}', '${audio.name}')" class="btn" style="width: 100%; padding: 8px; font-size: 12px;">إضافة</button>
+            `;
+            audiosContainer.appendChild(card);
+        });
+    }
 }
 
-// ========== إضافة من المكتبة ==========
 async function addVideoFromLibrary(videoUrl, videoName) {
-    const list = currentData.videos || [];
-    list.unshift({ url: videoUrl, name: videoName, timestamp: Date.now(), fromLibrary: true });
-    await db.collection('siteData').doc('config').update({ videos: list });
-    alert(`✅ تمت إضافة "${videoName}" بنجاح!`);
-    loadVideoHistory();
+    try {
+        showInfo('⏳ جاري الإضافة', `إضافة: ${videoName}`);
+        const list = currentData.videos || [];
+        list.unshift({ url: videoUrl, name: videoName, timestamp: Date.now(), fromLibrary: true });
+        await db.collection('siteData').doc('config').update({ videos: list });
+        showSuccess('✅ تمت الإضافة', `تم إضافة ${videoName} بنجاح`);
+        loadVideoHistory();
+    } catch (err) {
+        showError('❌ خطأ', err.message);
+    }
 }
 
 async function addAudioFromLibrary(audioUrl, audioName) {
-    const list = currentData.audios || [];
-    list.unshift({ url: audioUrl, name: audioName, timestamp: Date.now(), fromLibrary: true });
-    await db.collection('siteData').doc('config').update({ audios: list });
-    alert(`✅ تمت إضافة "${audioName}" بنجاح!`);
-    loadAudioHistory();
-}
-
-// ========== دالة الاستماع للأغنية (معاد استخدامها) ==========
-function playAudioPreview(audioUrl, audioName) {
-    const previewAudio = new Audio();
-    previewAudio.src = audioUrl;
-    previewAudio.volume = 0.5;
-    previewAudio.play().catch(e => {
-        alert('❌ لم يتمكن من تشغيل الصوت');
-    });
-}
-
-// ========== تحميل المكتبة عند الدخول ==========
-const originalLoadAllData = window.loadAllData;
-window.loadAllData = async function() {
-    if (originalLoadAllData) await originalLoadAllData.call(this);
-    loadCloudLibrary();
-};
-
-
-// ========== نظام الإشعارات (Toast Notifications) ==========
-function showNotification(type, title, message, duration = 4000) {
-    const container = document.getElementById('notifications-container');
-    if (!container) return;
-
-    // إنشاء عنصر الإشعار
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-
-    // تحديد الأيقونة حسب النوع
-    let icon = '';
-    switch(type) {
-        case 'success':
-            icon = '<i class="fas fa-check-circle"></i>';
-            break;
-        case 'error':
-            icon = '<i class="fas fa-exclamation-circle"></i>';
-            break;
-        case 'info':
-            icon = '<i class="fas fa-info-circle"></i>';
-            break;
-        case 'warning':
-            icon = '<i class="fas fa-warning"></i>';
-            break;
-    }
-
-    notification.innerHTML = `
-        <div class="notification-icon">${icon}</div>
-        <div class="notification-content">
-            <div class="notification-title">${title}</div>
-            <div class="notification-message">${message}</div>
-        </div>
-        <button class="notification-close" onclick="this.parentElement.remove()">
-            <i class="fas fa-times"></i>
-        </button>
-    `;
-
-    container.appendChild(notification);
-
-    // إزالة الإشعار تلقائياً بعد المدة المحددة
-    if (duration > 0) {
-        setTimeout(() => {
-            if (notification.parentElement) {
-                notification.classList.add('removing');
-                setTimeout(() => notification.remove(), 300);
-            }
-        }, duration);
-    }
-}
-
-// ========== اختصارات الإشعارات ==========
-function showSuccess(title, message) {
-    showNotification('success', title, message);
-}
-
-function showError(title, message) {
-    showNotification('error', title, message);
-}
-
-function showInfo(title, message) {
-    showNotification('info', title, message);
-}
-
-function showWarning(title, message) {
-    showNotification('warning', title, message);
-}
-
-// ========== تحديث دوال الرفع لإضافة الإشعارات ==========
-const originalUploadVideo = window.uploadVideo;
-window.uploadVideo = async function() {
     try {
-        const fileInput = document.getElementById('video-input');
-        if (!fileInput || !fileInput.files.length) {
-            showError('❌ خطأ', 'يرجى اختيار ملف فيديو');
-            return;
-        }
-
-        const file = fileInput.files[0];
-        showInfo('⏳ جاري الرفع', `جاري رفع الفيديو: ${file.name}`);
-
-        if (originalUploadVideo) {
-            await originalUploadVideo.call(this);
-            showSuccess('✅ تم بنجاح', `تم رفع الفيديو: ${file.name}`);
-        }
-    } catch (error) {
-        showError('❌ فشل الرفع', error.message || 'حدث خطأ أثناء رفع الفيديو');
-        console.error('Upload error:', error);
-    }
-};
-
-const originalUploadAudio = window.uploadAudio;
-window.uploadAudio = async function() {
-    try {
-        const fileInput = document.getElementById('audio-input');
-        if (!fileInput || !fileInput.files.length) {
-            showError('❌ خطأ', 'يرجى اختيار ملف صوتي');
-            return;
-        }
-
-        const file = fileInput.files[0];
-        showInfo('⏳ جاري الرفع', `جاري رفع الصوت: ${file.name}`);
-
-        if (originalUploadAudio) {
-            await originalUploadAudio.call(this);
-            showSuccess('✅ تم بنجاح', `تم رفع الصوت: ${file.name}`);
-        }
-    } catch (error) {
-        showError('❌ فشل الرفع', error.message || 'حدث خطأ أثناء رفع الصوت');
-        console.error('Upload error:', error);
-    }
-};
-
-// ========== إشعارات عند حفظ البيانات ==========
-const originalSaveProfile = window.saveProfile;
-window.saveProfile = async function() {
-    try {
-        showInfo('⏳ جاري الحفظ', 'جاري حفظ بيانات البروفايل...');
-        
-        if (originalSaveProfile) {
-            await originalSaveProfile.call(this);
-            showSuccess('✅ تم الحفظ', 'تم حفظ بيانات البروفايل بنجاح');
-        }
-    } catch (error) {
-        showError('❌ فشل الحفظ', error.message || 'حدث خطأ أثناء حفظ البيانات');
-        console.error('Save error:', error);
-    }
-};
-
-// ========== إشعارات عند حذف الملفات ==========
-function deleteWithNotification(itemId, itemName, deleteFunction) {
-    if (confirm(`هل تريد حذف: ${itemName}؟`)) {
-        try {
-            showInfo('⏳ جاري الحذف', `جاري حذف: ${itemName}`);
-            deleteFunction(itemId);
-            showSuccess('✅ تم الحذف', `تم حذف: ${itemName} بنجاح`);
-        } catch (error) {
-            showError('❌ فشل الحذف', error.message || 'حدث خطأ أثناء الحذف');
-            console.error('Delete error:', error);
-        }
+        showInfo('⏳ جاري الإضافة', `إضافة: ${audioName}`);
+        const list = currentData.audios || [];
+        list.unshift({ url: audioUrl, name: audioName, timestamp: Date.now(), fromLibrary: true });
+        await db.collection('siteData').doc('config').update({ audios: list });
+        showSuccess('✅ تمت الإضافة', `تم إضافة ${audioName} بنجاح`);
+        loadAudioHistory();
+    } catch (err) {
+        showError('❌ خطأ', err.message);
     }
 }
-
-// ========== إشعارات عند إضافة من المكتبة ==========
-const originalAddVideoFromLibrary = window.addVideoFromLibrary;
-window.addVideoFromLibrary = async function(videoUrl, videoName) {
-    try {
-        showInfo('⏳ جاري الإضافة', `جاري إضافة: ${videoName}`);
-        
-        if (originalAddVideoFromLibrary) {
-            await originalAddVideoFromLibrary.call(this, videoUrl, videoName);
-            showSuccess('✅ تمت الإضافة', `تم إضافة الفيديو: ${videoName} بنجاح`);
-        }
-    } catch (error) {
-        showError('❌ فشل الإضافة', error.message || 'حدث خطأ أثناء الإضافة');
-        console.error('Add error:', error);
-    }
-};
-
-const originalAddAudioFromLibrary = window.addAudioFromLibrary;
-window.addAudioFromLibrary = async function(audioUrl, audioName) {
-    try {
-        showInfo('⏳ جاري الإضافة', `جاري إضافة: ${audioName}`);
-        
-        if (originalAddAudioFromLibrary) {
-            await originalAddAudioFromLibrary.call(this, audioUrl, audioName);
-            showSuccess('✅ تمت الإضافة', `تم إضافة الصوت: ${audioName} بنجاح`);
-        }
-    } catch (error) {
-        showError('❌ فشل الإضافة', error.message || 'حدث خطأ أثناء الإضافة');
-        console.error('Add error:', error);
-    }
-};
