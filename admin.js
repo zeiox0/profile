@@ -479,3 +479,120 @@ if (typeof attemptLogin !== 'undefined') {
         }
     };
 }
+
+
+// ========== المكتبة السحابية (Cloud Library) ==========
+const cloudLibrary = {
+    videos: [
+        { name: 'شاطئ هادئ', url: 'https://commondatastorage.googleapis.com/gtv-videos-library/sample/BigBuckBunny.mp4', thumbnail: '🏖️' },
+        { name: 'غابة خضراء', url: 'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ElephantsDream.mp4', thumbnail: '🌲' },
+        { name: 'مدينة ليلاً', url: 'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerBlazes.mp4', thumbnail: '🌃' },
+        { name: 'جبال مغطاة بالثلج', url: 'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerEscapes.mp4', thumbnail: '⛰️' },
+        { name: 'محيط أزرق', url: 'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerFun.mp4', thumbnail: '🌊' }
+    ],
+    audios: [
+        { name: 'موسيقى هادئة', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', thumbnail: '🎵' },
+        { name: 'موسيقى استرخاء', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3', thumbnail: '🧘' },
+        { name: 'موسيقى طاقة', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3', thumbnail: '⚡' },
+        { name: 'موسيقى عمل', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3', thumbnail: '💼' },
+        { name: 'موسيقى حفلة', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3', thumbnail: '🎉' }
+    ]
+};
+
+function loadCloudLibrary() {
+    const videosContainer = document.getElementById('library-videos');
+    const audiosContainer = document.getElementById('library-audios');
+    
+    if (!videosContainer || !audiosContainer) return;
+    
+    // تحميل الفيديوهات
+    videosContainer.innerHTML = '';
+    cloudLibrary.videos.forEach(video => {
+        const card = document.createElement('div');
+        card.style.cssText = `
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        `;
+        card.onmouseover = () => card.style.background = 'rgba(0, 255, 136, 0.1)';
+        card.onmouseout = () => card.style.background = 'rgba(255, 255, 255, 0.05)';
+        
+        card.innerHTML = `
+            <div style="font-size: 40px; margin-bottom: 10px;">${video.thumbnail}</div>
+            <div style="font-weight: bold; margin-bottom: 10px;">${video.name}</div>
+            <button onclick="addVideoFromLibrary('${video.url}', '${video.name}')" class="btn" style="width: 100%; padding: 8px; font-size: 12px;">
+                <i class="fas fa-plus"></i> إضافة
+            </button>
+        `;
+        videosContainer.appendChild(card);
+    });
+    
+    // تحميل الأصوات
+    audiosContainer.innerHTML = '';
+    cloudLibrary.audios.forEach(audio => {
+        const card = document.createElement('div');
+        card.style.cssText = `
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        `;
+        card.onmouseover = () => card.style.background = 'rgba(0, 255, 136, 0.1)';
+        card.onmouseout = () => card.style.background = 'rgba(255, 255, 255, 0.05)';
+        
+        card.innerHTML = `
+            <div style="font-size: 40px; margin-bottom: 10px;">${audio.thumbnail}</div>
+            <div style="font-weight: bold; margin-bottom: 10px;">${audio.name}</div>
+            <div style="display: flex; gap: 5px;">
+                <button onclick="playAudioPreview('${audio.url}', '${audio.name}')" class="btn btn-secondary" style="flex: 1; padding: 8px; font-size: 12px;">
+                    <i class="fas fa-play"></i>
+                </button>
+                <button onclick="addAudioFromLibrary('${audio.url}', '${audio.name}')" class="btn" style="flex: 1; padding: 8px; font-size: 12px;">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        `;
+        audiosContainer.appendChild(card);
+    });
+}
+
+// ========== إضافة من المكتبة ==========
+async function addVideoFromLibrary(videoUrl, videoName) {
+    const list = currentData.videos || [];
+    list.unshift({ url: videoUrl, name: videoName, timestamp: Date.now(), fromLibrary: true });
+    await db.collection('siteData').doc('config').update({ videos: list });
+    alert(`✅ تمت إضافة "${videoName}" بنجاح!`);
+    loadVideoHistory();
+}
+
+async function addAudioFromLibrary(audioUrl, audioName) {
+    const list = currentData.audios || [];
+    list.unshift({ url: audioUrl, name: audioName, timestamp: Date.now(), fromLibrary: true });
+    await db.collection('siteData').doc('config').update({ audios: list });
+    alert(`✅ تمت إضافة "${audioName}" بنجاح!`);
+    loadAudioHistory();
+}
+
+// ========== دالة الاستماع للأغنية (معاد استخدامها) ==========
+function playAudioPreview(audioUrl, audioName) {
+    const previewAudio = new Audio();
+    previewAudio.src = audioUrl;
+    previewAudio.volume = 0.5;
+    previewAudio.play().catch(e => {
+        alert('❌ لم يتمكن من تشغيل الصوت');
+    });
+}
+
+// ========== تحميل المكتبة عند الدخول ==========
+const originalLoadAllData = window.loadAllData;
+window.loadAllData = async function() {
+    if (originalLoadAllData) await originalLoadAllData.call(this);
+    loadCloudLibrary();
+};

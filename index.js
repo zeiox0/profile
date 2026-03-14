@@ -469,3 +469,101 @@ window.addEventListener('load', () => {
     initPage();
     trackVisit();
 });
+
+
+// ========== نافذة التأكيد قبل تشغيل الفيديو ==========
+function showVideoConfirmation(videoUrl, videoName) {
+    const confirmed = confirm(`هل أنت متأكد من تشغيل الفيديو: "${videoName}"؟`);
+    if (confirmed) {
+        playVideo(videoUrl);
+    }
+}
+
+function playVideo(videoUrl) {
+    const videoElem = document.getElementById('bg-video');
+    if (videoElem) {
+        videoElem.src = videoUrl;
+        videoElem.style.display = 'block';
+        videoElem.play().catch(e => console.log("Video play failed:", e));
+    }
+}
+
+// ========== زر الاستماع للأغنية ==========
+function playAudioPreview(audioUrl, audioName) {
+    const previewAudio = new Audio();
+    previewAudio.src = audioUrl;
+    previewAudio.volume = 0.5;
+    previewAudio.play().catch(e => {
+        alert('❌ لم يتمكن من تشغيل الصوت: ' + e.message);
+    });
+    
+    // إظهار رسالة
+    const msg = document.createElement('div');
+    msg.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        background: rgba(0, 255, 136, 0.9);
+        color: #000;
+        padding: 15px 20px;
+        border-radius: 8px;
+        z-index: 999;
+        font-weight: bold;
+        animation: slideIn 0.3s ease-out;
+    `;
+    msg.innerText = `🎵 تشغيل: ${audioName}`;
+    document.body.appendChild(msg);
+    
+    setTimeout(() => msg.remove(), 3000);
+}
+
+// ========== إضافة أزرار التحكم للفيديوهات ==========
+function addVideoControls(videoUrl, videoName) {
+    const controlsDiv = document.createElement('div');
+    controlsDiv.style.cssText = `
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+    `;
+    
+    const playBtn = document.createElement('button');
+    playBtn.innerHTML = '▶️ تشغيل';
+    playBtn.style.cssText = `
+        flex: 1;
+        padding: 8px;
+        background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%);
+        border: none;
+        border-radius: 6px;
+        color: #000;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.3s;
+    `;
+    playBtn.onmouseover = () => playBtn.style.transform = 'scale(1.05)';
+    playBtn.onmouseout = () => playBtn.style.transform = 'scale(1)';
+    playBtn.onclick = () => showVideoConfirmation(videoUrl, videoName);
+    
+    const listenBtn = document.createElement('button');
+    listenBtn.innerHTML = '🎵 استماع';
+    listenBtn.style.cssText = `
+        flex: 1;
+        padding: 8px;
+        background: rgba(255, 77, 77, 0.2);
+        border: 1px solid #ff4d4d;
+        border-radius: 6px;
+        color: #ff4d4d;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.3s;
+    `;
+    listenBtn.onmouseover = () => listenBtn.style.background = 'rgba(255, 77, 77, 0.3)';
+    listenBtn.onmouseout = () => listenBtn.style.background = 'rgba(255, 77, 77, 0.2)';
+    listenBtn.onclick = () => playAudioPreview(videoUrl, videoName);
+    
+    controlsDiv.appendChild(playBtn);
+    controlsDiv.appendChild(listenBtn);
+    
+    return controlsDiv;
+}
