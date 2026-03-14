@@ -265,3 +265,217 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// ========== استوديو الصور ==========
+async function uploadStudioImage() {
+    const fileInput = document.getElementById('studio-file');
+    if (!fileInput.files.length) {
+        alert('اختر صورة');
+        return;
+    }
+
+    const file = fileInput.files[0];
+    const isSupabaseReady = await waitForSupabase();
+    if (!isSupabaseReady) {
+        alert('خطأ: فشل الاتصال بخادم الرفع');
+        return;
+    }
+
+    try {
+        const fileName = 'studio_' + Date.now() + '_' + file.name.replace(/\s+/g, '_');
+        const { data, error } = await window.supabaseClient.storage
+            .from('Abdallah')
+            .upload(fileName, file, { cacheControl: '3600', upsert: true });
+
+        if (error) throw error;
+
+        const { data: urlData } = window.supabaseClient.storage.from('Abdallah').getPublicUrl(fileName);
+        
+        const studioImages = currentData.studioImages || [];
+        studioImages.unshift({ url: urlData.publicUrl, name: file.name, timestamp: Date.now() });
+        await db.collection('siteData').doc('config').update({ studioImages });
+
+        fileInput.value = '';
+        loadStudioGallery();
+        alert('تم رفع الصورة بنجاح!');
+    } catch (err) {
+        alert('خطأ في الرفع: ' + err.message);
+    }
+}
+
+function loadStudioGallery() {
+    const gallery = document.getElementById('studio-gallery');
+    const images = currentData.studioImages || [];
+    gallery.innerHTML = '';
+    images.forEach((img, index) => {
+        const item = document.createElement('div');
+        item.style.cssText = 'position: relative; cursor: pointer; border-radius: 8px; overflow: hidden; border: 1px solid #333;';
+        item.innerHTML = '<img src="' + img.url + '" style="width: 100%; height: 100px; object-fit: cover;"><div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s;" class="img-overlay"><button onclick="deleteStudioImage(' + index + ')" style="background: #ff4d4d; border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer;">حذف</button></div>';
+        item.addEventListener('mouseenter', function() { this.querySelector('.img-overlay').style.opacity = '1'; });
+        item.addEventListener('mouseleave', function() { this.querySelector('.img-overlay').style.opacity = '0'; });
+        gallery.appendChild(item);
+    });
+}
+
+async function deleteStudioImage(index) {
+    if (!confirm('هل أنت متأكد؟')) return;
+    const studioImages = currentData.studioImages || [];
+    studioImages.splice(index, 1);
+    await db.collection('siteData').doc('config').update({ studioImages });
+}
+
+// ========== قائمة المهام ==========
+async function addTodo() {
+    const input = document.getElementById('todo-input');
+    const text = input.value.trim();
+    if (!text) return;
+
+    const todos = currentData.todos || [];
+    todos.unshift({ text: text, completed: false, timestamp: Date.now() });
+    await db.collection('siteData').doc('config').update({ todos });
+    input.value = '';
+    loadTodoList();
+}
+
+async function toggleTodo(index) {
+    const todos = currentData.todos || [];
+    todos[index].completed = !todos[index].completed;
+    await db.collection('siteData').doc('config').update({ todos });
+}
+
+async function deleteTodo(index) {
+    const todos = currentData.todos || [];
+    todos.splice(index, 1);
+    await db.collection('siteData').doc('config').update({ todos });
+}
+
+function loadTodoList() {
+    const list = document.getElementById('todo-list');
+    const todos = currentData.todos || [];
+    list.innerHTML = '';
+    todos.forEach(function(todo, index) {
+        const item = document.createElement('div');
+        item.style.cssText = 'display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(0,255,136,0.05); border-radius: 6px; border: 1px solid #333;';
+        item.innerHTML = '<input type="checkbox" ' + (todo.completed ? 'checked' : '') + ' onchange="toggleTodo(' + index + ')" style="cursor: pointer;"><span style="flex: 1; ' + (todo.completed ? 'text-decoration: line-through; color: #666;' : '') + '">' + todo.text + '</span><button onclick="deleteTodo(' + index + ')" style="background: none; border: none; color: #ff4d4d; cursor: pointer;">حذف</button>';
+        list.appendChild(item);
+    });
+}
+
+// ========== صندوق الرسائل ==========
+function loadMessages() {
+    const list = document.getElementById('messages-list');
+    const noMessages = document.getElementById('no-messages');
+    const messages = currentData.messages || [];
+    
+    if (messages.length === 0) {
+        list.style.display = 'none';
+        noMessages.style.display = 'block';
+        return;
+    }
+    
+    list.style.display = 'flex';
+    noMessages.style.display = 'block';
+    list.innerHTML = '';
+    
+    messages.forEach(function(msg) {
+        const item = document.createElement('div');
+        item.style.cssText = 'padding: 12px; background: rgba(0,255,136,0.05); border-left: 3px solid #00ff88; border-radius: 4px;';
+        item.innerHTML = '<div style="font-weight: bold; color: #00ff88;">' + (msg.name || 'بدون اسم') + '</div><div style="font-size: 12px; color: #999; margin: 5px 0;">' + (msg.email || 'بدون بريد') + '</div><div style="margin: 8px 0;">' + msg.message + '</div><div style="font-size: 11px; color: #666;">' + new Date(msg.timestamp).toLocaleString('ar-SA') + '</div>';
+        list.appendChild(item);
+    });
+}
+
+// ========== تحميل البيانات الجديدة ==========
+function loadNewData() {
+    loadStudioGallery();
+    loadTodoList();
+    loadMessages();
+}
+
+
+// ========== تخصيص المظهر ==========
+function updateCustomization() {
+    const primaryColor = document.getElementById('primary-color').value;
+    const secondaryColor = document.getElementById('secondary-color').value;
+    const playerStyle = document.getElementById('player-style').value;
+    const playerPosition = document.getElementById('player-position').value;
+    const enableAnimations = document.getElementById('enable-animations').checked;
+    const enableParticles = document.getElementById('enable-particles').checked;
+    const enableGlow = document.getElementById('enable-glow').checked;
+    const enableSidebar = document.getElementById('enable-sidebar').checked;
+    
+    const customization = {
+        colors: { primary: primaryColor, secondary: secondaryColor },
+        player: { style: playerStyle, position: playerPosition },
+        animations: { enabled: enableAnimations, particles: enableParticles, glow: enableGlow },
+        sidebar: { enabled: enableSidebar }
+    };
+    
+    localStorage.setItem('customization', JSON.stringify(customization));
+}
+
+async function saveCustomization() {
+    updateCustomization();
+    const customization = JSON.parse(localStorage.getItem('customization') || '{}');
+    await db.collection('siteData').doc('config').update({ customization });
+    alert('تم حفظ التخصيص بنجاح!');
+    updateLivePreview();
+}
+
+function loadCustomization() {
+    if (typeof db === 'undefined') return setTimeout(loadCustomization, 500);
+    
+    db.collection('siteData').doc('config').onSnapshot((doc) => {
+        if (doc.exists && doc.data().customization) {
+            const custom = doc.data().customization;
+            if (custom.colors) {
+                const primaryInput = document.getElementById('primary-color');
+                const secondaryInput = document.getElementById('secondary-color');
+                if (primaryInput) primaryInput.value = custom.colors.primary || '#00ff88';
+                if (secondaryInput) secondaryInput.value = custom.colors.secondary || '#ff4d4d';
+            }
+            if (custom.player) {
+                const playerStyleSelect = document.getElementById('player-style');
+                const playerPosSelect = document.getElementById('player-position');
+                if (playerStyleSelect) playerStyleSelect.value = custom.player.style || 'minimal';
+                if (playerPosSelect) playerPosSelect.value = custom.player.position || 'bottom';
+            }
+            if (custom.animations) {
+                const animCheckbox = document.getElementById('enable-animations');
+                const particlesCheckbox = document.getElementById('enable-particles');
+                const glowCheckbox = document.getElementById('enable-glow');
+                if (animCheckbox) animCheckbox.checked = custom.animations.enabled !== false;
+                if (particlesCheckbox) particlesCheckbox.checked = custom.animations.particles || false;
+                if (glowCheckbox) glowCheckbox.checked = custom.animations.glow !== false;
+            }
+            if (custom.sidebar) {
+                const sidebarCheckbox = document.getElementById('enable-sidebar');
+                if (sidebarCheckbox) sidebarCheckbox.checked = custom.sidebar.enabled !== false;
+            }
+        }
+    });
+}
+
+// ========== تحميل جميع البيانات عند الدخول ==========
+function loadAllData() {
+    if (typeof db === 'undefined') return setTimeout(loadAllData, 500);
+    
+    db.collection('siteData').doc('config').onSnapshot((doc) => {
+        if (doc.exists) {
+            currentData = doc.data();
+            loadNewData();
+            loadCustomization();
+        }
+    });
+}
+
+// استدعاء تحميل البيانات عند الدخول الناجح
+if (typeof attemptLogin !== 'undefined') {
+    const originalAttemptLogin = window.attemptLogin;
+    window.attemptLogin = async function() {
+        await originalAttemptLogin.call(this);
+        if (!document.getElementById('login-overlay').style.display || document.getElementById('login-overlay').style.display === 'none') {
+            loadAllData();
+        }
+    };
+}
