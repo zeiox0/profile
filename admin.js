@@ -1,7 +1,7 @@
 let currentData = {
     videos: [], audios: [], images: [],
     profile: { name: "Abdallah", bio: "Hi I 👋", avatar: "", visibility: "public", social: {} }
-};
+}
 
 // وظيفة لانتظار تهيئة سوبابيس مع محاولة إنشاءه إذا لم يكن موجوداً
 async function waitForSupabase() {
@@ -91,37 +91,6 @@ function switchSection(sectionId, element) {
     document.getElementById(sectionId).classList.add('active');
     element.classList.add('active');
     if(sectionId === 'preview-section') updateLivePreview();
-}
-
-function attemptLogin() {
-    const emailInput = document.getElementById('email');
-    const passInput = document.getElementById('password');
-    const errorMsg = document.getElementById('error-msg');
-    const email = emailInput.value.trim();
-    const pass = passInput.value;
-
-    if (!email || !pass) {
-        errorMsg.innerText = "يرجى إدخال البريد الإلكتروني وكلمة المرور";
-        errorMsg.style.display = "block";
-        return;
-    }
-
-    if (email.toLowerCase() !== AUTHORIZED_EMAIL) {
-        errorMsg.innerText = "هذا الإيميل غير مصرح له كمسؤول!";
-        errorMsg.style.display = "block";
-        return;
-    }
-
-    auth.signInWithEmailAndPassword(email, pass)
-    .then(() => {
-        document.getElementById('login-overlay').style.display = 'none';
-        document.getElementById('admin-panel').style.display = 'flex';
-        loadData(); 
-    })
-    .catch((error) => {
-        errorMsg.innerText = "خطأ: " + (error.message || "الباسورد غلط.");
-        errorMsg.style.display = "block";
-    });
 }
 
 function loadData() {
@@ -487,7 +456,6 @@ async function addAudioFromLibrary(audioUrl, audioName) {
     }
 }
 
-
 // ========== نظام الدخول المحسّن مع CAPTCHA والعين ==========
 let captchaAnswer = '';
 
@@ -529,8 +497,7 @@ function validateCaptcha() {
 }
 
 // تحديث دالة attemptLogin لإضافة التحقق من CAPTCHA
-const originalAttemptLogin = window.attemptLogin;
-window.attemptLogin = function() {
+function attemptLogin() {
     const emailInput = document.getElementById('email');
     const passInput = document.getElementById('password');
     const errorMsg = document.getElementById('error-msg');
