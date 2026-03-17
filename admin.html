@@ -113,6 +113,126 @@
             transform: translateY(0);
         }
 
+        /* ========== تحسينات شاشة الدخول الجديدة ========== */
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .login-header h2 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .login-subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            right: 15px;
+            color: var(--text-secondary);
+            pointer-events: none;
+            font-size: 16px;
+        }
+
+        .login-input {
+            padding-right: 40px;
+            padding-left: 15px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 16px;
+            transition: color 0.3s;
+            padding: 8px;
+        }
+
+        .toggle-password:hover {
+            color: var(--primary);
+        }
+
+        .captcha-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .captcha-puzzle {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 8px;
+            color: var(--primary);
+            font-family: monospace;
+            user-select: none;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-footer {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .login-footer p {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin: 0;
+        }
+
         .error-msg {
             color: var(--secondary);
             font-size: 13px;
@@ -783,11 +903,50 @@
     <!-- شاشة الدخول -->
     <div id="login-overlay">
         <div class="login-card">
-            <h2>🔐 تسجيل الدخول</h2>
-            <input type="email" id="email" class="login-input" placeholder="البريد الإلكتروني" autofocus>
-            <input type="password" id="password" class="login-input" placeholder="كلمة المرور">
-            <button onclick="attemptLogin()" class="login-btn">🔓 دخول</button>
-            <p id="error-msg" class="error-msg"></p>
+            <div class="login-header">
+                <div class="login-icon">🔐</div>
+                <h2>نظام الدخول الآمن</h2>
+                <p class="login-subtitle">أدخل بيانات اعتمادك للوصول إلى لوحة التحكم</p>
+            </div>
+            
+            <div class="login-form">
+                <div class="form-group">
+                    <label for="email">البريد الإلكتروني</label>
+                    <div class="input-wrapper">
+                        <input type="email" id="email" class="login-input" placeholder="أدخل بريدك الإلكتروني" autofocus>
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">كلمة المرور</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="password" class="login-input" placeholder="أدخل كلمة المرور">
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility()" title="إظهار/إخفاء كلمة المرور">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>التحقق من الأمان</label>
+                    <div class="captcha-container">
+                        <div class="captcha-puzzle" id="captcha-puzzle"></div>
+                        <input type="text" id="captcha-answer" class="login-input" placeholder="الإجابة" maxlength="5">
+                    </div>
+                </div>
+                
+                <p id="error-msg" class="error-msg"></p>
+                
+                <button onclick="attemptLogin()" class="login-btn">
+                    <span>🔓 دخول آمن</span>
+                    <i class="fas fa-arrow-left" style="margin-right: 8px;"></i>
+                </button>
+            </div>
+            
+            <div class="login-footer">
+                <p>🛡️ هذا النظام محمي بتقنيات أمان متقدمة</p>
+            </div>
         </div>
     </div>
 

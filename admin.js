@@ -486,3 +486,107 @@ async function addAudioFromLibrary(audioUrl, audioName) {
         showError('❌ خطأ', err.message);
     }
 }
+
+
+// ========== نظام الدخول المحسّن مع CAPTCHA والعين ==========
+let captchaAnswer = '';
+
+function generateCaptcha() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    captchaAnswer = '';
+    for (let i = 0; i < 5; i++) {
+        captchaAnswer += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    
+    const puzzle = document.getElementById('captcha-puzzle');
+    if (puzzle) {
+        puzzle.textContent = captchaAnswer;
+        // إضافة تشويش بصري
+        puzzle.style.transform = `rotate(${Math.random() * 6 - 3}deg)`;
+        puzzle.style.opacity = '0.8';
+    }
+}
+
+function togglePasswordVisibility() {
+    const passwordInput = document.getElementById('password');
+    const toggleBtn = document.querySelector('.toggle-password i');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleBtn.classList.remove('fa-eye');
+        toggleBtn.classList.add('fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        toggleBtn.classList.remove('fa-eye-slash');
+        toggleBtn.classList.add('fa-eye');
+    }
+}
+
+function validateCaptcha() {
+    const captchaInput = document.getElementById('captcha-answer');
+    const answer = captchaInput ? captchaInput.value.toUpperCase() : '';
+    return answer === captchaAnswer;
+}
+
+// تحديث دالة attemptLogin لإضافة التحقق من CAPTCHA
+const originalAttemptLogin = window.attemptLogin;
+window.attemptLogin = function() {
+    const emailInput = document.getElementById('email');
+    const passInput = document.getElementById('password');
+    const errorMsg = document.getElementById('error-msg');
+    const email = emailInput.value.trim();
+    const pass = passInput.value;
+
+    if (!email || !pass) {
+        errorMsg.innerText = "يرجى إدخال البريد الإلكتروني وكلمة المرور";
+        errorMsg.style.display = "block";
+        return;
+    }
+
+    if (!validateCaptcha()) {
+        errorMsg.innerText = "❌ إجابة CAPTCHA غير صحيحة. حاول مجدداً.";
+        errorMsg.style.display = "block";
+        generateCaptcha(); // إعادة توليد CAPTCHA جديد
+        document.getElementById('captcha-answer').value = '';
+        return;
+    }
+
+    if (email.toLowerCase() !== AUTHORIZED_EMAIL) {
+        errorMsg.innerText = "❌ هذا الإيميل غير مصرح له كمسؤول!";
+        errorMsg.style.display = "block";
+        return;
+    }
+
+    auth.signInWithEmailAndPassword(email, pass)
+    .then(() => {
+        document.getElementById('login-overlay').style.display = 'none';
+        document.getElementById('admin-panel').style.display = 'flex';
+        loadData();
+        showSuccess('✅ مرحباً', 'تم تسجيل الدخول بنجاح');
+    })
+    .catch((error) => {
+        errorMsg.innerText = "❌ خطأ: " + (error.message || "الباسورد غلط.");
+        errorMsg.style.display = "block";
+        generateCaptcha(); // إعادة توليد CAPTCHA عند الفشل
+        document.getElementById('captcha-answer').value = '';
+    });
+};
+
+// تهيئة CAPTCHA عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', () => {
+    generateCaptcha();
+    
+    const passInput = document.getElementById('password');
+    if (passInput) {
+        passInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') attemptLogin();
+        });
+    }
+    
+    const captchaInput = document.getElementById('captcha-answer');
+    if (captchaInput) {
+        captchaInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') attemptLogin();
+        });
+    }
+});
