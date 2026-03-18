@@ -85,6 +85,11 @@ function attemptLogin() {
     if (email.toLowerCase() === AUTHORIZED_EMAIL.toLowerCase() && pass === AUTHORIZED_PASSWORD) {
         console.log('✅ تم التحقق بنجاح');
         
+        // تعيين حالة تسجيل الدخول
+        if (typeof setLoginState === 'function') {
+            setLoginState(true);
+        }
+        
         // إخفاء شاشة الدخول وإظهار لوحة التحكم
         const loginOverlay = document.getElementById('login-overlay');
         const adminPanel = document.getElementById('admin-panel');
