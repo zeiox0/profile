@@ -68,7 +68,6 @@ function attemptLogin() {
     if (!email || !pass) {
         errorMsg.innerText = "يرجى إدخال البريد الإلكتروني وكلمة المرور";
         errorMsg.style.display = "block";
-        console.warn('⚠️ حقول فارغة');
         return;
     }
     
@@ -77,88 +76,63 @@ function attemptLogin() {
         errorMsg.innerText = "❌ إجابة CAPTCHA غير صحيحة. حاول مجدداً.";
         errorMsg.style.display = "block";
         generateCaptcha();
-        document.getElementById('captcha-answer').value = '';
-        console.warn('⚠️ CAPTCHA غير صحيح');
+        const cInput = document.getElementById('captcha-answer');
+        if(cInput) cInput.value = '';
         return;
     }
     
-    // التحقق من البريد الإلكتروني
-    if (email.toLowerCase() !== AUTHORIZED_EMAIL.toLowerCase()) {
-        errorMsg.innerText = "❌ هذا الإيميل غير مصرح له كمسؤول!";
-        errorMsg.style.display = "block";
-        console.warn('⚠️ بريد غير معتمد');
-        return;
-    }
-    
-    // التحقق من كلمة المرور
-    if (pass !== AUTHORIZED_PASSWORD) {
-        errorMsg.innerText = "❌ كلمة المرور غير صحيحة!";
+    // التحقق من البريد الإلكتروني وكلمة المرور
+    if (email.toLowerCase() === AUTHORIZED_EMAIL.toLowerCase() && pass === AUTHORIZED_PASSWORD) {
+        console.log('✅ تم التحقق بنجاح');
+        
+        // إخفاء شاشة الدخول وإظهار لوحة التحكم
+        const loginOverlay = document.getElementById('login-overlay');
+        const adminPanel = document.getElementById('admin-panel');
+        
+        if (loginOverlay) loginOverlay.style.display = 'none';
+        if (adminPanel) adminPanel.style.display = 'flex';
+        
+        // إظهار رسالة النجاح
+        if (typeof showSuccess === 'function') {
+            showSuccess('✅ مرحباً', 'تم تسجيل الدخول بنجاح');
+        }
+        
+        // تحميل البيانات
+        if (typeof loadData === 'function') {
+            loadData();
+        }
+    } else {
+        errorMsg.innerText = "❌ البريد الإلكتروني أو كلمة المرور غير صحيحة!";
         errorMsg.style.display = "block";
         generateCaptcha();
-        document.getElementById('captcha-answer').value = '';
-        console.warn('⚠️ كلمة مرور خاطئة');
-        return;
+        const cInput = document.getElementById('captcha-answer');
+        if(cInput) cInput.value = '';
     }
-    
-    // نجح الدخول
-    console.log('✅ تم التحقق من جميع البيانات بنجاح');
-    
-    // إخفاء شاشة الدخول وإظهار لوحة التحكم
-    const loginOverlay = document.getElementById('login-overlay');
-    const adminPanel = document.getElementById('admin-panel');
-    
-    if (loginOverlay) loginOverlay.style.display = 'none';
-    if (adminPanel) adminPanel.style.display = 'flex';
-    
-    // إظهار رسالة النجاح
-    if (typeof showSuccess === 'function') {
-        showSuccess('✅ مرحباً', 'تم تسجيل الدخول بنجاح');
-    }
-    
-    // تحميل البيانات
-    if (typeof loadData === 'function') {
-        loadData();
-    }
-    
-    console.log('✅ تم الدخول بنجاح');
 }
 
 // ========== تهيئة النظام عند تحميل الصفحة ==========
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('📄 تم تحميل الصفحة - بدء تهيئة نظام الدخول');
-    
-    // توليد CAPTCHA
     generateCaptcha();
     
-    // إضافة مستمعين للمفاتيح
-    const passInput = document.getElementById('password');
-    const captchaInput = document.getElementById('captcha-answer');
-    const emailInput = document.getElementById('email');
-    
-    if (emailInput) {
-        emailInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') attemptLogin();
-        });
-    }
-    
-    if (passInput) {
-        passInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') attemptLogin();
-        });
-    }
-    
-    if (captchaInput) {
-        captchaInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') attemptLogin();
-        });
-    }
-    
-    console.log('✅ تم تهيئة نظام الدخول بنجاح');
+    const inputs = ['email', 'password', 'captcha-answer'];
+    inputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') attemptLogin();
+            });
+        }
+    });
 });
 
 // ========== دالة تسجيل الخروج ==========
 function logout() {
     console.log('👋 تسجيل خروج...');
+    
+    // إذا كان هناك جلسة فايربيس
+    if (typeof auth !== 'undefined' && auth.signOut) {
+        auth.signOut();
+    }
     
     const loginOverlay = document.getElementById('login-overlay');
     const adminPanel = document.getElementById('admin-panel');
@@ -167,16 +141,15 @@ function logout() {
     if (adminPanel) adminPanel.style.display = 'none';
     
     // مسح الحقول
-    const emailInput = document.getElementById('email');
-    const passInput = document.getElementById('password');
-    const captchaInput = document.getElementById('captcha-answer');
+    const fields = ['email', 'password', 'captcha-answer'];
+    fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
     
-    if (emailInput) emailInput.value = '';
-    if (passInput) passInput.value = '';
-    if (captchaInput) captchaInput.value = '';
+    const errorMsg = document.getElementById('error-msg');
+    if (errorMsg) errorMsg.style.display = 'none';
     
-    // إعادة توليد CAPTCHA
     generateCaptcha();
-    
     console.log('✅ تم تسجيل الخروج');
 }
