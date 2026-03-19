@@ -18,6 +18,9 @@ function checkSession() {
         if (loginOverlay) loginOverlay.style.display = 'none';
         if (adminPanel) adminPanel.style.display = 'flex';
         loadData();
+        
+        // التأكد من إظهار القسم الافتراضي (الفيديوهات)
+        switchSection('video-section');
     } else {
         isLoggedIn = false;
         if (loginOverlay) loginOverlay.style.display = 'flex';
@@ -30,9 +33,15 @@ function initializeAdmin() {
     // تعيين أحداث القائمة الجانبية
     const menuItems = document.querySelectorAll('.menu-item');
     menuItems.forEach(item => {
-        item.addEventListener('click', function() {
-            const sectionId = this.getAttribute('onclick').match(/'([^']+)'/)[1];
-            switchSection(sectionId, this);
+        item.addEventListener('click', function(e) {
+            // منع التداخل إذا كان هناك onclick في HTML
+            const onclickAttr = this.getAttribute('onclick');
+            if (onclickAttr) {
+                const match = onclickAttr.match(/'([^']+)'/);
+                if (match && match[1]) {
+                    switchSection(match[1], this);
+                }
+            }
         });
     });
 }
@@ -94,26 +103,46 @@ function showError(title, message) {
 
 // ========== التنقل بين الأقسام ==========
 function switchSection(sectionId, menuItem) {
+    console.log('🔄 التبديل إلى القسم:', sectionId);
+    
     // التحقق من تسجيل الدخول
-    if (!isLoggedIn) {
+    if (!isLoggedIn && sessionStorage.getItem('admin-logged-in') !== 'true') {
         showError('❌ خطأ', 'يجب تسجيل الدخول أولاً');
         return;
     }
     
     // إخفاء جميع الأقسام
     const sections = document.querySelectorAll('.admin-section');
-    sections.forEach(section => section.classList.remove('active'));
+    sections.forEach(section => {
+        section.classList.remove('active');
+        section.style.display = 'none';
+    });
     
     // إظهار القسم المطلوب
     const targetSection = document.getElementById(sectionId);
     if (targetSection) {
         targetSection.classList.add('active');
+        targetSection.style.display = 'block';
+    } else {
+        console.error('❌ القسم غير موجود:', sectionId);
     }
     
     // تحديث القائمة النشطة
     const menuItems = document.querySelectorAll('.menu-item');
     menuItems.forEach(item => item.classList.remove('active'));
-    if (menuItem) menuItem.classList.add('active');
+    
+    if (menuItem) {
+        // التأكد من أننا نضع الكلاس على العنصر الأب إذا تم النقر على الأيقونة
+        const targetItem = menuItem.classList.contains('menu-item') ? menuItem : menuItem.closest('.menu-item');
+        if (targetItem) targetItem.classList.add('active');
+    } else {
+        // محاولة إيجاد العنصر بناءً على sectionId إذا لم يتم تمريره
+        const foundItem = Array.from(menuItems).find(item => {
+            const onclick = item.getAttribute('onclick');
+            return onclick && onclick.includes(sectionId);
+        });
+        if (foundItem) foundItem.classList.add('active');
+    }
 }
 
 // ========== إدارة الفيديوهات ==========
