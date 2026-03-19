@@ -158,6 +158,48 @@ body, html {
     color: #00bfff;
 }
 
+.user-link {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 5px;
+}
+
+/* تطبيقات مرتبطة */
+.apps-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.app-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.app-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-3px);
+}
+
+.app-card i {
+    font-size: 1.5rem;
+    color: #00ff88;
+}
+
+.app-details h5 {
+    font-size: 0.9rem;
+}
+
+.app-details p {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
 /* روابط اجتماعية */
 .social-icons {
     display: flex;
@@ -199,52 +241,41 @@ body, html {
     gap: 25px;
 }
 
-/* مشغل الموسيقى - مظهر جديد بدون كارد وفي الأسفل */
+/* مشغل الموسيقى */
 .advanced-player {
-    position: fixed;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
     width: 100%;
     max-width: 600px;
-    padding: 10px 20px;
+    padding: 20px 30px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: transparent; /* إزالة الخلفية */
-    border: none; /* إزالة الحدود */
-    box-shadow: none; /* إزالة الظلال */
     animation: fadeIn 1.2s ease-out 0.3s both;
-    z-index: 100;
 }
 
 .player-left {
     display: flex;
     align-items: center;
     gap: 15px;
-    width: 30%;
+    width: 35%;
 }
 
 .player-left img {
-    width: 50px;
-    height: 50px;
+    width: 55px;
+    height: 55px;
     border-radius: 10px;
     object-fit: cover;
-    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .track-info h4 {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
 .track-info p {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.6);
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .player-center {
@@ -256,7 +287,7 @@ body, html {
     display: flex;
     justify-content: center;
     gap: 20px;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
 }
 
 .p-btn {
@@ -266,8 +297,7 @@ body, html {
     cursor: pointer;
     font-size: 1.1rem;
     transition: all 0.3s ease;
-    opacity: 0.8;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    opacity: 0.7;
 }
 
 .p-btn:hover {
@@ -278,7 +308,7 @@ body, html {
 .play-main {
     width: 40px;
     height: 40px;
-    background: rgba(255, 255, 255, 0.9);
+    background: #fff;
     color: #000;
     border-radius: 50%;
     display: flex;
@@ -295,21 +325,21 @@ body, html {
 .progress-container {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 0.7rem;
-    color: rgba(255, 255, 255, 0.6);
+    gap: 12px;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
 }
 
 #progress-bar {
     flex: 1;
-    height: 2px;
+    height: 3px;
     cursor: pointer;
     accent-color: #00ff88;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .player-right {
-    width: 30%;
+    width: 25%;
     display: flex;
     justify-content: flex-end;
 }
@@ -321,91 +351,26 @@ body, html {
 }
 
 #volume-slider {
-    width: 60px;
-    height: 2px;
+    width: 70px;
+    height: 3px;
     accent-color: #00ff88;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translate(-50%, 10px); }
-    to { opacity: 1; transform: translate(-50%, 0); }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-/* --- العرض المتجاوب للهواتف (Responsive) --- */
-@media (max-width: 768px) {
-    .profile-card {
-        max-width: 90%;
-        padding: 20px;
-        margin-bottom: 20px;
-    }
-
-    .profile-header {
-        gap: 15px;
-    }
-
-    .avatar-container img {
-        width: 80px;
-        height: 80px;
-    }
-
-    .user-info h1 {
-        font-size: 1.4rem;
-    }
-
-    .social-icons {
-        gap: 12px;
-    }
-
-    .social-icons a {
-        width: 40px;
-        height: 40px;
-        font-size: 1.2rem;
-    }
-
-    /* مشغل الموسيقى للهاتف - الحفاظ على المظهر الأفقي البسيط */
-    .advanced-player {
-        bottom: 20px;
-        max-width: 95%;
-        padding: 10px;
-    }
-
-    .player-left {
-        width: 25%;
-    }
-
-    .player-left img {
-        width: 40px;
-        height: 40px;
-    }
-
-    .track-info {
-        display: none; /* إخفاء النص في الهواتف الصغيرة جداً لتوفير مساحة */
-    }
-
-    .player-center {
-        width: 50%;
-    }
-
-    .player-controls {
-        gap: 15px;
-    }
-
-    .player-right {
-        width: 25%;
-    }
-
-    #volume-slider {
-        width: 40px;
-    }
-
-    .enter-btn-minimal {
-        padding: 12px 30px;
-        font-size: 1rem;
-        letter-spacing: 3px;
-    }
+/* العرض المتجاوب */
+@media (max-width: 650px) {
+    .profile-card { padding: 25px; }
+    .apps-grid { grid-template-columns: 1fr; }
+    .advanced-player { flex-direction: column; gap: 20px; }
+    .player-left, .player-center, .player-right { width: 100%; justify-content: center; text-align: center; }
+    .player-left { flex-direction: column; }
 }
 
-/* لوحة التحكم المطورة */
+/* لوحة التحكم المطورة - المظهر الكلاسيكي المتوافق */
 .admin-layout {
     display: flex;
     height: 100vh;
@@ -462,12 +427,7 @@ body, html {
 
 .admin-section {
     display: none;
-    animation: fadeInAdmin 0.3s ease;
-}
-
-@keyframes fadeInAdmin {
-    from { opacity: 0; transform: translateY(5px); }
-    to { opacity: 1; transform: translateY(0); }
+    animation: fadeIn 0.3s ease;
 }
 
 .admin-section.active {
@@ -511,16 +471,11 @@ body, html {
     color: #fff;
 }
 
+/* تقسيم المحتوى (نصفين) */
 .split-view {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
-}
-
-@media (max-width: 850px) {
-    .admin-layout { flex-direction: column; }
-    .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid #333; }
-    .split-view { grid-template-columns: 1fr; }
 }
 
 .history-list {
