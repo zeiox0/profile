@@ -1,4 +1,4 @@
-if (typeof supabase !== "undefined") { window.supabaseClient = supabase.createClient(supabaseConfig.url, supabaseConfig.key); }
+function initSupabase() { if (typeof supabase !== "undefined" && !window.supabaseClient) { window.supabaseClient = supabase.createClient(supabaseConfig.url, supabaseConfig.key); } }
 const AUTHORIZED_EMAIL = "abdallah.ali2812@gmail.com";
 let currentData = {
     videos: [],
@@ -170,6 +170,7 @@ function replayMedia(type, index) {
 
 // استعادة منطق الرفع المستقر باستخدام Supabase من نسخة يوم الاثنين
 async function uploadMedia(type) {
+    initSupabase();
     const fileInput = document.getElementById(`${type}-file`);
     const urlInput = document.getElementById(`${type}-url`);
     const statusMsg = document.getElementById(`${type}-status-msg`);
