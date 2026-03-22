@@ -126,6 +126,27 @@ function renderAdminPanel() {
 
     renderHistory('video-history', currentData.videos || [], 'videos');
     renderHistory('audio-history', currentData.audios || [], 'audios');
+    
+    // تحميل إعدادات القوالب
+    const template = currentData.template || { id: 'default', bgColor: '#000000', bgEffect: 'none', showAvatar: true, showVisualizer: true, showStats: true };
+    document.getElementById('selected-template').value = template.id || 'default';
+    document.getElementById('bg-color').value = template.bgColor || '#000000';
+    document.getElementById('bg-effect').value = template.bgEffect || 'none';
+    document.getElementById('show-avatar').checked = template.showAvatar !== false;
+    document.getElementById('show-audio-visualizer').checked = template.showVisualizer !== false;
+    document.getElementById('show-stats').checked = template.showStats !== false;
+    
+    // تحديث شكل القوالب في الواجهة
+    document.querySelectorAll('.template-option').forEach(opt => {
+        const templateId = opt.getAttribute('onclick').match(/'([^']+)'/)[1];
+        if (templateId === template.id) {
+            opt.style.borderColor = '#00ff88';
+            opt.classList.add('active');
+        } else {
+            opt.style.borderColor = '#333';
+            opt.classList.remove('active');
+        }
+    });
 }
 
 function renderHistory(containerId, list, type) {
@@ -303,6 +324,28 @@ function updateLivePreview() {
     if (previewFrame) {
         previewFrame.src = 'index.html?preview=' + Date.now();
     }
+}
+
+function saveTemplateSettings() {
+    const template = {
+        id: document.getElementById('selected-template').value,
+        bgColor: document.getElementById('bg-color').value,
+        bgEffect: document.getElementById('bg-effect').value,
+        showAvatar: document.getElementById('show-avatar').checked,
+        showVisualizer: document.getElementById('show-audio-visualizer').checked,
+        showStats: document.getElementById('show-stats').checked
+    };
+    
+    db.collection('siteData').doc('config').update({ template })
+    .then(() => {
+        currentData.template = template;
+        alert("✅ تم حفظ إعدادات القالب بنجاح!");
+        updateLivePreview();
+    })
+    .catch(err => {
+        console.error("Error saving template settings:", err);
+        alert("❌ خطأ في حفظ الإعدادات: " + err.message);
+    });
 }
 
 function logout() {

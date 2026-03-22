@@ -497,3 +497,72 @@ body, html {
 .history-item:last-child {
     border-bottom: none;
 }
+
+/* أنماط القوالب الجديدة */
+.visualizer-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 300px;
+    z-index: 5;
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+#audio-visualizer {
+    width: 100%;
+    height: 100%;
+}
+
+/* القالب العصري (Modern/Organic) */
+[data-template="modern"] .profile-card {
+    background: rgba(0, 255, 136, 0.05);
+    border: 1px solid rgba(0, 255, 136, 0.2);
+    border-radius: 50% 20% 50% 20%;
+    padding: 50px;
+    box-shadow: 0 0 50px rgba(0, 255, 136, 0.1);
+}
+
+[data-template="modern"] .avatar-container img {
+    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+    border: 3px solid #00ff88;
+    animation: morph 8s ease-in-out infinite;
+}
+
+@keyframes morph {
+    0% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; }
+    50% { border-radius: 50% 50% 20% 80% / 25% 80% 20% 75%; }
+    100% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; }
+}
+
+/* قالب الزجاج (Glassmorphism) */
+[data-template="glass"] .profile-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 30px;
+    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2);
+}
+
+[data-template="glass"] .avatar-container img {
+    border-radius: 20px;
+    transform: rotate(-5deg);
+    box-shadow: 10px 10px 20px rgba(0,0,0,0.3);
+}
+
+/* تحسينات لوحة التحكم للقوالب */
+.template-option {
+    transition: all 0.3s ease;
+}
+
+.template-option:hover {
+    transform: translateY(-5px);
+    background: rgba(255,255,255,0.1) !important;
+}
+
+.template-option.active {
+    background: rgba(0, 255, 136, 0.1) !important;
+}

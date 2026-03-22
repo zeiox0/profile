@@ -21,7 +21,7 @@
         </div>
     </div>
 
-    <div id="main-content" class="main-content blurred">
+    <div id="main-content" class="main-content blurred" data-template="default">
         <!-- خلفية الوسائط (فيديو أو صورة) -->
         <div id="media-background" class="media-background">
             <video id="bg-video" playsinline muted preload="auto" loop style="display: none; width: 100%; height: 100%; object-fit: cover; position: fixed; top: 0; left: 0; z-index: -1;"></video>
@@ -33,9 +33,13 @@
 
         <!-- محتوى الملف الشخصي -->
         <div class="profile-wrapper">
-            <div class="profile-card glass">
+            <div id="visualizer-container" class="visualizer-container">
+                <canvas id="audio-visualizer"></canvas>
+            </div>
+            
+            <div class="profile-card glass" id="main-profile-card">
                 <div class="profile-header">
-                    <div class="avatar-container">
+                    <div class="avatar-container" id="avatar-box">
                         <img id="user-avatar" src="https://via.placeholder.com/150" alt="Avatar" onerror="this.src='https://via.placeholder.com/150'; this.onerror=null;">
                     </div>
                     <div class="user-info">
@@ -55,7 +59,7 @@
                     </div>
                 </div>
 
-                <div class="profile-footer">
+                <div class="profile-footer" id="profile-stats-footer">
                     <div class="stats">
                         <span><i class="fas fa-eye"></i> <span id="view-count">0</span></span>
                         <span><i class="fas fa-map-marker-alt"></i> <span id="user-location">Earth</span></span>
@@ -131,10 +135,28 @@
 
         function updateUI() {
             const profile = siteData.profile || {};
+            const template = siteData.template || { id: 'default', bgColor: '#000000', bgEffect: 'none', showAvatar: true, showVisualizer: true, showStats: true };
+            
             document.getElementById('user-name').innerText = profile.name || "Abdallah";
             document.getElementById('user-bio').innerText = profile.bio || "Hi I 👋";
             document.getElementById('user-avatar').src = profile.avatar || "https://via.placeholder.com/150";
             
+            // تطبيق إعدادات القالب
+            mainContent.setAttribute('data-template', template.id || 'default');
+            document.body.style.backgroundColor = template.bgColor || '#000000';
+            
+            // تخصيص العناصر
+            document.getElementById('avatar-box').style.display = template.showAvatar !== false ? 'block' : 'none';
+            document.getElementById('visualizer-container').style.display = template.showVisualizer !== false ? 'block' : 'none';
+            document.getElementById('profile-stats-footer').style.display = template.showStats !== false ? 'block' : 'none';
+            
+            // تأثير الخلفية
+            const mediaBg = document.getElementById('media-background');
+            if (template.bgEffect === 'blur') mediaBg.style.filter = 'blur(10px)';
+            else if (template.bgEffect === 'grayscale') mediaBg.style.filter = 'grayscale(100%)';
+            else if (template.bgEffect === 'darken') mediaBg.style.filter = 'brightness(40%)';
+            else mediaBg.style.filter = 'none';
+
             // تحديث الروابط الاجتماعية
             const socialDiv = document.getElementById('social-links');
             socialDiv.innerHTML = '';
@@ -193,6 +215,49 @@
                     loadAudio(0);
                 }
             }
+            
+            // تهيئة الموجة الصوتية إذا كانت مفعلة
+            if (template.showVisualizer !== false) initVisualizer();
+        }
+
+        let visualizerInited = false;
+        function initVisualizer() {
+            if (visualizerInited) return;
+            const canvas = document.getElementById('audio-visualizer');
+            const ctx = canvas.getContext('2d');
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const analyser = audioCtx.createAnalyser();
+            const source = audioCtx.createMediaElementSource(audioElem);
+            source.connect(analyser);
+            analyser.connect(audioCtx.destination);
+            analyser.fftSize = 256;
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+
+            function draw() {
+                requestAnimationFrame(draw);
+                analyser.getByteFrequencyData(dataArray);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const barWidth = (canvas.width / bufferLength) * 2.5;
+                let barHeight;
+                let x = 0;
+                for (let i = 0; i < bufferLength; i++) {
+                    barHeight = dataArray[i] / 2;
+                    ctx.fillStyle = `rgba(0, 255, 136, ${barHeight / 100})`;
+                    ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                    x += barWidth + 1;
+                }
+            }
+            
+            canvas.width = window.innerWidth;
+            canvas.height = 150;
+            draw();
+            visualizerInited = true;
+            
+            // تفعيل AudioContext عند أول تفاعل
+            document.addEventListener('click', () => {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+            }, { once: true });
         }
 
         function showAvatarAsBg(profile, bgImage, noMedia) {
