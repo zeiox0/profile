@@ -49,7 +49,7 @@
         </audio>
         
         <!-- أدوات التحكم -->
-        <div class="media-controls">
+        <div id="main-toolbar" class="media-controls">
             <div class="control-group">
                 <button id="video-toggle" class="control-btn" title="تشغيل/إيقاف الفيديو">
                     <i class="fas fa-video"></i>
@@ -66,6 +66,9 @@
             <div class="control-group">
                 <button id="dev-mode-btn" class="control-btn" title="وضع المطور">
                     <i class="fas fa-code"></i>
+                </button>
+                <button id="toolbar-toggle-btn" class="control-btn" title="إظهار/إخفاء الشريط">
+                    <i class="fas fa-chevron-down"></i>
                 </button>
             </div>
         </div>
@@ -108,6 +111,11 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- زر الإظهار العائم -->
+    <div id="floating-toolbar-show" onclick="toggleToolbar(true)">
+        <i class="fas fa-chevron-up"></i>
     </div>
 
     <!-- Firebase Scripts -->
@@ -265,6 +273,33 @@
         document.getElementById('close-dev-modal').addEventListener('click', function() {
             document.getElementById('dev-mode-modal').style.display = 'none';
         });
+
+        // التحكم في إظهار وإخفاء شريط الأدوات
+        const mainToolbar = document.getElementById('main-toolbar');
+        const floatingShowBtn = document.getElementById('floating-toolbar-show');
+        const toolbarToggleBtn = document.getElementById('toolbar-toggle-btn');
+
+        function toggleToolbar(show) {
+            if (show) {
+                mainToolbar.classList.remove('hidden');
+                floatingShowBtn.classList.remove('visible');
+                setTimeout(() => {
+                    floatingShowBtn.style.display = 'none';
+                }, 500);
+            } else {
+                mainToolbar.classList.add('hidden');
+                floatingShowBtn.style.display = 'flex';
+                setTimeout(() => {
+                    floatingShowBtn.classList.add('visible');
+                }, 10);
+            }
+        }
+
+        if (toolbarToggleBtn) {
+            toolbarToggleBtn.addEventListener('click', function() {
+                toggleToolbar(false);
+            });
+        }
         
         // إضافة تطبيق جديد
         document.getElementById('add-app-btn').addEventListener('click', function() {
