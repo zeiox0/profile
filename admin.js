@@ -371,3 +371,9 @@ function searchOnlineVideos() {
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('video-search')) searchOnlineVideos();
 });
+
+
+// ========== فتح محرر التصميم المتقدم ==========
+function openVisualEditor() {
+    window.location.href = 'visual-editor.html';
+}
