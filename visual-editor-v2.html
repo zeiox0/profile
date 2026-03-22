@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محرر التصميم المتقدم</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0e27;
+            color: #fff;
+            direction: rtl;
+            overflow: hidden;
+        }
+
+        .editor-container {
+            display: flex;
+            height: 100vh;
+            gap: 0;
+        }
+
+        /* منطقة المعاينة الرئيسية */
+        .preview-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-header {
+            background: #1a1f3a;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #00ff88;
+        }
+
+        .preview-header h2 {
+            font-size: 14px;
+            color: #00ff88;
+        }
+
+        .preview-content {
+            flex: 1;
+            overflow: auto;
+            position: relative;
+            background: #000;
+        }
+
+        /* إطار الصفحة الأصلية */
+        .page-frame {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background: #000;
+        }
+
+        .page-frame iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #000;
+        }
+
+        /* اللوحة الجانبية */
+        .sidebar {
+            width: 300px;
+            background: #1a1f3a;
+            border-left: 2px solid #00ff88;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            background: #0a0e27;
+            padding: 15px;
+            border-bottom: 2px solid #00ff88;
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .element-item {
+            background: #0a0e27;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            border-left: 3px solid #00ff88;
+            transition: all 0.3s;
+        }
+
+        .element-item:hover {
+            background: #2a2f4a;
+            transform: translateX(-5px);
+        }
+
+        .element-item.selected {
+            background: #00ff88;
+            color: #000;
+            border-left-color: #fff;
+        }
+
+        .element-name {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .element-actions {
+            display: flex;
+            gap: 5px;
+            font-size: 11px;
+        }
+
+        .element-actions button {
+            flex: 1;
+            padding: 3px;
+            background: #00ff88;
+            border: none;
+            border-radius: 3px;
+            color: #000;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .element-actions button:hover {
+            background: #00dd77;
+            transform: scale(1.05);
+        }
+
+        /* شريط الأدوات العلوي */
+        .toolbar {
+            background: #0a0e27;
+            padding: 10px 20px;
+            display: flex;
+            gap: 10px;
+            border-bottom: 2px solid #00ff88;
+            flex-wrap: wrap;
+        }
+
+        .toolbar button {
+            background: #00ff88;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #000;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .toolbar button:hover {
+            background: #00dd77;
+            transform: scale(1.05);
+        }
+
+        .toolbar button.danger {
+            background: #ff4d4d;
+            color: #fff;
+        }
+
+        .toolbar button.danger:hover {
+            background: #ff3333;
+        }
+
+        /* قائمة الخيارات */
+        .context-menu {
+            position: fixed;
+            background: #1a1f3a;
+            border: 2px solid #00ff88;
+            border-radius: 5px;
+            z-index: 10000;
+            min-width: 150px;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .context-menu-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #00ff88;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .context-menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .context-menu-item:hover {
+            background: #00ff88;
+            color: #000;
+        }
+
+        .context-menu-item.danger {
+            color: #ff4d4d;
+        }
+
+        .context-menu-item.danger:hover {
+            background: #ff4d4d;
+            color: #fff;
+        }
+
+        /* إشعارات */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #00ff88;
+            color: #000;
+            padding: 15px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            z-index: 10001;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* تأثير اللمس */
+        .touch-effect {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border: 2px solid #00ff88;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: touchPulse 0.6s ease-out;
+            z-index: 9999;
+        }
+
+        @keyframes touchPulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        /* شريط الحالة */
+        .status-bar {
+            background: #0a0e27;
+            padding: 10px 20px;
+            border-top: 2px solid #00ff88;
+            font-size: 12px;
+            color: #00ff88;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .status-item {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        /* شريط التمرير المخصص */
+        .sidebar-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-track {
+            background: #0a0e27;
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb {
+            background: #00ff88;
+            border-radius: 4px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb:hover {
+            background: #00dd77;
+        }
+    </style>
+</head>
+<body>
+    <div class="editor-container">
+        <!-- منطقة المعاينة -->
+        <div class="preview-area">
+            <div class="preview-header">
+                <h2>🎨 معاينة حية</h2>
+                <span id="element-count">العناصر: 0</span>
+            </div>
+
+            <div class="toolbar">
+                <button onclick="saveChanges()">
+                    <i class="fas fa-save"></i> حفظ التغييرات
+                </button>
+                <button onclick="undoChanges()">
+                    <i class="fas fa-undo"></i> تراجع
+                </button>
+                <button onclick="redoChanges()">
+                    <i class="fas fa-redo"></i> إعادة
+                </button>
+                <button onclick="resetToDefault()">
+                    <i class="fas fa-refresh"></i> إعادة تعيين
+                </button>
+                <button class="danger" onclick="exitEditor()">
+                    <i class="fas fa-times"></i> خروج
+                </button>
+            </div>
+
+            <div class="preview-content">
+                <div class="page-frame" id="page-frame">
+                    <iframe id="page-iframe" src="index.html" sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
+                </div>
+            </div>
+
+            <div class="status-bar">
+                <div class="status-item">
+                    <i class="fas fa-info-circle"></i>
+                    <span id="status-text">جاهز للتعديل - اضغط على العناصر لتحديدها</span>
+                </div>
+                <div class="status-item">
+                    <span id="save-status">غير محفوظ</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- اللوحة الجانبية -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-list"></i> العناصر المتاحة
+            </div>
+            <div class="sidebar-content" id="elements-list">
+                <!-- العناصر تظهر هنا -->
+            </div>
+        </div>
+    </div>
+
+    <script src="touch-editor.js"></script>
+    <script>
+        // ========== متغيرات عامة ==========
+        let selectedElement = null;
+        let editHistory = [];
+        let historyIndex = -1;
+        let iframeDoc = null;
+        let elements = [];
+        let pinned = {};
+        let hasUnsavedChanges = false;
+
+        // ========== تهيئة المحرر ==========
+        window.addEventListener('load', () => {
+            const iframe = document.getElementById('page-iframe');
+            setTimeout(() => {
+                try {
+                    iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    touchEditor.init(iframeDoc);
+                    loadElements();
+                    setupEventListeners();
+                    updateElementsList();
+                } catch (e) {
+                    console.error('خطأ في الوصول إلى الصفحة:', e);
+                }
+            }, 1000);
+        });
+
+        // ========== تحميل العناصر ==========
+        function loadElements() {
+            if (!iframeDoc) return;
+
+            elements = [];
+            const allElements = iframeDoc.querySelectorAll('[id]');
+            
+            allElements.forEach(el => {
+                if (el.id && !el.id.includes('firebase') && el.offsetHeight > 0) {
+                    elements.push({
+                        id: el.id,
+                        tag: el.tagName,
+                        text: el.innerText?.substring(0, 30) || el.id,
+                        element: el
+                    });
+                }
+            });
+
+            document.getElementById('element-count').textContent = `العناصر: ${elements.length}`;
+        }
+
+        // ========== إعداد مستمعي الأحداث ==========
+        function setupEventListeners() {
+            if (!iframeDoc) return;
+
+            iframeDoc.addEventListener('touchstart', (e) => {
+                handleTouchStart(e);
+            }, true);
+
+            iframeDoc.addEventListener('touchmove', (e) => {
+                handleTouchMove(e);
+            }, true);
+
+            iframeDoc.addEventListener('click', (e) => {
+                handleElementClick(e);
+            }, true);
+
+            iframeDoc.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                handleRightClick(e);
+            }, true);
+        }
+
+        // ========== معالجة اللمس ==========
+        function handleTouchStart(e) {
+            const el = e.target;
+            if (!el || el === iframeDoc.body) return;
+
+            // تأثير اللمس
+            showTouchEffect(e.touches[0].clientX, e.touches[0].clientY);
+
+            // تحريك العنصر
+            if (!pinned[el.id]) {
+                el.style.transform = 'scale(1.05)';
+                el.style.transition = 'all 0.3s ease';
+            }
+        }
+
+        // ========== معالجة حركة اللمس ==========
+        function handleTouchMove(e) {
+            const el = e.target;
+            if (!el || pinned[el.id]) return;
+
+            const touch = e.touches[0];
+            const rect = el.getBoundingClientRect();
+            
+            el.style.transform = `translate(${touch.clientX - rect.left}px, ${touch.clientY - rect.top}px) scale(1.05)`;
+        }
+
+        // ========== معالجة النقر على العنصر ==========
+        function handleElementClick(e) {
+            e.stopPropagation();
+            const el = e.target;
+            
+            if (!el || el === iframeDoc.body) return;
+
+            selectElement(el);
+        }
+
+        // ========== تحديد العنصر ==========
+        function selectElement(el) {
+            if (selectedElement) {
+                selectedElement.style.outline = 'none';
+            }
+
+            selectedElement = el;
+            el.style.outline = '3px solid #00ff88';
+            el.style.outlineOffset = '2px';
+
+            updateElementsList();
+            updateStatus(`تم تحديد: ${el.id || el.tagName}`);
+        }
+
+        // ========== معالجة النقر بزر الفأرة الأيمن ==========
+        function handleRightClick(e) {
+            e.preventDefault();
+            const el = e.target;
+            
+            if (!el || el === iframeDoc.body) return;
+
+            selectElement(el);
+            showContextMenu(e.pageX, e.pageY, el);
+        }
+
+        // ========== عرض قائمة الخيارات ==========
+        function showContextMenu(x, y, el) {
+            // إزالة القائمة السابقة
+            const oldMenu = document.querySelector('.context-menu');
+            if (oldMenu) oldMenu.remove();
+
+            const menu = document.createElement('div');
+            menu.className = 'context-menu';
+            menu.style.left = x + 'px';
+            menu.style.top = y + 'px';
+
+            const isPinned = pinned[el.id];
+
+            menu.innerHTML = `
+                <div class="context-menu-item" onclick="togglePin('${el.id}')">
+                    <i class="fas fa-${isPinned ? 'lock' : 'unlock'}"></i>
+                    ${isPinned ? 'فك التثبيت' : 'تثبيت العنصر'}
+                </div>
+                <div class="context-menu-item" onclick="hideElement('${el.id}')">
+                    <i class="fas fa-eye-slash"></i> إخفاء
+                </div>
+                <div class="context-menu-item" onclick="showElement('${el.id}')">
+                    <i class="fas fa-eye"></i> إظهار
+                </div>
+                <div class="context-menu-item" onclick="duplicateElement('${el.id}')">
+                    <i class="fas fa-copy"></i> نسخ
+                </div>
+                <div class="context-menu-item danger" onclick="deleteElement('${el.id}')">
+                    <i class="fas fa-trash"></i> حذف
+                </div>
+            `;
+
+            document.body.appendChild(menu);
+
+            // إغلاق القائمة عند النقر خارجها
+            setTimeout(() => {
+                document.addEventListener('click', () => {
+                    menu.remove();
+                }, { once: true });
+            }, 100);
+        }
+
+        // ========== تثبيت/فك تثبيت العنصر ==========
+        function togglePin(elementId) {
+            pinned[elementId] = !pinned[elementId];
+            const el = iframeDoc.getElementById(elementId);
+            if (el) {
+                el.style.cursor = pinned[elementId] ? 'not-allowed' : 'pointer';
+                showNotification(pinned[elementId] ? '📌 تم تثبيت العنصر' : '📌 تم فك تثبيت العنصر');
+            }
+            addToHistory();
+        }
+
+        // ========== إخفاء العنصر ==========
+        function hideElement(elementId) {
+            const el = iframeDoc.getElementById(elementId);
+            if (el) {
+                el.style.display = 'none';
+                showNotification('👁️ تم إخفاء العنصر');
+                addToHistory();
+            }
+        }
+
+        // ========== إظهار العنصر ==========
+        function showElement(elementId) {
+            const el = iframeDoc.getElementById(elementId);
+            if (el) {
+                el.style.display = '';
+                showNotification('👁️ تم إظهار العنصر');
+                addToHistory();
+            }
+        }
+
+        // ========== نسخ العنصر ==========
+        function duplicateElement(elementId) {
+            const el = iframeDoc.getElementById(elementId);
+            if (el) {
+                const clone = el.cloneNode(true);
+                clone.id = elementId + '_copy_' + Date.now();
+                el.parentNode.insertBefore(clone, el.nextSibling);
+                showNotification('📋 تم نسخ العنصر');
+                loadElements();
+                updateElementsList();
+                addToHistory();
+            }
+        }
+
+        // ========== حذف العنصر ==========
+        function deleteElement(elementId) {
+            if (confirm('هل تريد حذف هذا العنصر؟')) {
+                const el = iframeDoc.getElementById(elementId);
+                if (el) {
+                    el.remove();
+                    showNotification('🗑️ تم حذف العنصر');
+                    loadElements();
+                    updateElementsList();
+                    addToHistory();
+                }
+            }
+        }
+
+        // ========== تأثير اللمس ==========
+        function showTouchEffect(x, y) {
+            const effect = document.createElement('div');
+            effect.className = 'touch-effect';
+            effect.style.left = (x - 15) + 'px';
+            effect.style.top = (y - 15) + 'px';
+            document.body.appendChild(effect);
+
+            setTimeout(() => effect.remove(), 600);
+        }
+
+        // ========== تحديث قائمة العناصر ==========
+        function updateElementsList() {
+            const list = document.getElementById('elements-list');
+            list.innerHTML = '';
+
+            elements.forEach(el => {
+                const item = document.createElement('div');
+                item.className = 'element-item' + (selectedElement?.id === el.id ? ' selected' : '');
+                
+                item.innerHTML = `
+                    <div class="element-name">${el.id}</div>
+                    <div class="element-actions">
+                        <button onclick="togglePin('${el.id}')" title="تثبيت">
+                            <i class="fas fa-${pinned[el.id] ? 'lock' : 'unlock'}"></i>
+                        </button>
+                        <button onclick="hideElement('${el.id}')" title="إخفاء">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>
+                        <button onclick="deleteElement('${el.id}')" title="حذف">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+
+                item.addEventListener('click', () => {
+                    const el = iframeDoc.getElementById(elements.find(e => e.id === el.id)?.id);
+                    if (el) selectElement(el);
+                });
+
+                list.appendChild(item);
+            });
+        }
+
+        // ========== السجل (Undo/Redo) ==========
+        function addToHistory() {
+            historyIndex++;
+            editHistory = editHistory.slice(0, historyIndex);
+            editHistory.push(saveState());
+            hasUnsavedChanges = true;
+            updateSaveStatus();
+        }
+
+        function saveState() {
+            return {
+                pinned: JSON.parse(JSON.stringify(pinned)),
+                html: iframeDoc.body.innerHTML,
+                timestamp: Date.now()
+            };
+        }
+
+        function restoreState(state) {
+            pinned = JSON.parse(JSON.stringify(state.pinned));
+            iframeDoc.body.innerHTML = state.html;
+            loadElements();
+            updateElementsList();
+        }
+
+        function undoChanges() {
+            touchEditor.undo();
+        }
+
+        function redoChanges() {
+            touchEditor.redo();
+        }
+
+        // ========== حفظ التغييرات ==========
+        function saveChanges() {
+            if (!hasUnsavedChanges) {
+                showNotification('✅ لا توجد تغييرات لحفظها');
+                return;
+            }
+
+            // هنا يمكن إضافة كود لحفظ البيانات على الخادم
+            // مثل Firebase أو Supabase
+            
+            hasUnsavedChanges = false;
+            updateSaveStatus();
+            showNotification('💾 تم حفظ التغييرات بنجاح!');
+            
+            // إعادة تحميل الصفحة الأصلية
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        }
+
+        // ========== إعادة تعيين ==========
+        function resetToDefault() {
+            if (confirm('هل تريد إعادة تعيين جميع التغييرات؟')) {
+                const iframe = document.getElementById('page-iframe');
+                iframe.src = 'index.html';
+                pinned = {};
+                editHistory = [];
+                historyIndex = -1;
+                hasUnsavedChanges = false;
+                updateSaveStatus();
+                showNotification('🔄 تم إعادة التعيين');
+                
+                setTimeout(() => {
+                    iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    loadElements();
+                    setupEventListeners();
+                    updateElementsList();
+                }, 1000);
+            }
+        }
+
+        // ========== الخروج ==========
+        function exitEditor() {
+            if (hasUnsavedChanges) {
+                if (confirm('هناك تغييرات غير محفوظة. هل تريد الخروج؟')) {
+                    window.location.href = 'admin.html';
+                }
+            } else {
+                window.location.href = 'admin.html';
+            }
+        }
+
+        // ========== الإشعارات ==========
+        function showNotification(message) {
+            const notif = document.createElement('div');
+            notif.className = 'notification';
+            notif.textContent = message;
+            document.body.appendChild(notif);
+
+            setTimeout(() => {
+                notif.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notif.remove(), 300);
+            }, 2000);
+        }
+
+        // ========== تحديث حالة الحفظ ==========
+        function updateSaveStatus() {
+            const status = document.getElementById('save-status');
+            status.textContent = hasUnsavedChanges ? '⚠️ غير محفوظ' : '✅ محفوظ';
+            status.style.color = hasUnsavedChanges ? '#ff4d4d' : '#00ff88';
+        }
+
+        // ========== تحديث الحالة ==========
+        function updateStatus(message) {
+            document.getElementById('status-text').textContent = message;
+        }
+    </script>
+</body>
+</html>

@@ -375,5 +375,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ========== فتح محرر التصميم المتقدم ==========
 function openVisualEditor() {
-    window.location.href = 'visual-editor.html';
+    window.location.href = 'visual-editor-v2.html';
 }
