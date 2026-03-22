@@ -21,6 +21,25 @@
         </div>
     </div>
 
+    <!-- الشريط الجانبي لإعدادات المطور -->
+    <div id="dev-sidebar" class="dev-sidebar">
+        <div class="sidebar-header">
+            <h3>🛠️ إعدادات المطور</h3>
+            <button onclick="toggleDevSettings()">&times;</button>
+        </div>
+        <div class="sidebar-content">
+            <div class="sidebar-item" onclick="location.href='visual-editor.html'">
+                <i class="fas fa-paint-brush"></i> المحرر البصري
+            </div>
+            <div class="sidebar-item" onclick="location.href='admin.html'">
+                <i class="fas fa-user-shield"></i> لوحة الإدارة
+            </div>
+            <div class="sidebar-item" onclick="location.href='https://github.com/zeiox0/profile'">
+                <i class="fab fa-github"></i> المستودع
+            </div>
+        </div>
+    </div>
+
     <div id="main-content" class="main-content blurred" data-template="default">
         <!-- خلفية الوسائط (فيديو أو صورة) -->
         <div id="media-background" class="media-background">
@@ -92,6 +111,7 @@
                     <div class="volume-control">
                         <button id="mute-btn" class="p-btn" onclick="toggleMute()"><i class="fas fa-volume-up"></i></button>
                         <input type="range" id="volume-slider" min="0" max="100" value="50" oninput="setVolume(this.value)">
+                        <button id="dev-settings-btn" class="p-btn" title="إعدادات المطور" onclick="toggleDevSettings()"><i class="fas fa-code"></i></button>
                         <button id="toolbar-toggle-btn" class="p-btn" title="إخفاء الشريط" onclick="toggleToolbar(false)"><i class="fas fa-chevron-down"></i></button>
                     </div>
                 </div>
@@ -123,6 +143,11 @@
             if (audioElem.src) audioElem.play().catch(e => console.log("Audio play failed:", e));
             if (videoElem.src) videoElem.play().catch(e => console.log("Video play failed:", e));
             setTimeout(() => enterScreen.style.display = 'none', 1000);
+        }
+
+        function toggleDevSettings() {
+            const sidebar = document.getElementById('dev-sidebar');
+            sidebar.classList.toggle('open');
         }
 
         function loadData() {

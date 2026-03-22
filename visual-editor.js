@@ -44,6 +44,25 @@ async function loadEditorData() {
     }
 }
 
+// ========== تبديل القوائم الجانبية ==========
+function toggleSidebars() {
+    const leftSidebar = document.getElementById('left-sidebar');
+    const rightSidebar = document.getElementById('right-sidebar');
+    const toggleBtn = document.getElementById('sidebar-toggle-btn');
+    
+    leftSidebar.classList.toggle('hidden');
+    rightSidebar.classList.toggle('hidden');
+    toggleBtn.classList.toggle('active');
+    
+    if (leftSidebar.classList.contains('hidden')) {
+        toggleBtn.innerHTML = '<i class="fas fa-columns"></i>';
+        showNotification('🙈 تم إخفاء القوائم');
+    } else {
+        toggleBtn.innerHTML = '<i class="fas fa-columns"></i>';
+        showNotification('👁️ تم إظهار القوائم');
+    }
+}
+
 // ========== تبديل التبويبات ==========
 function switchEditorTab(tabName) {
     // إخفاء جميع التبويبات
@@ -80,16 +99,19 @@ function setupCanvasEventListeners() {
             const x = e.clientX - rect.left - dragOffset.x;
             const y = e.clientY - rect.top - dragOffset.y;
             
+            // Update position in real-time without re-rendering everything
             draggedElement.style.left = Math.max(0, Math.min(x, rect.width - draggedElement.offsetWidth)) + 'px';
             draggedElement.style.top = Math.max(0, Math.min(y, rect.height - draggedElement.offsetHeight)) + 'px';
-            
-            updateElementProperty('x', draggedElement.offsetLeft);
-            updateElementProperty('y', draggedElement.offsetTop);
         }
     });
 
     canvas.addEventListener('mouseup', () => {
-        draggedElement = null;
+        if (draggedElement) {
+            // Update state only on mouseup to prevent shaking/lag
+            updateElementProperty('x', parseInt(draggedElement.style.left));
+            updateElementProperty('y', parseInt(draggedElement.style.top));
+            draggedElement = null;
+        }
     });
 }
 
