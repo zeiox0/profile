@@ -119,9 +119,8 @@ class MobileTouchEditor {
         const deltaX = e.touches[0].clientX - this.touchStartX;
         const deltaY = e.touches[0].clientY - this.touchStartY;
 
-        this.selectedElement.style.position = 'relative';
-        this.selectedElement.style.left = deltaX + 'px';
-        this.selectedElement.style.top = deltaY + 'px';
+        // استخدام transform للتحريك لضمان سلاسة الحركة وتجنب مشاكل layout reflow
+        this.selectedElement.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(1.05)`;
         this.selectedElement.style.zIndex = '9999';
 
         // تحديث الموضع في البيانات
@@ -161,8 +160,17 @@ class MobileTouchEditor {
         this.isDragging = false;
         this.isResizing = false;
 
-        // إزالة التأثير البصري
-        this.selectedElement.style.transform = 'scale(1)';
+        // تثبيت الموضع النهائي وتحويله إلى left/top عند انتهاء اللمس لتجنب تراكم الـ transform
+        const deltaX = parseFloat(this.selectedElement.dataset.touchX || 0);
+        const deltaY = parseFloat(this.selectedElement.dataset.touchY || 0);
+        
+        const rect = this.selectedElement.getBoundingClientRect();
+        const parentRect = this.selectedElement.offsetParent ? this.selectedElement.offsetParent.getBoundingClientRect() : {left: 0, top: 0};
+        
+        this.selectedElement.style.position = 'absolute';
+        this.selectedElement.style.left = (rect.left - parentRect.left) + 'px';
+        this.selectedElement.style.top = (rect.top - parentRect.top) + 'px';
+        this.selectedElement.style.transform = 'none';
         this.selectedElement.style.boxShadow = 'none';
 
         // حفظ الحالة
