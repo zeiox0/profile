@@ -242,14 +242,18 @@
             <section id="preview-section" class="admin-section">
                 <div class="admin-card">
                     <h3>👁️ المعاينة المباشرة (Live Preview)</h3>
-                    <div class="preview-container" style="position: relative; width: 100%; height: 600px; border: 2px solid #333; border-radius: 10px; overflow: hidden; background: #000;">
-                        <iframe id="live-preview-frame" src="index.html" style="width: 100%; height: 100%; border: none;"></iframe>
-                    </div>
-                    <div style="margin-top: 15px; text-align: center;">
-                        <button onclick="updateLivePreview()" class="admin-btn secondary"><i class="fas fa-sync"></i> تحديث المعاينة</button>
-                    </div>
+                    <p style="color: rgba(255,255,255,0.6); margin-bottom: 15px;">اضغط على الزر أدناه لعرض موقعك بملء الشاشة</p>
+                    <button onclick="openFullscreenPreview()" class="admin-btn" style="width: 100%; padding: 15px; font-size: 1.1rem;"><i class="fas fa-expand"></i> عرض ملء الشاشة</button>
                 </div>
             </section>
+            
+            <!-- نافذة المعاينة بملء الشاشة -->
+            <div id="fullscreen-preview-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; background: #000;">
+                <iframe id="fullscreen-preview-frame" src="index.html" style="width: 100%; height: 100%; border: none;"></iframe>
+                <button id="back-to-dev-btn" onclick="closeFullscreenPreview()" style="position: fixed; bottom: 30px; right: 30px; z-index: 10001; background: #00ff88; color: #000; border: none; padding: 12px 20px; border-radius: 50px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; box-shadow: 0 5px 20px rgba(0,255,136,0.3); transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 8px 30px rgba(0,255,136,0.5)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 5px 20px rgba(0,255,136,0.3)';">
+                    <i class="fas fa-arrow-left"></i> العودة للمطور
+                </button>
+            </div>
         </main>
     </div>
 
@@ -264,6 +268,26 @@
             element.classList.add('active');
             document.getElementById('selected-template').value = id;
         }
+        
+        function openFullscreenPreview() {
+            const modal = document.getElementById('fullscreen-preview-modal');
+            const frame = document.getElementById('fullscreen-preview-frame');
+            modal.style.display = 'block';
+            frame.src = 'index.html?' + Date.now();
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeFullscreenPreview() {
+            const modal = document.getElementById('fullscreen-preview-modal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.getElementById('fullscreen-preview-modal').style.display === 'block') {
+                closeFullscreenPreview();
+            }
+        });
     </script>
     <script src="admin.js"></script>
 </body>

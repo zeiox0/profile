@@ -320,9 +320,9 @@ function saveSocialLinks() {
 }
 
 function updateLivePreview() {
-    const previewFrame = document.getElementById('live-preview-frame');
-    if (previewFrame) {
-        previewFrame.src = 'index.html?preview=' + Date.now();
+    const fullscreenFrame = document.getElementById('fullscreen-preview-frame');
+    if (fullscreenFrame && document.getElementById('fullscreen-preview-modal').style.display === 'block') {
+        fullscreenFrame.src = 'index.html?preview=' + Date.now();
     }
 }
 
