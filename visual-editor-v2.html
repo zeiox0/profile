@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>محرر التصميم المتقدم</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="visual-editor-mobile.css">
     <style>
         * {
             margin: 0;
@@ -24,6 +25,7 @@
             display: flex;
             height: 100vh;
             gap: 0;
+            flex-direction: row;
         }
 
         /* منطقة المعاينة الرئيسية */
@@ -43,6 +45,8 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 2px solid #00ff88;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .preview-header h2 {
@@ -72,6 +76,22 @@
             background: #000;
         }
 
+        /* وضع المعاينة النقي (إخفاء أدوات التحرير) */
+        .preview-mode .toolbar,
+        .preview-mode .sidebar,
+        .preview-mode .preview-header,
+        .preview-mode .status-bar {
+            display: none !important;
+        }
+
+        .preview-mode .preview-area {
+            flex: 1;
+        }
+
+        .preview-mode .preview-content {
+            flex: 1;
+        }
+
         /* اللوحة الجانبية */
         .sidebar {
             width: 300px;
@@ -80,6 +100,7 @@
             display: flex;
             flex-direction: column;
             overflow-y: auto;
+            transition: all 0.3s ease;
         }
 
         .sidebar-header {
@@ -154,6 +175,9 @@
             gap: 10px;
             border-bottom: 2px solid #00ff88;
             flex-wrap: wrap;
+            overflow-y: auto;
+            max-height: 120px;
+            transition: all 0.3s ease;
         }
 
         .toolbar button {
@@ -168,6 +192,8 @@
             display: flex;
             align-items: center;
             gap: 5px;
+            white-space: nowrap;
+            font-size: 14px;
         }
 
         .toolbar button:hover {
@@ -182,6 +208,20 @@
 
         .toolbar button.danger:hover {
             background: #ff3333;
+        }
+
+        .toolbar button.preview-toggle {
+            background: #6366f1;
+            color: #fff;
+        }
+
+        .toolbar button.preview-toggle:hover {
+            background: #4f46e5;
+        }
+
+        .toolbar button.preview-toggle.active {
+            background: #10b981;
+            color: #fff;
         }
 
         /* قائمة الخيارات */
@@ -248,6 +288,17 @@
             }
         }
 
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
         /* تأثير اللمس */
         .touch-effect {
             position: absolute;
@@ -280,6 +331,9 @@
             color: #00ff88;
             display: flex;
             justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            transition: all 0.3s ease;
         }
 
         .status-item {
@@ -305,32 +359,171 @@
         .sidebar-content::-webkit-scrollbar-thumb:hover {
             background: #00dd77;
         }
+
+        /* تحسينات الاستجابة للهاتف */
+        @media (max-width: 768px) {
+            .editor-container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 200px;
+                border-left: none;
+                border-top: 2px solid #00ff88;
+                order: 3;
+            }
+
+            .preview-area {
+                flex: 1;
+                order: 1;
+            }
+
+            .toolbar {
+                order: 2;
+                max-height: none;
+                padding: 8px 10px;
+                gap: 5px;
+            }
+
+            .toolbar button {
+                padding: 10px 12px;
+                font-size: 12px;
+                flex: 1;
+                min-width: 60px;
+            }
+
+            .preview-header {
+                padding: 8px 10px;
+                gap: 5px;
+            }
+
+            .preview-header h2 {
+                font-size: 12px;
+            }
+
+            .status-bar {
+                padding: 8px 10px;
+                font-size: 11px;
+            }
+
+            .preview-content {
+                overflow: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* إخفاء اللوحة الجانبية على الهواتف الصغيرة جداً */
+            @media (max-width: 480px) {
+                .sidebar {
+                    display: none;
+                }
+
+                .toolbar button {
+                    padding: 8px 10px;
+                    font-size: 11px;
+                }
+
+                .toolbar button i {
+                    margin-right: 3px;
+                }
+
+                .toolbar button span {
+                    display: none;
+                }
+
+                .toolbar button.preview-toggle span {
+                    display: inline;
+                }
+
+                .preview-header h2 {
+                    font-size: 11px;
+                }
+
+                .element-count {
+                    font-size: 10px;
+                }
+            }
+        }
+
+        /* وضع عرض الهاتف داخل التحرير */
+        .mobile-preview-mode {
+            max-width: 480px;
+            margin: 0 auto;
+            height: 100%;
+            border-left: 1px solid #00ff88;
+            border-right: 1px solid #00ff88;
+        }
+
+        /* أزرار التحكم باللمس المحسّنة */
+        .touch-controls {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 5000;
+            gap: 10px;
+            flex-direction: column;
+        }
+
+        .touch-controls.visible {
+            display: flex;
+        }
+
+        .touch-controls button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #00ff88;
+            border: none;
+            color: #000;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+        }
+
+        .touch-controls button:active {
+            transform: scale(0.9);
+        }
+
+        @media (max-width: 768px) {
+            .touch-controls.visible {
+                display: flex;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="editor-container">
+    <div class="editor-container" id="editor-container">
         <!-- منطقة المعاينة -->
         <div class="preview-area">
             <div class="preview-header">
                 <h2>🎨 معاينة حية</h2>
-                <span id="element-count">العناصر: 0</span>
+                <span id="element-count" class="element-count">العناصر: 0</span>
             </div>
 
             <div class="toolbar">
-                <button onclick="saveChanges()">
-                    <i class="fas fa-save"></i> حفظ التغييرات
+                <button id="preview-toggle-btn" class="preview-toggle" onclick="togglePreviewMode()" title="تبديل وضع المعاينة">
+                    <i class="fas fa-eye"></i> <span>وضع المعاينة</span>
                 </button>
-                <button onclick="undoChanges()">
-                    <i class="fas fa-undo"></i> تراجع
+                <button onclick="saveChanges()" title="حفظ جميع التغييرات">
+                    <i class="fas fa-save"></i> <span>حفظ</span>
                 </button>
-                <button onclick="redoChanges()">
-                    <i class="fas fa-redo"></i> إعادة
+                <button onclick="undoChanges()" title="تراجع عن آخر تغيير">
+                    <i class="fas fa-undo"></i> <span>تراجع</span>
                 </button>
-                <button onclick="resetToDefault()">
-                    <i class="fas fa-refresh"></i> إعادة تعيين
+                <button onclick="redoChanges()" title="إعادة آخر تغيير تم التراجع عنه">
+                    <i class="fas fa-redo"></i> <span>إعادة</span>
                 </button>
-                <button class="danger" onclick="exitEditor()">
-                    <i class="fas fa-times"></i> خروج
+                <button onclick="resetToDefault()" title="إعادة تعيين جميع التغييرات">
+                    <i class="fas fa-refresh"></i> <span>إعادة تعيين</span>
+                </button>
+                <button class="danger" onclick="exitEditor()" title="الخروج من المحرر">
+                    <i class="fas fa-times"></i> <span>خروج</span>
                 </button>
             </div>
 
@@ -362,7 +555,18 @@
         </div>
     </div>
 
+    <!-- أزرار التحكم باللمس -->
+    <div class="touch-controls" id="touch-controls">
+        <button onclick="increaseTouchSize()" title="تكبير">
+            <i class="fas fa-plus"></i>
+        </button>
+        <button onclick="decreaseTouchSize()" title="تصغير">
+            <i class="fas fa-minus"></i>
+        </button>
+    </div>
+
     <script src="touch-editor.js"></script>
+    <script src="touch-editor-mobile.js"></script>
     <script>
         // ========== متغيرات عامة ==========
         let selectedElement = null;
@@ -372,6 +576,8 @@
         let elements = [];
         let pinned = {};
         let hasUnsavedChanges = false;
+        let isPreviewMode = false;
+        let isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
         // ========== تهيئة المحرر ==========
         window.addEventListener('load', () => {
@@ -383,11 +589,37 @@
                     loadElements();
                     setupEventListeners();
                     updateElementsList();
+                    
+                    // إظهار أزرار اللمس على الهواتف
+                    if (isMobileDevice) {
+                        document.getElementById('touch-controls').classList.add('visible');
+                    }
                 } catch (e) {
                     console.error('خطأ في الوصول إلى الصفحة:', e);
                 }
             }, 1000);
         });
+
+        // ========== تبديل وضع المعاينة ==========
+        function togglePreviewMode() {
+            isPreviewMode = !isPreviewMode;
+            const container = document.getElementById('editor-container');
+            const btn = document.getElementById('preview-toggle-btn');
+            
+            if (isPreviewMode) {
+                container.classList.add('preview-mode');
+                btn.classList.add('active');
+                btn.innerHTML = '<i class="fas fa-eye-slash"></i> <span>إنهاء المعاينة</span>';
+                updateStatus('🎬 وضع المعاينة النقي - لا يمكن التعديل');
+                showNotification('👁️ تم تفعيل وضع المعاينة النقي');
+            } else {
+                container.classList.remove('preview-mode');
+                btn.classList.remove('active');
+                btn.innerHTML = '<i class="fas fa-eye"></i> <span>وضع المعاينة</span>';
+                updateStatus('✏️ وضع التعديل - يمكنك التعديل على العناصر');
+                showNotification('✏️ تم العودة إلى وضع التعديل');
+            }
+        }
 
         // ========== تحميل العناصر ==========
         function loadElements() {
@@ -415,20 +647,22 @@
             if (!iframeDoc) return;
 
             iframeDoc.addEventListener('touchstart', (e) => {
-                handleTouchStart(e);
+                if (!isPreviewMode) handleTouchStart(e);
             }, true);
 
             iframeDoc.addEventListener('touchmove', (e) => {
-                handleTouchMove(e);
+                if (!isPreviewMode) handleTouchMove(e);
             }, true);
 
             iframeDoc.addEventListener('click', (e) => {
-                handleElementClick(e);
+                if (!isPreviewMode) handleElementClick(e);
             }, true);
 
             iframeDoc.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                handleRightClick(e);
+                if (!isPreviewMode) {
+                    e.preventDefault();
+                    handleRightClick(e);
+                }
             }, true);
         }
 
@@ -663,11 +897,19 @@
         }
 
         function undoChanges() {
-            touchEditor.undo();
+            if (historyIndex > 0) {
+                historyIndex--;
+                restoreState(editHistory[historyIndex]);
+                showNotification('↶ تم التراجع');
+            }
         }
 
         function redoChanges() {
-            touchEditor.redo();
+            if (historyIndex < editHistory.length - 1) {
+                historyIndex++;
+                restoreState(editHistory[historyIndex]);
+                showNotification('↷ تم الإعادة');
+            }
         }
 
         // ========== حفظ التغييرات ==========
@@ -682,7 +924,7 @@
             
             hasUnsavedChanges = false;
             updateSaveStatus();
-            showNotification('💾 تم حفظ التغييرات بنجاح!');
+            showNotification('✅ تم حفظ التغييرات بنجاح');
             
             // إعادة تحميل الصفحة الأصلية
             setTimeout(() => {
@@ -745,6 +987,27 @@
         // ========== تحديث الحالة ==========
         function updateStatus(message) {
             document.getElementById('status-text').textContent = message;
+        }
+
+        // ========== أزرار التحكم باللمس ==========
+        function increaseTouchSize() {
+            if (selectedElement) {
+                const currentSize = parseInt(selectedElement.style.fontSize) || 16;
+                selectedElement.style.fontSize = (currentSize + 2) + 'px';
+                showNotification('📏 تم تكبير الحجم');
+                addToHistory();
+            }
+        }
+
+        function decreaseTouchSize() {
+            if (selectedElement) {
+                const currentSize = parseInt(selectedElement.style.fontSize) || 16;
+                if (currentSize > 8) {
+                    selectedElement.style.fontSize = (currentSize - 2) + 'px';
+                    showNotification('📏 تم تصغير الحجم');
+                    addToHistory();
+                }
+            }
         }
     </script>
 </body>

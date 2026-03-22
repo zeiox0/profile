@@ -1,0 +1,650 @@
+/* ========== أنماط الاستجابة للهواتف والأجهزة اللوحية ========== */
+
+/* تحسينات عامة للأجهزة المحمولة */
+@media (max-width: 1024px) {
+    .editor-container {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        max-height: 200px;
+        border-left: none;
+        border-top: 2px solid #00ff88;
+        order: 3;
+    }
+
+    .preview-area {
+        flex: 1;
+        order: 1;
+    }
+
+    .toolbar {
+        order: 2;
+        max-height: none;
+        padding: 8px 10px;
+        gap: 5px;
+    }
+
+    .toolbar button {
+        padding: 10px 12px;
+        font-size: 12px;
+        flex: 1;
+        min-width: 60px;
+    }
+
+    .preview-header {
+        padding: 8px 10px;
+        gap: 5px;
+    }
+
+    .preview-header h2 {
+        font-size: 12px;
+    }
+
+    .status-bar {
+        padding: 8px 10px;
+        font-size: 11px;
+    }
+
+    .preview-content {
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* تحسينات للهواتف الذكية */
+@media (max-width: 768px) {
+    * {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+        font-size: 14px;
+    }
+
+    .editor-container {
+        flex-direction: column;
+        height: 100vh;
+    }
+
+    .preview-area {
+        flex: 1;
+        order: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .preview-header {
+        padding: 8px 10px;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+    .preview-header h2 {
+        font-size: 12px;
+        flex: 1;
+    }
+
+    .element-count {
+        font-size: 11px;
+    }
+
+    .toolbar {
+        order: 2;
+        padding: 8px 10px;
+        gap: 5px;
+        max-height: none;
+        flex-wrap: wrap;
+        overflow-y: auto;
+    }
+
+    .toolbar button {
+        padding: 10px 12px;
+        font-size: 12px;
+        flex: 1;
+        min-width: 50px;
+        border-radius: 4px;
+    }
+
+    .toolbar button i {
+        margin-right: 3px;
+    }
+
+    .toolbar button span {
+        display: inline;
+    }
+
+    .preview-content {
+        flex: 1;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .page-frame {
+        width: 100%;
+        height: 100%;
+    }
+
+    .page-frame iframe {
+        width: 100%;
+        height: 100%;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        max-height: 150px;
+        border-left: none;
+        border-top: 2px solid #00ff88;
+        order: 3;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .sidebar-header {
+        padding: 10px;
+        font-size: 12px;
+    }
+
+    .sidebar-content {
+        padding: 8px;
+    }
+
+    .element-item {
+        padding: 8px;
+        margin: 3px 0;
+        font-size: 11px;
+    }
+
+    .element-name {
+        font-size: 11px;
+        margin-bottom: 3px;
+    }
+
+    .element-actions {
+        gap: 3px;
+        font-size: 10px;
+    }
+
+    .element-actions button {
+        padding: 4px 6px;
+        font-size: 10px;
+    }
+
+    .status-bar {
+        padding: 8px 10px;
+        font-size: 10px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .status-item {
+        font-size: 10px;
+    }
+
+    .notification {
+        top: 10px;
+        right: 10px;
+        padding: 12px 15px;
+        font-size: 12px;
+        max-width: 90vw;
+    }
+
+    .context-menu {
+        min-width: 120px;
+        font-size: 12px;
+    }
+
+    .context-menu-item {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+
+    /* أزرار التحكم باللمس */
+    .touch-controls {
+        display: flex !important;
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        z-index: 5000;
+        gap: 10px;
+        flex-direction: column;
+    }
+
+    .touch-controls button {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: #00ff88;
+        border: none;
+        color: #000;
+        font-size: 18px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+    }
+
+    .touch-controls button:active {
+        transform: scale(0.9);
+    }
+
+    .touch-controls button:hover {
+        background: #00dd77;
+        box-shadow: 0 6px 20px rgba(0, 255, 136, 0.5);
+    }
+}
+
+/* تحسينات للهواتف الصغيرة جداً */
+@media (max-width: 480px) {
+    body {
+        font-size: 12px;
+    }
+
+    .editor-container {
+        height: 100vh;
+        flex-direction: column;
+    }
+
+    .preview-area {
+        flex: 1;
+        order: 1;
+    }
+
+    .preview-header {
+        padding: 6px 8px;
+        gap: 3px;
+    }
+
+    .preview-header h2 {
+        font-size: 11px;
+    }
+
+    .element-count {
+        font-size: 10px;
+    }
+
+    .toolbar {
+        order: 2;
+        padding: 6px 8px;
+        gap: 3px;
+        max-height: auto;
+    }
+
+    .toolbar button {
+        padding: 8px 10px;
+        font-size: 11px;
+        flex: 1;
+        min-width: 40px;
+    }
+
+    .toolbar button span {
+        display: none;
+    }
+
+    .toolbar button.preview-toggle span,
+    .toolbar button.danger span {
+        display: inline;
+    }
+
+    .toolbar button i {
+        margin: 0;
+    }
+
+    .preview-content {
+        flex: 1;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .sidebar {
+        display: none;
+        width: 100%;
+        height: auto;
+        max-height: 120px;
+        border-left: none;
+        border-top: 2px solid #00ff88;
+        order: 3;
+    }
+
+    .sidebar.visible {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sidebar-header {
+        padding: 8px;
+        font-size: 11px;
+    }
+
+    .sidebar-content {
+        padding: 6px;
+        max-height: 100px;
+    }
+
+    .element-item {
+        padding: 6px;
+        margin: 2px 0;
+        font-size: 10px;
+    }
+
+    .element-name {
+        font-size: 10px;
+        margin-bottom: 2px;
+    }
+
+    .element-actions {
+        gap: 2px;
+        font-size: 9px;
+    }
+
+    .element-actions button {
+        padding: 3px 5px;
+        font-size: 9px;
+    }
+
+    .status-bar {
+        padding: 6px 8px;
+        font-size: 9px;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .status-item {
+        font-size: 9px;
+    }
+
+    .status-item i {
+        display: none;
+    }
+
+    .notification {
+        top: 8px;
+        right: 8px;
+        padding: 10px 12px;
+        font-size: 11px;
+        max-width: 85vw;
+    }
+
+    .context-menu {
+        min-width: 100px;
+        font-size: 11px;
+        max-width: 90vw;
+    }
+
+    .context-menu-item {
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+
+    .context-menu-item i {
+        display: none;
+    }
+
+    /* أزرار التحكم باللمس */
+    .touch-controls {
+        display: flex !important;
+        position: fixed;
+        bottom: 15px;
+        left: 15px;
+        z-index: 5000;
+        gap: 8px;
+        flex-direction: column;
+    }
+
+    .touch-controls button {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: #00ff88;
+        border: none;
+        color: #000;
+        font-size: 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+        box-shadow: 0 2px 10px rgba(0, 255, 136, 0.3);
+    }
+
+    .touch-controls button:active {
+        transform: scale(0.85);
+    }
+}
+
+/* تحسينات للأجهزة اللوحية */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .editor-container {
+        flex-direction: row;
+    }
+
+    .sidebar {
+        width: 250px;
+        max-height: none;
+        border-left: 2px solid #00ff88;
+        border-top: none;
+    }
+
+    .toolbar button {
+        padding: 9px 13px;
+        font-size: 13px;
+    }
+
+    .toolbar button span {
+        display: inline;
+    }
+
+    .touch-controls {
+        display: flex !important;
+    }
+}
+
+/* دعم الاتجاه الأفقي (Landscape) */
+@media (max-height: 600px) and (orientation: landscape) {
+    .editor-container {
+        height: 100vh;
+    }
+
+    .preview-area {
+        flex: 1;
+    }
+
+    .toolbar {
+        max-height: 60px;
+        padding: 6px 8px;
+    }
+
+    .toolbar button {
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+
+    .preview-header {
+        padding: 6px 8px;
+    }
+
+    .status-bar {
+        padding: 6px 8px;
+        font-size: 10px;
+    }
+
+    .sidebar {
+        max-height: 150px;
+    }
+}
+
+/* دعم الاتجاه العمودي (Portrait) */
+@media (max-width: 768px) and (orientation: portrait) {
+    .editor-container {
+        flex-direction: column;
+    }
+
+    .preview-area {
+        flex: 1;
+    }
+
+    .sidebar {
+        max-height: 200px;
+    }
+}
+
+/* تحسينات للشاشات عالية الدقة (Retina) */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .toolbar button,
+    .element-actions button,
+    .touch-controls button {
+        border-radius: 5px;
+    }
+
+    .touch-effect {
+        border-width: 1px;
+    }
+}
+
+/* تحسينات لدعم Safe Area (iPhone X وما بعده) */
+@supports (padding: max(0px)) {
+    body {
+        padding-left: max(0px, env(safe-area-inset-left));
+        padding-right: max(0px, env(safe-area-inset-right));
+        padding-top: max(0px, env(safe-area-inset-top));
+        padding-bottom: max(0px, env(safe-area-inset-bottom));
+    }
+
+    .notification {
+        right: max(10px, env(safe-area-inset-right));
+        top: max(10px, env(safe-area-inset-top));
+    }
+
+    .touch-controls {
+        left: max(15px, env(safe-area-inset-left));
+        bottom: max(15px, env(safe-area-inset-bottom));
+    }
+}
+
+/* تحسينات للوضع المظلم */
+@media (prefers-color-scheme: dark) {
+    .editor-container {
+        background: #0a0e27;
+    }
+
+    .preview-area {
+        background: #000;
+    }
+
+    .sidebar {
+        background: #1a1f3a;
+    }
+
+    .toolbar button {
+        background: #00ff88;
+        color: #000;
+    }
+
+    .toolbar button:hover {
+        background: #00dd77;
+    }
+}
+
+/* تحسينات للوضع الفاتح */
+@media (prefers-color-scheme: light) {
+    .editor-container {
+        background: #f5f5f5;
+    }
+
+    .preview-area {
+        background: #fff;
+    }
+
+    .sidebar {
+        background: #f0f0f0;
+    }
+
+    .toolbar button {
+        background: #00ff88;
+        color: #000;
+    }
+}
+
+/* تحسينات الأداء للأجهزة المحمولة */
+@media (max-width: 768px) {
+    * {
+        -webkit-font-smoothing: antialiased;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+    }
+
+    .preview-content {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .sidebar-content {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .toolbar {
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* إخفاء عناصر غير ضرورية على الهواتف */
+@media (max-width: 480px) {
+    .toolbar button span {
+        display: none;
+    }
+
+    .toolbar button.preview-toggle span,
+    .toolbar button.danger span {
+        display: inline;
+    }
+
+    .status-item i {
+        display: none;
+    }
+
+    .context-menu-item i {
+        display: none;
+    }
+}
+
+/* تحسينات للتفاعل باللمس */
+@media (hover: none) and (pointer: coarse) {
+    .toolbar button,
+    .element-actions button,
+    .touch-controls button {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .context-menu-item {
+        padding: 12px 15px;
+    }
+
+    .element-item {
+        padding: 12px;
+    }
+}
+
+/* دعم الشاشات الكبيرة جداً */
+@media (min-width: 1920px) {
+    .toolbar button {
+        padding: 12px 20px;
+        font-size: 16px;
+    }
+
+    .sidebar {
+        width: 400px;
+    }
+
+    .element-item {
+        padding: 15px;
+    }
+
+    .toolbar {
+        padding: 15px 25px;
+    }
+}
