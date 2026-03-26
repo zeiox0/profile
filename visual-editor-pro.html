@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محرر التصميم الاحترافي</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0e27;
+            color: #fff;
+            direction: rtl;
+            overflow: hidden;
+        }
+
+        .editor-container {
+            display: flex;
+            height: 100vh;
+            gap: 0;
+        }
+
+        /* منطقة المعاينة */
+        .preview-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+            position: relative;
+        }
+
+        .preview-header {
+            background: #1a1f3a;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #00ff88;
+        }
+
+        .preview-header h2 {
+            font-size: 14px;
+            color: #00ff88;
+        }
+
+        .preview-content {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            background: #000;
+        }
+
+        .page-frame {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .page-frame iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #000;
+        }
+
+        /* اللوحة الجانبية */
+        .sidebar {
+            width: 320px;
+            background: #1a1f3a;
+            border-left: 2px solid #00ff88;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            background: #0a0e27;
+            padding: 15px;
+            border-bottom: 2px solid #00ff88;
+            font-weight: bold;
+            color: #00ff88;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .toggle-btn {
+            background: #00ff88;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            color: #000;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .toggle-btn:hover {
+            background: #00dd77;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .control-section {
+            background: #0a0e27;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 3px solid #00ff88;
+        }
+
+        .control-label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #00ff88;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .slider-container {
+            margin-bottom: 15px;
+        }
+
+        .slider-value {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 11px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #2a2f4a;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #00ff88;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #00dd77;
+            transform: scale(1.2);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #00ff88;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        input[type="range"]::-moz-range-thumb:hover {
+            background: #00dd77;
+            transform: scale(1.2);
+        }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider-switch {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #2a2f4a;
+            transition: 0.4s;
+            border-radius: 24px;
+        }
+
+        .slider-switch:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider-switch {
+            background-color: #00ff88;
+        }
+
+        input:checked + .slider-switch:before {
+            transform: translateX(26px);
+        }
+
+        .element-item {
+            background: #0a0e27;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            border-left: 3px solid #00ff88;
+            transition: all 0.3s;
+            font-size: 12px;
+        }
+
+        .element-item:hover {
+            background: #2a2f4a;
+            transform: translateX(-5px);
+        }
+
+        .element-item.selected {
+            background: #00ff88;
+            color: #000;
+            border-left-color: #fff;
+        }
+
+        /* شريط الأدوات العلوي */
+        .toolbar {
+            background: #0a0e27;
+            padding: 10px 20px;
+            display: flex;
+            gap: 10px;
+            border-bottom: 2px solid #00ff88;
+            flex-wrap: wrap;
+        }
+
+        .toolbar button {
+            background: #00ff88;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #000;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+        }
+
+        .toolbar button:hover {
+            background: #00dd77;
+            transform: scale(1.05);
+        }
+
+        .toolbar button.danger {
+            background: #ff4d4d;
+            color: #fff;
+        }
+
+        .toolbar button.danger:hover {
+            background: #ff3333;
+        }
+
+        /* الإشعارات */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #00ff88;
+            color: #000;
+            padding: 12px 18px;
+            border-radius: 5px;
+            font-weight: bold;
+            z-index: 10001;
+            font-size: 12px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* شريط الحالة */
+        .status-bar {
+            background: #0a0e27;
+            padding: 8px 20px;
+            border-top: 2px solid #00ff88;
+            font-size: 11px;
+            color: #00ff88;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .hidden-menu {
+            display: none;
+        }
+
+        .hidden-menu.show {
+            display: block;
+        }
+
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 5000;
+            display: none;
+        }
+
+        .menu-overlay.show {
+            display: block;
+        }
+
+        .menu-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 350px;
+            height: 100vh;
+            background: #1a1f3a;
+            border-left: 2px solid #00ff88;
+            z-index: 5001;
+            overflow-y: auto;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .menu-panel.show {
+            transform: translateX(0);
+        }
+
+        .menu-panel-header {
+            background: #0a0e27;
+            padding: 15px;
+            border-bottom: 2px solid #00ff88;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .menu-panel-header h3 {
+            color: #00ff88;
+            font-size: 14px;
+        }
+
+        .close-btn {
+            background: #ff4d4d;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .menu-panel-content {
+            padding: 15px;
+        }
+
+        .menu-item {
+            background: #0a0e27;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            border-left: 3px solid #00ff88;
+            transition: all 0.2s;
+        }
+
+        .menu-item:hover {
+            background: #2a2f4a;
+            transform: translateX(-5px);
+        }
+
+        .menu-item i {
+            margin-left: 8px;
+        }
+
+        .sidebar-content::-webkit-scrollbar,
+        .menu-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-track,
+        .menu-panel::-webkit-scrollbar-track {
+            background: #0a0e27;
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb,
+        .menu-panel::-webkit-scrollbar-thumb {
+            background: #00ff88;
+            border-radius: 4px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb:hover,
+        .menu-panel::-webkit-scrollbar-thumb:hover {
+            background: #00dd77;
+        }
+    </style>
+</head>
+<body>
+    <div class="editor-container">
+        <!-- منطقة المعاينة -->
+        <div class="preview-area">
+            <div class="preview-header">
+                <h2>🎨 محرر التصميم الاحترافي</h2>
+                <span id="element-count">العناصر: 0</span>
+            </div>
+
+            <div class="toolbar">
+                <button onclick="saveChanges()">
+                    <i class="fas fa-save"></i> حفظ
+                </button>
+                <button onclick="undoChanges()">
+                    <i class="fas fa-undo"></i> تراجع
+                </button>
+                <button onclick="redoChanges()">
+                    <i class="fas fa-redo"></i> إعادة
+                </button>
+                <button onclick="toggleMenuPanel()">
+                    <i class="fas fa-bars"></i> القوائم
+                </button>
+                <button class="danger" onclick="exitEditor()">
+                    <i class="fas fa-times"></i> خروج
+                </button>
+            </div>
+
+            <div class="preview-content">
+                <div class="page-frame" id="page-frame">
+                    <iframe id="page-iframe" src="index.html" sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
+                </div>
+            </div>
+
+            <div class="status-bar">
+                <span id="status-text">جاهز للتعديل</span>
+                <span id="save-status">✅ محفوظ</span>
+            </div>
+        </div>
+
+        <!-- اللوحة الجانبية -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <span><i class="fas fa-sliders-h"></i> التحكم</span>
+                <button class="toggle-btn" onclick="toggleLayersPanel()">
+                    <i class="fas fa-layer-group"></i> الطبقات
+                </button>
+            </div>
+
+            <div class="sidebar-content">
+                <!-- قسم الموضع -->
+                <div class="control-section">
+                    <label class="control-label">
+                        <i class="fas fa-arrows-alt"></i> الموضع
+                    </label>
+
+                    <div class="slider-container">
+                        <div class="slider-value">
+                            <span>العرض (X)</span>
+                            <span id="x-value">0px</span>
+                        </div>
+                        <input type="range" id="x-slider" min="-500" max="500" value="0" oninput="updateElementX(this.value)">
+                    </div>
+
+                    <div class="slider-container">
+                        <div class="slider-value">
+                            <span>الطول (Y)</span>
+                            <span id="y-value">0px</span>
+                        </div>
+                        <input type="range" id="y-slider" min="-500" max="500" value="0" oninput="updateElementY(this.value)">
+                    </div>
+                </div>
+
+                <!-- قسم الحجم -->
+                <div class="control-section">
+                    <label class="control-label">
+                        <i class="fas fa-expand"></i> الحجم
+                    </label>
+
+                    <div class="slider-container">
+                        <div class="slider-value">
+                            <span>مستوى التكبير</span>
+                            <span id="scale-value">100%</span>
+                        </div>
+                        <input type="range" id="scale-slider" min="50" max="200" value="100" oninput="updateElementScale(this.value)">
+                    </div>
+                </div>
+
+                <!-- قسم الشفافية -->
+                <div class="control-section">
+                    <label class="control-label">
+                        <i class="fas fa-eye"></i> الشفافية
+                    </label>
+
+                    <div class="slider-container">
+                        <div class="slider-value">
+                            <span>درجة الشفافية</span>
+                            <span id="opacity-value">100%</span>
+                        </div>
+                        <input type="range" id="opacity-slider" min="0" max="100" value="100" oninput="updateElementOpacity(this.value)">
+                    </div>
+
+                    <div class="toggle-switch">
+                        <label class="control-label" style="margin: 0;">
+                            تفعيل الشفافية
+                        </label>
+                        <label class="switch">
+                            <input type="checkbox" id="opacity-toggle" onchange="toggleOpacityMode()">
+                            <span class="slider-switch"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- قسم الخيارات -->
+                <div class="control-section">
+                    <label class="control-label">
+                        <i class="fas fa-cog"></i> الخيارات
+                    </label>
+
+                    <button class="toggle-btn" style="width: 100%; margin: 5px 0;" onclick="togglePin()">
+                        <i class="fas fa-lock"></i> تثبيت العنصر
+                    </button>
+
+                    <button class="toggle-btn" style="width: 100%; margin: 5px 0;" onclick="hideElement()">
+                        <i class="fas fa-eye-slash"></i> إخفاء
+                    </button>
+
+                    <button class="toggle-btn" style="width: 100%; margin: 5px 0;" onclick="bringToFront()">
+                        <i class="fas fa-arrow-up"></i> للأمام
+                    </button>
+
+                    <button class="toggle-btn" style="width: 100%; margin: 5px 0;" onclick="sendToBack()">
+                        <i class="fas fa-arrow-down"></i> للخلف
+                    </button>
+                </div>
+
+                <!-- قسم العناصر -->
+                <div class="control-section">
+                    <label class="control-label">
+                        <i class="fas fa-list"></i> العناصر
+                    </label>
+                    <div id="elements-list" style="max-height: 300px; overflow-y: auto;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- لوحة القوائم المخفية -->
+    <div class="menu-overlay" id="menu-overlay" onclick="toggleMenuPanel()"></div>
+    <div class="menu-panel" id="menu-panel">
+        <div class="menu-panel-header">
+            <h3>القوائم والإعدادات</h3>
+            <button class="close-btn" onclick="toggleMenuPanel()">×</button>
+        </div>
+        <div class="menu-panel-content" id="menu-content">
+            <!-- القوائم تظهر هنا -->
+        </div>
+    </div>
+
+    <script>
+        // ========== متغيرات عامة ==========
+        let selectedElement = null;
+        let iframeDoc = null;
+        let elements = [];
+        let history = [];
+        let historyIndex = -1;
+        let pinned = {};
+        let hasUnsavedChanges = false;
+
+        // ========== تهيئة المحرر ==========
+        window.addEventListener('load', () => {
+            const iframe = document.getElementById('page-iframe');
+            setTimeout(() => {
+                try {
+                    iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    loadElements();
+                    setupEventListeners();
+                    updateElementsList();
+                    addToHistory();
+                } catch (e) {
+                    console.error('خطأ:', e);
+                }
+            }, 1000);
+        });
+
+        // ========== تحميل العناصر ==========
+        function loadElements() {
+            if (!iframeDoc) return;
+            elements = [];
+            const allElements = iframeDoc.querySelectorAll('[id]');
+            allElements.forEach(el => {
+                if (el.id && !el.id.includes('firebase') && el.offsetHeight > 0) {
+                    elements.push({
+                        id: el.id,
+                        tag: el.tagName,
+                        element: el
+                    });
+                }
+            });
+            document.getElementById('element-count').textContent = `العناصر: ${elements.length}`;
+        }
+
+        // ========== إعداد مستمعي الأحداث ==========
+        function setupEventListeners() {
+            if (!iframeDoc) return;
+            iframeDoc.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectElement(e.target);
+            }, true);
+        }
+
+        // ========== تحديد العنصر ==========
+        function selectElement(el) {
+            if (!el || el === iframeDoc.body) return;
+
+            if (selectedElement) {
+                selectedElement.style.outline = 'none';
+            }
+
+            selectedElement = el;
+            el.style.outline = '3px solid #00ff88';
+            el.style.outlineOffset = '2px';
+
+            updateSliders();
+            updateElementsList();
+            updateStatus(`تم تحديد: ${el.id || el.tagName}`);
+            addToHistory();
+        }
+
+        // ========== تحديث أشرطة التمرير ==========
+        function updateSliders() {
+            if (!selectedElement) return;
+
+            const x = parseInt(selectedElement.style.left || 0);
+            const y = parseInt(selectedElement.style.top || 0);
+            const scale = parseInt(selectedElement.style.transform?.match(/\d+/)?.[0] || 100);
+            const opacity = parseInt(selectedElement.style.opacity * 100 || 100);
+
+            document.getElementById('x-slider').value = x;
+            document.getElementById('y-slider').value = y;
+            document.getElementById('scale-slider').value = scale;
+            document.getElementById('opacity-slider').value = opacity;
+
+            document.getElementById('x-value').textContent = x + 'px';
+            document.getElementById('y-value').textContent = y + 'px';
+            document.getElementById('scale-value').textContent = scale + '%';
+            document.getElementById('opacity-value').textContent = opacity + '%';
+        }
+
+        // ========== تحديث موضع X ==========
+        function updateElementX(value) {
+            if (!selectedElement) return;
+            selectedElement.style.position = 'relative';
+            selectedElement.style.left = value + 'px';
+            document.getElementById('x-value').textContent = value + 'px';
+            hasUnsavedChanges = true;
+            updateStatus('تم تغيير الموضع الأفقي');
+        }
+
+        // ========== تحديث موضع Y ==========
+        function updateElementY(value) {
+            if (!selectedElement) return;
+            selectedElement.style.position = 'relative';
+            selectedElement.style.top = value + 'px';
+            document.getElementById('y-value').textContent = value + 'px';
+            hasUnsavedChanges = true;
+            updateStatus('تم تغيير الموضع العمودي');
+        }
+
+        // ========== تحديث الحجم ==========
+        function updateElementScale(value) {
+            if (!selectedElement) return;
+            selectedElement.style.transform = `scale(${value / 100})`;
+            document.getElementById('scale-value').textContent = value + '%';
+            hasUnsavedChanges = true;
+            updateStatus('تم تغيير الحجم');
+        }
+
+        // ========== تحديث الشفافية ==========
+        function updateElementOpacity(value) {
+            if (!selectedElement) return;
+            selectedElement.style.opacity = value / 100;
+            document.getElementById('opacity-value').textContent = value + '%';
+            hasUnsavedChanges = true;
+            updateStatus('تم تغيير الشفافية');
+        }
+
+        // ========== تفعيل/تعطيل الشفافية ==========
+        function toggleOpacityMode() {
+            const isEnabled = document.getElementById('opacity-toggle').checked;
+            document.getElementById('opacity-slider').disabled = !isEnabled;
+            updateStatus(isEnabled ? 'تم تفعيل الشفافية' : 'تم تعطيل الشفافية');
+        }
+
+        // ========== تثبيت العنصر ==========
+        function togglePin() {
+            if (!selectedElement) return;
+            pinned[selectedElement.id] = !pinned[selectedElement.id];
+            selectedElement.style.cursor = pinned[selectedElement.id] ? 'not-allowed' : 'pointer';
+            showNotification(pinned[selectedElement.id] ? '📌 تم التثبيت' : '📌 تم فك التثبيت');
+            addToHistory();
+        }
+
+        // ========== إخفاء العنصر ==========
+        function hideElement() {
+            if (!selectedElement) return;
+            selectedElement.style.display = 'none';
+            showNotification('👁️ تم الإخفاء');
+            addToHistory();
+        }
+
+        // ========== نقل للأمام ==========
+        function bringToFront() {
+            if (!selectedElement) return;
+            selectedElement.style.zIndex = '9999';
+            showNotification('⬆️ تم النقل للأمام');
+            addToHistory();
+        }
+
+        // ========== نقل للخلف ==========
+        function sendToBack() {
+            if (!selectedElement) return;
+            selectedElement.style.zIndex = '1';
+            showNotification('⬇️ تم النقل للخلف');
+            addToHistory();
+        }
+
+        // ========== تحديث قائمة العناصر ==========
+        function updateElementsList() {
+            const list = document.getElementById('elements-list');
+            list.innerHTML = '';
+
+            elements.forEach(el => {
+                const item = document.createElement('div');
+                item.className = 'element-item' + (selectedElement?.id === el.id ? ' selected' : '');
+                item.textContent = el.id;
+                item.onclick = () => {
+                    const element = iframeDoc.getElementById(el.id);
+                    if (element) selectElement(element);
+                };
+                list.appendChild(item);
+            });
+        }
+
+        // ========== السجل ==========
+        function addToHistory() {
+            historyIndex++;
+            history = history.slice(0, historyIndex);
+            history.push(saveState());
+        }
+
+        function saveState() {
+            return {
+                html: iframeDoc.body.innerHTML,
+                pinned: JSON.parse(JSON.stringify(pinned)),
+                timestamp: Date.now()
+            };
+        }
+
+        function restoreState(state) {
+            iframeDoc.body.innerHTML = state.html;
+            pinned = JSON.parse(JSON.stringify(state.pinned));
+            loadElements();
+            setupEventListeners();
+            updateElementsList();
+        }
+
+        function undoChanges() {
+            if (historyIndex > 0) {
+                historyIndex--;
+                restoreState(history[historyIndex]);
+                showNotification('↶ تم التراجع');
+            }
+        }
+
+        function redoChanges() {
+            if (historyIndex < history.length - 1) {
+                historyIndex++;
+                restoreState(history[historyIndex]);
+                showNotification('↷ تم الإعادة');
+            }
+        }
+
+        // ========== حفظ التغييرات ==========
+        function saveChanges() {
+            if (!hasUnsavedChanges) {
+                showNotification('✅ لا توجد تغييرات');
+                return;
+            }
+
+            const editorData = {
+                html: iframeDoc.body.innerHTML,
+                pinned: pinned,
+                timestamp: new Date()
+            };
+
+            localStorage.setItem('editorData', JSON.stringify(editorData));
+
+            if (typeof db !== 'undefined') {
+                try {
+                    db.collection('siteData').doc('editorState').set(editorData).catch(err => console.error(err));
+                } catch (e) {
+                    console.log('Firebase غير متاح');
+                }
+            }
+
+            hasUnsavedChanges = false;
+            updateSaveStatus();
+            showNotification('💾 تم الحفظ بنجاح!');
+
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        }
+
+        // ========== إظهار/إخفاء لوحة القوائم ==========
+        function toggleMenuPanel() {
+            const panel = document.getElementById('menu-panel');
+            const overlay = document.getElementById('menu-overlay');
+            panel.classList.toggle('show');
+            overlay.classList.toggle('show');
+
+            if (panel.classList.contains('show')) {
+                loadMenuContent();
+            }
+        }
+
+        // ========== تحميل محتوى القوائم ==========
+        function loadMenuContent() {
+            const content = document.getElementById('menu-content');
+            content.innerHTML = `
+                <div class="menu-item" onclick="showNotification('📋 البروفايل')">
+                    <i class="fas fa-user"></i> البروفايل
+                </div>
+                <div class="menu-item" onclick="showNotification('🎬 الفيديو')">
+                    <i class="fas fa-video"></i> الفيديو
+                </div>
+                <div class="menu-item" onclick="showNotification('🎵 الموسيقى')">
+                    <i class="fas fa-music"></i> الموسيقى
+                </div>
+                <div class="menu-item" onclick="showNotification('🎨 الألوان')">
+                    <i class="fas fa-palette"></i> الألوان
+                </div>
+                <div class="menu-item" onclick="showNotification('⚙️ الإعدادات')">
+                    <i class="fas fa-cog"></i> الإعدادات
+                </div>
+            `;
+        }
+
+        // ========== إظهار/إخفاء لوحة الطبقات ==========
+        function toggleLayersPanel() {
+            showNotification('📊 لوحة الطبقات');
+        }
+
+        // ========== الإشعارات ==========
+        function showNotification(message) {
+            const notif = document.createElement('div');
+            notif.className = 'notification';
+            notif.textContent = message;
+            document.body.appendChild(notif);
+
+            setTimeout(() => notif.remove(), 2000);
+        }
+
+        // ========== تحديث الحالة ==========
+        function updateStatus(message) {
+            document.getElementById('status-text').textContent = message;
+        }
+
+        function updateSaveStatus() {
+            const status = document.getElementById('save-status');
+            status.textContent = hasUnsavedChanges ? '⚠️ غير محفوظ' : '✅ محفوظ';
+            status.style.color = hasUnsavedChanges ? '#ff4d4d' : '#00ff88';
+        }
+
+        // ========== الخروج ==========
+        function exitEditor() {
+            if (hasUnsavedChanges) {
+                if (confirm('هناك تغييرات غير محفوظة. هل تريد الخروج؟')) {
+                    window.location.href = 'admin.html';
+                }
+            } else {
+                window.location.href = 'admin.html';
+            }
+        }
+    </script>
+</body>
+</html>
