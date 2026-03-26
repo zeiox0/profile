@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محرر التصميم المتقدم الاحترافي</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0e27;
+            color: #fff;
+            direction: rtl;
+            overflow: hidden;
+        }
+
+        .editor-container {
+            display: flex;
+            height: 100vh;
+            gap: 0;
+        }
+
+        .preview-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+            position: relative;
+        }
+
+        .preview-header {
+            background: #1a1f3a;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #00ff88;
+        }
+
+        .preview-header h2 {
+            font-size: 14px;
+            color: #00ff88;
+        }
+
+        .toolbar {
+            background: #0a0e27;
+            padding: 8px 15px;
+            display: flex;
+            gap: 8px;
+            border-bottom: 2px solid #00ff88;
+            flex-wrap: wrap;
+        }
+
+        .toolbar button {
+            background: #00ff88;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #000;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+        }
+
+        .toolbar button:hover {
+            background: #00dd77;
+            transform: scale(1.05);
+        }
+
+        .toolbar button.danger {
+            background: #ff4d4d;
+            color: #fff;
+        }
+
+        .preview-content {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            background: #000;
+        }
+
+        .page-frame {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .page-frame iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #000;
+        }
+
+        .sidebar {
+            width: 350px;
+            background: #1a1f3a;
+            border-left: 2px solid #00ff88;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            background: #0a0e27;
+            padding: 12px;
+            border-bottom: 2px solid #00ff88;
+            font-weight: bold;
+            color: #00ff88;
+            font-size: 13px;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .control-section {
+            background: #0a0e27;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 4px;
+            border-left: 3px solid #00ff88;
+        }
+
+        .control-label {
+            font-size: 11px;
+            font-weight: bold;
+            color: #00ff88;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .slider-container {
+            margin-bottom: 12px;
+        }
+
+        .slider-value {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            margin-bottom: 4px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 5px;
+            border-radius: 3px;
+            background: #2a2f4a;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #00ff88;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #00ff88;
+            cursor: pointer;
+            border: none;
+        }
+
+        .position-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            margin: 8px 0;
+        }
+
+        .position-btn {
+            padding: 6px;
+            background: #2a2f4a;
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .position-btn:hover {
+            background: #00ff88;
+            color: #000;
+        }
+
+        .position-btn.active {
+            background: #00ff88;
+            color: #000;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 4px;
+            margin: 8px 0;
+        }
+
+        .btn-group button {
+            flex: 1;
+            padding: 6px;
+            background: #00ff88;
+            border: none;
+            color: #000;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 10px;
+            transition: all 0.2s;
+        }
+
+        .btn-group button:hover {
+            background: #00dd77;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #00ff88;
+            color: #000;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            z-index: 10001;
+            font-size: 11px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .status-bar {
+            background: #0a0e27;
+            padding: 6px 15px;
+            border-top: 2px solid #00ff88;
+            font-size: 10px;
+            color: #00ff88;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 5000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1a1f3a;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #00ff88;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #00ff88;
+            padding-bottom: 10px;
+        }
+
+        .modal-header h3 {
+            color: #00ff88;
+            font-size: 14px;
+        }
+
+        .close-modal {
+            background: #ff4d4d;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .template-item {
+            background: #0a0e27;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 4px;
+            border-left: 3px solid #00ff88;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .template-thumbnail {
+            width: 60px;
+            height: 60px;
+            background: #2a2f4a;
+            border-radius: 3px;
+            border: 1px solid #00ff88;
+            overflow: hidden;
+        }
+
+        .template-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .template-info {
+            flex: 1;
+            font-size: 11px;
+        }
+
+        .template-name {
+            color: #00ff88;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .template-date {
+            color: #888;
+            font-size: 10px;
+        }
+
+        .template-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .template-actions button {
+            padding: 4px 8px;
+            background: #00ff88;
+            border: none;
+            color: #000;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 9px;
+        }
+
+        .template-actions button:hover {
+            background: #00dd77;
+        }
+
+        .sidebar-content::-webkit-scrollbar,
+        .modal-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-track,
+        .modal-content::-webkit-scrollbar-track {
+            background: #0a0e27;
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb,
+        .modal-content::-webkit-scrollbar-thumb {
+            background: #00ff88;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="editor-container">
+        <div class="preview-area">
+            <div class="preview-header">
+                <h2>🎨 محرر التصميم المتقدم</h2>
+                <span id="element-count">العناصر: 0</span>
+            </div>
+
+            <div class="toolbar">
+                <button onclick="saveChanges()"><i class="fas fa-save"></i> حفظ</button>
+                <button onclick="undoChanges()"><i class="fas fa-undo"></i> تراجع</button>
+                <button onclick="redoChanges()"><i class="fas fa-redo"></i> إعادة</button>
+                <button onclick="showTemplates()"><i class="fas fa-copy"></i> النسخ</button>
+                <button onclick="toggleDevTools()"><i class="fas fa-code"></i> المطور</button>
+                <button class="danger" onclick="exitEditor()"><i class="fas fa-times"></i> خروج</button>
+            </div>
+
+            <div class="preview-content">
+                <div class="page-frame">
+                    <iframe id="page-iframe" src="index.html"></iframe>
+                </div>
+            </div>
+
+            <div class="status-bar">
+                <span id="status-text">جاهز للتعديل</span>
+                <span id="save-status">✅ محفوظ</span>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-sliders-h"></i> التحكم والإعدادات
+            </div>
+
+            <div class="sidebar-content">
+                <!-- قسم الموضع -->
+                <div class="control-section">
+                    <label class="control-label"><i class="fas fa-arrows-alt"></i> الموضع</label>
+                    <div class="slider-container">
+                        <div class="slider-value">
+                            <span>العرض (X)</span>
+                            <span id="x-value">0px</span>
+                        </div>
+                        <input type="range" id="x-slider" min="-500" max="500" value="0" oninput="updateX(this.value)">
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-value">
+                            <span>الطول (Y)</span>
+                            <span id="y-value">0px</span>
+                        </div>
+                        <input type="range" id="y-slider" min="-500" max="500" value="0" oninput="updateY(this.value)">
+                    </div>
+                </div>
+
+                <!-- قسم الحجم -->
+                <div class="control-section">
+                    <label class="control-label"><i class="fas fa-expand"></i> الحجم</label>
+                    <div class="slider-container">
+                        <div class="slider-value">
+                            <span>التكبير</span>
+                            <span id="scale-value">100%</span>
+                        </div>
+                        <input type="range" id="scale-slider" min="50" max="200" value="100" oninput="updateScale(this.value)">
+                    </div>
+                </div>
+
+                <!-- قسم الشفافية -->
+                <div class="control-section">
+                    <label class="control-label"><i class="fas fa-eye"></i> الشفافية</label>
+                    <div class="slider-container">
+                        <div class="slider-value">
+                            <span>الشفافية</span>
+                            <span id="opacity-value">100%</span>
+                        </div>
+                        <input type="range" id="opacity-slider" min="0" max="100" value="100" oninput="updateOpacity(this.value)">
+                    </div>
+                </div>
+
+                <!-- قسم موضع الصوت -->
+                <div class="control-section">
+                    <label class="control-label"><i class="fas fa-music"></i> موضع الصوت</label>
+                    <div class="position-selector">
+                        <button class="position-btn" onclick="setAudioPosition('top')">🔝 أعلى</button>
+                        <button class="position-btn" onclick="setAudioPosition('center')">🔘 وسط</button>
+                        <button class="position-btn" onclick="setAudioPosition('bottom')">🔙 أسفل</button>
+                        <button class="position-btn" onclick="setAudioPosition('left')">⬅️ يسار</button>
+                        <button class="position-btn" onclick="setAudioPosition('center-v')">⬆️⬇️ وسط</button>
+                        <button class="position-btn" onclick="setAudioPosition('right')">➡️ يمين</button>
+                    </div>
+                </div>
+
+                <!-- قسم الخيارات -->
+                <div class="control-section">
+                    <label class="control-label"><i class="fas fa-cog"></i> الخيارات</label>
+                    <div class="btn-group">
+                        <button onclick="togglePin()">📌 تثبيت</button>
+                        <button onclick="hideElement()">👁️ إخفاء</button>
+                    </div>
+                    <div class="btn-group">
+                        <button onclick="bringToFront()">⬆️ للأمام</button>
+                        <button onclick="sendToBack()">⬇️ للخلف</button>
+                    </div>
+                </div>
+
+                <!-- قسم النسخ -->
+                <div class="control-section">
+                    <label class="control-label"><i class="fas fa-copy"></i> النسخ والقوالب</label>
+                    <div class="btn-group">
+                        <button onclick="createTemplate()">➕ نسخة جديدة</button>
+                        <button onclick="showTemplates()">📋 عرض النسخ</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة النسخ -->
+    <div class="modal" id="templates-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📋 النسخ والقوالب</h3>
+                <button class="close-modal" onclick="closeTemplates()">×</button>
+            </div>
+            <div id="templates-list"></div>
+        </div>
+    </div>
+
+    <!-- نافذة إعدادات المطور -->
+    <div class="modal" id="dev-tools-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>⚙️ إعدادات المطور</h3>
+                <button class="close-modal" onclick="closeDevTools()">×</button>
+            </div>
+            <div id="dev-tools-content" style="font-size: 11px; line-height: 1.6;">
+                <p style="color: #00ff88; margin-bottom: 10px;"><strong>معلومات النظام:</strong></p>
+                <p>العناصر المحددة: <span id="dev-elements">0</span></p>
+                <p>حجم السجل: <span id="dev-history">0</span></p>
+                <p>الذاكرة المستخدمة: <span id="dev-memory">0 MB</span></p>
+                <p style="color: #00ff88; margin-top: 15px; margin-bottom: 10px;"><strong>الإجراءات:</strong></p>
+                <button class="btn-group" style="display: block; width: 100%; margin-bottom: 8px;" onclick="clearCache()">
+                    🗑️ مسح الذاكرة المؤقتة
+                </button>
+                <button class="btn-group" style="display: block; width: 100%; margin-bottom: 8px;" onclick="exportData()">
+                    📥 تصدير البيانات
+                </button>
+                <button class="btn-group" style="display: block; width: 100%;" onclick="showConsole()">
+                    💻 وحدة التحكم
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedElement = null;
+        let iframeDoc = null;
+        let history = [];
+        let historyIndex = -1;
+        let templates = [];
+        let audioPosition = 'bottom';
+        let hasUnsavedChanges = false;
+
+        // تهيئة
+        window.addEventListener('load', () => {
+            const iframe = document.getElementById('page-iframe');
+            setTimeout(() => {
+                try {
+                    iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    setupEditor();
+                    addToHistory();
+                    loadTemplates();
+                } catch (e) {
+                    console.error('خطأ:', e);
+                }
+            }, 1000);
+        });
+
+        function setupEditor() {
+            if (!iframeDoc) return;
+            
+            iframeDoc.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectElement(e.target);
+            }, true);
+
+            updateElementCount();
+        }
+
+        function selectElement(el) {
+            if (!el || el === iframeDoc.body) return;
+
+            if (selectedElement) {
+                selectedElement.style.outline = 'none';
+            }
+
+            selectedElement = el;
+            el.style.outline = '3px solid #00ff88';
+            el.style.outlineOffset = '2px';
+
+            updateSliders();
+            updateStatus(`تم تحديد: ${el.id || el.tagName}`);
+        }
+
+        function updateSliders() {
+            if (!selectedElement) return;
+
+            const x = parseInt(selectedElement.style.left || 0);
+            const y = parseInt(selectedElement.style.top || 0);
+            const scale = parseInt(selectedElement.style.transform?.match(/\d+/)?.[0] || 100);
+            const opacity = parseInt(selectedElement.style.opacity * 100 || 100);
+
+            document.getElementById('x-slider').value = x;
+            document.getElementById('y-slider').value = y;
+            document.getElementById('scale-slider').value = scale;
+            document.getElementById('opacity-slider').value = opacity;
+
+            document.getElementById('x-value').textContent = x + 'px';
+            document.getElementById('y-value').textContent = y + 'px';
+            document.getElementById('scale-value').textContent = scale + '%';
+            document.getElementById('opacity-value').textContent = opacity + '%';
+        }
+
+        function updateX(val) {
+            if (selectedElement) {
+                selectedElement.style.position = 'relative';
+                selectedElement.style.left = val + 'px';
+                document.getElementById('x-value').textContent = val + 'px';
+                hasUnsavedChanges = true;
+            }
+        }
+
+        function updateY(val) {
+            if (selectedElement) {
+                selectedElement.style.position = 'relative';
+                selectedElement.style.top = val + 'px';
+                document.getElementById('y-value').textContent = val + 'px';
+                hasUnsavedChanges = true;
+            }
+        }
+
+        function updateScale(val) {
+            if (selectedElement) {
+                selectedElement.style.transform = `scale(${val / 100})`;
+                document.getElementById('scale-value').textContent = val + '%';
+                hasUnsavedChanges = true;
+            }
+        }
+
+        function updateOpacity(val) {
+            if (selectedElement) {
+                selectedElement.style.opacity = val / 100;
+                document.getElementById('opacity-value').textContent = val + '%';
+                hasUnsavedChanges = true;
+            }
+        }
+
+        function setAudioPosition(pos) {
+            audioPosition = pos;
+            document.querySelectorAll('.position-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            showNotification(`📍 موضع الصوت: ${pos}`);
+            hasUnsavedChanges = true;
+        }
+
+        function togglePin() {
+            if (selectedElement) {
+                selectedElement.style.cursor = selectedElement.style.cursor === 'not-allowed' ? 'pointer' : 'not-allowed';
+                showNotification('📌 تم تغيير حالة التثبيت');
+                hasUnsavedChanges = true;
+            }
+        }
+
+        function hideElement() {
+            if (selectedElement) {
+                selectedElement.style.display = selectedElement.style.display === 'none' ? '' : 'none';
+                showNotification('👁️ تم تغيير الرؤية');
+                hasUnsavedChanges = true;
+            }
+        }
+
+        function bringToFront() {
+            if (selectedElement) {
+                selectedElement.style.zIndex = '9999';
+                showNotification('⬆️ تم النقل للأمام');
+                hasUnsavedChanges = true;
+            }
+        }
+
+        function sendToBack() {
+            if (selectedElement) {
+                selectedElement.style.zIndex = '1';
+                showNotification('⬇️ تم النقل للخلف');
+                hasUnsavedChanges = true;
+            }
+        }
+
+        function addToHistory() {
+            historyIndex++;
+            history = history.slice(0, historyIndex);
+            history.push(saveState());
+        }
+
+        function saveState() {
+            return {
+                html: iframeDoc.body.innerHTML,
+                audioPosition: audioPosition,
+                timestamp: Date.now()
+            };
+        }
+
+        function restoreState(state) {
+            iframeDoc.body.innerHTML = state.html;
+            audioPosition = state.audioPosition;
+            setupEditor();
+        }
+
+        function undoChanges() {
+            if (historyIndex > 0) {
+                historyIndex--;
+                restoreState(history[historyIndex]);
+                showNotification('↶ تم التراجع');
+            }
+        }
+
+        function redoChanges() {
+            if (historyIndex < history.length - 1) {
+                historyIndex++;
+                restoreState(history[historyIndex]);
+                showNotification('↷ تم الإعادة');
+            }
+        }
+
+        function createTemplate() {
+            const name = prompt('أدخل اسم النسخة:');
+            if (!name) return;
+
+            const template = {
+                id: Date.now(),
+                name: name,
+                html: iframeDoc.body.innerHTML,
+                audioPosition: audioPosition,
+                date: new Date().toLocaleString('ar-EG'),
+                thumbnail: generateThumbnail()
+            };
+
+            templates.push(template);
+            localStorage.setItem('templates', JSON.stringify(templates));
+            showNotification('✅ تم حفظ النسخة');
+            addToHistory();
+        }
+
+        function generateThumbnail() {
+            return 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2260%22 height=%2260%22%3E%3Crect fill=%22%23000%22 width=%2260%22 height=%2260%22/%3E%3Crect fill=%22%2300ff88%22 x=%225%22 y=%225%22 width=%2250%22 height=%2250%22/%3E%3C/svg%3E';
+        }
+
+        function loadTemplates() {
+            const saved = localStorage.getItem('templates');
+            if (saved) {
+                templates = JSON.parse(saved);
+            }
+        }
+
+        function showTemplates() {
+            const modal = document.getElementById('templates-modal');
+            const list = document.getElementById('templates-list');
+            
+            if (templates.length === 0) {
+                list.innerHTML = '<p style="color: #888; text-align: center; padding: 20px;">لا توجد نسخ محفوظة</p>';
+            } else {
+                list.innerHTML = templates.map(t => `
+                    <div class="template-item">
+                        <div class="template-thumbnail">
+                            <img src="${t.thumbnail}" alt="${t.name}">
+                        </div>
+                        <div class="template-info">
+                            <div class="template-name">${t.name}</div>
+                            <div class="template-date">${t.date}</div>
+                        </div>
+                        <div class="template-actions">
+                            <button onclick="testTemplate(${t.id})">🧪 اختبار</button>
+                            <button onclick="applyTemplate(${t.id})">✓ تطبيق</button>
+                            <button onclick="deleteTemplate(${t.id})">🗑️ حذف</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            modal.classList.add('show');
+        }
+
+        function closeTemplates() {
+            document.getElementById('templates-modal').classList.remove('show');
+        }
+
+        function testTemplate(id) {
+            const template = templates.find(t => t.id === id);
+            if (!template) return;
+
+            iframeDoc.body.innerHTML = template.html;
+            setupEditor();
+            showNotification('🧪 تم تحميل النسخة للاختبار (30 ثانية)');
+
+            setTimeout(() => {
+                restoreState(history[historyIndex]);
+                showNotification('⏱️ انتهت فترة الاختبار');
+            }, 30000);
+        }
+
+        function applyTemplate(id) {
+            const template = templates.find(t => t.id === id);
+            if (!template) return;
+
+            iframeDoc.body.innerHTML = template.html;
+            audioPosition = template.audioPosition;
+            setupEditor();
+            addToHistory();
+            showNotification('✅ تم تطبيق النسخة');
+            closeTemplates();
+        }
+
+        function deleteTemplate(id) {
+            if (confirm('هل تريد حذف هذه النسخة؟')) {
+                templates = templates.filter(t => t.id !== id);
+                localStorage.setItem('templates', JSON.stringify(templates));
+                showTemplates();
+                showNotification('🗑️ تم حذف النسخة');
+            }
+        }
+
+        function toggleDevTools() {
+            const modal = document.getElementById('dev-tools-modal');
+            document.getElementById('dev-elements').textContent = templates.length;
+            document.getElementById('dev-history').textContent = history.length;
+            
+            if (performance.memory) {
+                const mb = (performance.memory.usedJSHeapSize / 1048576).toFixed(2);
+                document.getElementById('dev-memory').textContent = mb + ' MB';
+            }
+
+            modal.classList.add('show');
+        }
+
+        function closeDevTools() {
+            document.getElementById('dev-tools-modal').classList.remove('show');
+        }
+
+        function clearCache() {
+            localStorage.clear();
+            showNotification('🗑️ تم مسح الذاكرة');
+        }
+
+        function exportData() {
+            const data = {
+                html: iframeDoc.body.innerHTML,
+                templates: templates,
+                audioPosition: audioPosition
+            };
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'editor-data.json';
+            a.click();
+            showNotification('📥 تم تصدير البيانات');
+        }
+
+        function showConsole() {
+            console.log('=== معلومات المحرر ===');
+            console.log('النسخ المحفوظة:', templates);
+            console.log('الحالة الحالية:', history[historyIndex]);
+            console.log('موضع الصوت:', audioPosition);
+            showNotification('💻 تم فتح وحدة التحكم (F12)');
+        }
+
+        function saveChanges() {
+            if (!hasUnsavedChanges) {
+                showNotification('✅ لا توجد تغييرات');
+                return;
+            }
+
+            const data = {
+                html: iframeDoc.body.innerHTML,
+                audioPosition: audioPosition,
+                timestamp: new Date()
+            };
+
+            localStorage.setItem('editorData', JSON.stringify(data));
+            hasUnsavedChanges = false;
+            showNotification('💾 تم الحفظ بنجاح!');
+
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        }
+
+        function updateElementCount() {
+            const count = iframeDoc.querySelectorAll('[id]').length;
+            document.getElementById('element-count').textContent = `العناصر: ${count}`;
+        }
+
+        function showNotification(msg) {
+            const notif = document.createElement('div');
+            notif.className = 'notification';
+            notif.textContent = msg;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 2000);
+        }
+
+        function updateStatus(msg) {
+            document.getElementById('status-text').textContent = msg;
+        }
+
+        function exitEditor() {
+            if (hasUnsavedChanges && !confirm('هناك تغييرات غير محفوظة. هل تريد الخروج؟')) return;
+            window.location.href = 'admin.html';
+        }
+    </script>
+</body>
+</html>
