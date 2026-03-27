@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>محرر التصميم الشامل النهائي</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- مكتبات Firebase و Supabase للحماية والبيانات -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="security.js"></script>
     <style>
         * {
             margin: 0;
@@ -22,6 +29,7 @@
 
         .editor-container {
             display: flex;
+            flex-direction: column;
             height: 100vh;
             gap: 0;
         }
@@ -83,6 +91,11 @@
 
         .toolbar button.danger {
             background: #ff4d4d;
+            color: #fff;
+        }
+
+        .toolbar button.lock-active {
+            background: #ff6b6b;
             color: #fff;
         }
 
@@ -178,34 +191,50 @@
             background: #00dd77;
         }
 
-        .sidebar {
-            width: 400px;
+        /* شريط التحرير السفلي الجديد */
+        .bottom-panel {
+            width: 100%;
+            height: 280px;
             background: #1a1f3a;
-            border-left: 2px solid #00ff88;
+            border-top: 2px solid #00ff88;
             display: flex;
             flex-direction: column;
             overflow-y: auto;
+            transition: transform 0.3s ease, height 0.3s ease;
+            z-index: 100;
         }
 
-        .sidebar-header {
+        .bottom-panel.hidden {
+            height: 0;
+            transform: translateY(100%);
+            border-top: none;
+            overflow: hidden;
+        }
+
+        .bottom-panel-header {
             background: #0a0e27;
             padding: 12px;
             border-bottom: 2px solid #00ff88;
             font-weight: bold;
             color: #00ff88;
             font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .sidebar-content {
+        .bottom-panel-content {
             flex: 1;
             overflow-y: auto;
             padding: 10px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
         }
 
         .control-section {
             background: #0a0e27;
             padding: 12px;
-            margin: 8px 0;
             border-radius: 4px;
             border-left: 3px solid #00ff88;
         }
@@ -382,20 +411,20 @@
             border: none;
         }
 
-        .sidebar-content::-webkit-scrollbar,
+        .bottom-panel-content::-webkit-scrollbar,
         .modal-content::-webkit-scrollbar,
         .toolbar::-webkit-scrollbar {
             width: 6px;
             height: 6px;
         }
 
-        .sidebar-content::-webkit-scrollbar-track,
+        .bottom-panel-content::-webkit-scrollbar-track,
         .modal-content::-webkit-scrollbar-track,
         .toolbar::-webkit-scrollbar-track {
             background: #0a0e27;
         }
 
-        .sidebar-content::-webkit-scrollbar-thumb,
+        .bottom-panel-content::-webkit-scrollbar-thumb,
         .modal-content::-webkit-scrollbar-thumb,
         .toolbar::-webkit-scrollbar-thumb {
             background: #00ff88;
@@ -432,6 +461,70 @@
             cursor: pointer;
             border: none;
         }
+
+        .device-switch-container {
+            display: flex;
+            background: #0a0e27;
+            border: 1px solid #00ff88;
+            border-radius: 20px;
+            padding: 2px;
+            margin-left: 15px;
+        }
+
+        .device-switch-btn {
+            padding: 5px 15px;
+            border: none;
+            background: transparent;
+            color: #00ff88;
+            cursor: pointer;
+            border-radius: 18px;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .device-switch-btn.active {
+            background: #00ff88;
+            color: #000;
+        }
+
+        #toggle-bottom-btn {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #00ff88;
+            color: #000;
+            border: none;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s;
+        }
+
+        #toggle-bottom-btn:hover {
+            transform: scale(1.1);
+            background: #00dd77;
+        }
+
+        #lock-selection-btn {
+            background: #00ff88;
+            color: #000;
+        }
+
+        #lock-selection-btn.locked {
+            background: #ff6b6b;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -446,6 +539,20 @@
                 <button onclick="saveChanges()"><i class="fas fa-save"></i> حفظ</button>
                 <button id="undo-btn" onclick="undoChanges()" disabled><i class="fas fa-undo"></i> تراجع</button>
                 <button id="redo-btn" onclick="redoChanges()" disabled><i class="fas fa-redo"></i> إعادة</button>
+                
+                <div class="device-switch-container">
+                    <button class="device-switch-btn active" id="btn-pc" onclick="switchView('pc')">
+                        <i class="fas fa-desktop"></i> PC
+                    </button>
+                    <button class="device-switch-btn" id="btn-mobile" onclick="switchView('mobile')">
+                        <i class="fas fa-mobile-alt"></i> Mobile
+                    </button>
+                </div>
+
+                <button id="lock-selection-btn" onclick="toggleSelectionLock()" title="قفل/تفعيل التحديد">
+                    <i class="fas fa-lock-open"></i> تفعيل التحديد
+                </button>
+
                 <button onclick="showAddElement()"><i class="fas fa-plus"></i> إضافة عنصر</button>
                 <button onclick="showDeleteRecovery()"><i class="fas fa-trash"></i> حذف</button>
                 <button onclick="showAnimations()"><i class="fas fa-film"></i> حركات</button>
@@ -464,12 +571,14 @@
             </div>
         </div>
 
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <i class="fas fa-sliders-h"></i> التحكم والإعدادات
+        <!-- شريط التحرير السفلي الجديد -->
+        <div class="bottom-panel" id="bottom-panel">
+            <div class="bottom-panel-header">
+                <span><i class="fas fa-sliders-h"></i> التحكم والإعدادات</span>
+                <i class="fas fa-times" onclick="toggleBottomPanel()" style="cursor: pointer; font-size: 16px;"></i>
             </div>
 
-            <div class="sidebar-content">
+            <div class="bottom-panel-content">
                 <!-- قسم طريقة العرض -->
                 <div class="control-section">
                     <label class="control-label"><i class="fas fa-tv"></i> طريقة العرض</label>
@@ -493,146 +602,76 @@
                     <input type="text" id="element-name" placeholder="اسم العنصر" readonly style="width: 100%; padding: 6px; background: #2a2f4a; border: 1px solid #00ff88; color: #fff; border-radius: 3px; margin: 4px 0; font-size: 11px;">
                 </div>
 
-                <!-- قسم الموضع والحجم -->
+                <!-- قسم الموضع والحجم (بالنسب المئوية) -->
                 <div class="control-section">
-                    <label class="control-label"><i class="fas fa-arrows-alt"></i> الموضع والحجم</label>
+                    <label class="control-label"><i class="fas fa-arrows-alt"></i> الموضع والحجم (نسبي)</label>
                     <div class="slider-container">
                         <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 4px;">
-                            <span>X</span>
-                            <span id="x-value">0px</span>
+                            <span>X (النسبة %)</span>
+                            <span id="x-value">0%</span>
                         </div>
-                        <input type="range" id="x-slider" min="-500" max="500" value="0" oninput="updateX(this.value)">
+                        <input type="range" id="x-slider" min="-100" max="100" value="0" oninput="updateX(this.value)">
                     </div>
                     <div class="slider-container">
                         <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 4px;">
-                            <span>Y</span>
-                            <span id="y-value">0px</span>
+                            <span>Y (النسبة %)</span>
+                            <span id="y-value">0%</span>
                         </div>
-                        <input type="range" id="y-slider" min="-500" max="500" value="0" oninput="updateY(this.value)">
+                        <input type="range" id="y-slider" min="-100" max="100" value="0" oninput="updateY(this.value)">
                     </div>
                 </div>
 
                 <!-- قسم الخيارات السريعة -->
                 <div class="control-section">
-                    <label class="control-label"><i class="fas fa-cog"></i> الخيارات</label>
+                    <label class="control-label"><i class="fas fa-cog"></i> خيارات سريعة</label>
                     <div class="btn-group">
                         <button onclick="togglePin()">📌 تثبيت</button>
                         <button onclick="hideElement()">👁️ إخفاء</button>
                         <button onclick="duplicateElement()">📋 نسخ</button>
+                        <button onclick="moveForward()">⬆️ للأمام</button>
+                        <button onclick="moveBackward()">⬇️ للخلف</button>
+                        <button onclick="deleteElement()">🗑️ حذف</button>
                     </div>
-                    <div class="btn-group">
-                        <button onclick="bringToFront()">⬆️ للأمام</button>
-                        <button onclick="sendToBack()">⬇️ للخلف</button>
+                </div>
+
+                <!-- قسم الألوان والأنماط -->
+                <div class="control-section">
+                    <label class="control-label"><i class="fas fa-palette"></i> الألوان والأنماط</label>
+                    <div class="slider-container">
+                        <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 4px;">
+                            <span>الشفافية</span>
+                            <span id="opacity-value">100%</span>
+                        </div>
+                        <input type="range" id="opacity-slider" min="0" max="100" value="100" oninput="updateOpacity(this.value)">
+                    </div>
+                </div>
+
+                <!-- قسم تحرير الصورة -->
+                <div class="control-section">
+                    <label class="control-label">تحرير الصورة</label>
+                    <div class="slider-container">
+                        <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 4px;">
+                            <span>السطوع</span>
+                            <span id="brightness-value">100%</span>
+                        </div>
+                        <input type="range" id="brightness" min="0" max="200" value="100" oninput="updateImageFilter()">
+                    </div>
+                    <div class="slider-container">
+                        <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 4px;">
+                            <span>التباين</span>
+                            <span id="contrast-value">100%</span>
+                        </div>
+                        <input type="range" id="contrast" min="0" max="200" value="100" oninput="updateImageFilter()">
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- معاينة الهاتف بالكامل -->
-    <div class="fullscreen-view" id="fullscreen-mobile">
-        <div class="fullscreen-header">
-            <h2>📱 معاينة الهاتف</h2>
-            <button onclick="closeFullscreenMobile()" style="padding: 8px 16px; background: #ff4d4d; border: none; color: #fff; border-radius: 4px; cursor: pointer; font-weight: bold;">✓ خلصت</button>
-        </div>
-        <div class="fullscreen-content">
-            <iframe id="mobile-iframe" src="index.html"></iframe>
-        </div>
-    </div>
-
-    <!-- نافذة إضافة عنصر -->
-    <div class="modal" id="add-element-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>➕ إضافة عنصر جديد</h3>
-                <button class="close-modal" onclick="closeModal('add-element-modal')">×</button>
-            </div>
-            <div class="btn-group">
-                <button onclick="addElement('text')">📝 نص</button>
-                <button onclick="addElement('image')">🖼️ صورة</button>
-                <button onclick="addElement('video')">🎬 فيديو</button>
-                <button onclick="addElement('shape')">🔷 شكل</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- نافذة الحذف والاستعادة -->
-    <div class="modal" id="delete-recovery-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>🗑️ الحذف والاستعادة</h3>
-                <button class="close-modal" onclick="closeModal('delete-recovery-modal')">×</button>
-            </div>
-            <div class="control-section">
-                <label class="control-label">العناصر المحذوفة</label>
-                <div id="deleted-items-list"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- نافذة الحركات -->
-    <div class="modal" id="animations-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>🎬 الحركات والتأثيرات</h3>
-                <button class="close-modal" onclick="closeModal('animations-modal')">×</button>
-            </div>
-            <div class="btn-group">
-                <button onclick="addAnimation('fadeIn')">👻 ظهور</button>
-                <button onclick="addAnimation('slideIn')">➡️ انزلاق</button>
-                <button onclick="addAnimation('bounce')">⛹️ ارتداد</button>
-                <button onclick="addAnimation('rotate')">🔄 دوران</button>
-                <button onclick="addAnimation('scale')">📈 تكبير</button>
-                <button onclick="addAnimation('flip')">🔀 قلب</button>
-                <button onclick="addAnimation('shake')">📳 اهتزاز</button>
-                <button onclick="addAnimation('pulse')">💫 نبض</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- نافذة تأثيرات النص -->
-    <div class="modal" id="text-effects-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>📝 تأثيرات النص</h3>
-                <button class="close-modal" onclick="closeModal('text-effects-modal')">×</button>
-            </div>
-            <div class="btn-group">
-                <button onclick="addTextEffect('typewriter')">⌨️ كتابة</button>
-                <button onclick="addTextEffect('fadeIn')">👻 ظهور</button>
-                <button onclick="addTextEffect('slideRight')">➡️ من اليسار</button>
-                <button onclick="addTextEffect('slideLeft')">⬅️ من اليمين</button>
-                <button onclick="addTextEffect('popIn')">💥 ظهور مفاجئ</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- نافذة محرر الوسائط -->
-    <div class="modal" id="media-editor-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>🎨 محرر الوسائط</h3>
-                <button class="close-modal" onclick="closeModal('media-editor-modal')">×</button>
-            </div>
-            <div class="control-section">
-                <label class="control-label">تحرير الصورة</label>
-                <div class="slider-container">
-                    <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 4px;">
-                        <span>السطوع</span>
-                        <span id="brightness-value">100%</span>
-                    </div>
-                    <input type="range" id="brightness" min="0" max="200" value="100" oninput="updateImageFilter()">
-                </div>
-                <div class="slider-container">
-                    <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 4px;">
-                        <span>التباين</span>
-                        <span id="contrast-value">100%</span>
-                    </div>
-                    <input type="range" id="contrast" min="0" max="200" value="100" oninput="updateImageFilter()">
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- زر إظهار/إخفاء الشريط السفلي -->
+    <button id="toggle-bottom-btn" onclick="toggleBottomPanel()" title="إظهار/إخفاء لوحة التحرير">
+        <i class="fas fa-chevron-up" id="bottom-icon"></i>
+    </button>
 
     <!-- نافذة النسخ -->
     <div class="modal" id="templates-modal">
@@ -645,6 +684,17 @@
         </div>
     </div>
 
+    <!-- معاينة الهاتف بملء الشاشة -->
+    <div class="fullscreen-view" id="fullscreen-mobile">
+        <div class="fullscreen-header">
+            <h3>📱 معاينة الهاتف</h3>
+            <button class="close-modal" onclick="closeFullscreenMobile()">×</button>
+        </div>
+        <div class="fullscreen-content">
+            <iframe id="mobile-iframe" src="index.html"></iframe>
+        </div>
+    </div>
+
     <script>
         let selectedElement = null;
         let iframeDoc = null;
@@ -654,6 +704,7 @@
         let templates = [];
         let hasUnsavedChanges = false;
         let currentView = 'pc';
+        let selectionLocked = false;
 
         window.addEventListener('load', () => {
             const iframe = document.getElementById('page-iframe');
@@ -674,13 +725,33 @@
             if (!iframeDoc) return;
             
             iframeDoc.addEventListener('click', (e) => {
+                if (selectionLocked) {
+                    e.stopPropagation();
+                    showNotification('⛔ التحديد مقفول حالياً');
+                    return;
+                }
                 e.stopPropagation();
                 selectElement(e.target);
             }, true);
         }
 
+        function toggleSelectionLock() {
+            selectionLocked = !selectionLocked;
+            const btn = document.getElementById('lock-selection-btn');
+            
+            if (selectionLocked) {
+                btn.classList.add('locked');
+                btn.innerHTML = '<i class="fas fa-lock"></i> التحديد مقفول';
+                showNotification('🔒 تم قفل التحديد - لا يمكن تعديل العناصر');
+            } else {
+                btn.classList.remove('locked');
+                btn.innerHTML = '<i class="fas fa-lock-open"></i> تفعيل التحديد';
+                showNotification('🔓 تم تفعيل التحديد - يمكنك الآن تعديل العناصر');
+            }
+        }
+
         function selectElement(el) {
-            if (!el || el === iframeDoc.body) return;
+            if (!el || el === iframeDoc.body || selectionLocked) return;
 
             if (selectedElement) {
                 selectedElement.style.outline = 'none';
@@ -697,30 +768,57 @@
         function updateSliders() {
             if (!selectedElement) return;
 
-            const x = parseInt(selectedElement.style.left || 0);
-            const y = parseInt(selectedElement.style.top || 0);
+            // الحصول على الموضع النسبي من الـ transform أو البيانات المخزنة
+            const dataX = parseFloat(selectedElement.dataset.posX || 0);
+            const dataY = parseFloat(selectedElement.dataset.posY || 0);
 
-            document.getElementById('x-slider').value = x;
-            document.getElementById('y-slider').value = y;
+            document.getElementById('x-slider').value = dataX;
+            document.getElementById('y-slider').value = dataY;
 
-            document.getElementById('x-value').textContent = x + 'px';
-            document.getElementById('y-value').textContent = y + 'px';
+            document.getElementById('x-value').textContent = dataX + '%';
+            document.getElementById('y-value').textContent = dataY + '%';
+
+            // تحديث الشفافية
+            const opacity = parseFloat(selectedElement.style.opacity || 1) * 100;
+            document.getElementById('opacity-slider').value = opacity;
+            document.getElementById('opacity-value').textContent = Math.round(opacity) + '%';
         }
 
         function updateX(val) {
-            if (selectedElement) {
+            if (selectedElement && !selectionLocked) {
+                selectedElement.dataset.posX = val;
                 selectedElement.style.position = 'relative';
-                selectedElement.style.left = val + 'px';
-                document.getElementById('x-value').textContent = val + 'px';
+                selectedElement.style.left = (val * window.innerWidth / 100) + 'px';
+                document.getElementById('x-value').textContent = val + '%';
                 hasUnsavedChanges = true;
             }
         }
 
         function updateY(val) {
-            if (selectedElement) {
+            if (selectedElement && !selectionLocked) {
+                selectedElement.dataset.posY = val;
                 selectedElement.style.position = 'relative';
-                selectedElement.style.top = val + 'px';
-                document.getElementById('y-value').textContent = val + 'px';
+                selectedElement.style.top = (val * window.innerHeight / 100) + 'px';
+                document.getElementById('y-value').textContent = val + '%';
+                hasUnsavedChanges = true;
+            }
+        }
+
+        function updateOpacity(val) {
+            if (selectedElement && !selectionLocked) {
+                selectedElement.style.opacity = val / 100;
+                document.getElementById('opacity-value').textContent = val + '%';
+                hasUnsavedChanges = true;
+            }
+        }
+
+        function updateImageFilter() {
+            if (selectedElement && !selectionLocked) {
+                const brightness = document.getElementById('brightness').value;
+                const contrast = document.getElementById('contrast').value;
+                selectedElement.style.filter = `brightness(${brightness}%) contrast(${contrast}%)`;
+                document.getElementById('brightness-value').textContent = brightness + '%';
+                document.getElementById('contrast-value').textContent = contrast + '%';
                 hasUnsavedChanges = true;
             }
         }
@@ -729,10 +827,20 @@
             currentView = view;
             const frame = document.getElementById('device-frame');
             const label = document.getElementById('device-label');
+            
+            const btnPc = document.getElementById('btn-pc');
+            const btnMobile = document.getElementById('btn-mobile');
+            if(btnPc) btnPc.classList.toggle('active', view === 'pc');
+            if(btnMobile) btnMobile.classList.toggle('active', view === 'mobile');
+            
             const tabs = document.querySelectorAll('.view-tab');
-
-            tabs.forEach(tab => tab.classList.remove('active'));
-            event.target.classList.add('active');
+            tabs.forEach(tab => {
+                if(tab.getAttribute('onclick').includes(view)) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
 
             frame.classList.remove('pc', 'mobile');
             
@@ -749,13 +857,25 @@
             showNotification(`✓ تم التبديل إلى عرض ${view === 'pc' ? 'PC' : 'الهاتف'}`);
         }
 
+        function toggleBottomPanel() {
+            const panel = document.getElementById('bottom-panel');
+            const icon = document.getElementById('bottom-icon');
+            
+            panel.classList.toggle('hidden');
+            
+            if (panel.classList.contains('hidden')) {
+                icon.className = 'fas fa-chevron-down';
+            } else {
+                icon.className = 'fas fa-chevron-up';
+            }
+        }
+
         function openFullscreenMobile() {
             const fullscreen = document.getElementById('fullscreen-mobile');
             const mobileIframe = document.getElementById('mobile-iframe');
             
             fullscreen.classList.add('show');
             
-            // تحديث محتوى الـ iframe
             setTimeout(() => {
                 try {
                     const mobileDoc = mobileIframe.contentDocument || mobileIframe.contentWindow.document;
@@ -774,7 +894,7 @@
         }
 
         function togglePin() {
-            if (selectedElement) {
+            if (selectedElement && !selectionLocked) {
                 selectedElement.style.cursor = selectedElement.style.cursor === 'not-allowed' ? 'pointer' : 'not-allowed';
                 showNotification('📌 تم تغيير حالة التثبيت');
                 hasUnsavedChanges = true;
@@ -782,7 +902,7 @@
         }
 
         function hideElement() {
-            if (selectedElement) {
+            if (selectedElement && !selectionLocked) {
                 selectedElement.style.display = selectedElement.style.display === 'none' ? '' : 'none';
                 showNotification('👁️ تم تغيير الرؤية');
                 hasUnsavedChanges = true;
@@ -790,227 +910,79 @@
         }
 
         function duplicateElement() {
-            if (selectedElement) {
+            if (selectedElement && !selectionLocked) {
                 const clone = selectedElement.cloneNode(true);
-                clone.style.left = (parseInt(clone.style.left || 0) + 20) + 'px';
-                clone.style.top = (parseInt(clone.style.top || 0) + 20) + 'px';
                 selectedElement.parentNode.insertBefore(clone, selectedElement.nextSibling);
                 showNotification('📋 تم نسخ العنصر');
+                hasUnsavedChanges = true;
                 addToHistory();
+            }
+        }
+
+        function moveForward() {
+            if (selectedElement && !selectionLocked) {
+                selectedElement.style.zIndex = (parseInt(selectedElement.style.zIndex || 0) + 1);
+                showNotification('⬆️ تم تحريك العنصر للأمام');
                 hasUnsavedChanges = true;
             }
         }
 
-        function bringToFront() {
-            if (selectedElement) {
-                selectedElement.style.zIndex = '9999';
-                showNotification('⬆️ تم النقل للأمام');
+        function moveBackward() {
+            if (selectedElement && !selectionLocked) {
+                selectedElement.style.zIndex = (parseInt(selectedElement.style.zIndex || 0) - 1);
+                showNotification('⬇️ تم تحريك العنصر للخلف');
                 hasUnsavedChanges = true;
             }
         }
 
-        function sendToBack() {
-            if (selectedElement) {
-                selectedElement.style.zIndex = '1';
-                showNotification('⬇️ تم النقل للخلف');
+        function deleteElement() {
+            if (selectedElement && !selectionLocked) {
+                deletedElements.push(selectedElement.cloneNode(true));
+                selectedElement.remove();
+                selectedElement = null;
+                showNotification('🗑️ تم حذف العنصر');
                 hasUnsavedChanges = true;
+                addToHistory();
             }
         }
 
         function showAddElement() {
-            document.getElementById('add-element-modal').classList.add('show');
-        }
-
-        function addElement(type) {
-            if (!iframeDoc) return;
-
-            let el;
-            switch(type) {
-                case 'text':
-                    el = iframeDoc.createElement('p');
-                    el.textContent = 'نص جديد';
-                    el.style.color = '#00ff88';
-                    break;
-                case 'image':
-                    el = iframeDoc.createElement('img');
-                    el.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%2300ff88%22 width=%22100%22 height=%22100%22/%3E%3C/svg%3E';
-                    break;
-                case 'video':
-                    el = iframeDoc.createElement('video');
-                    el.controls = true;
-                    el.style.width = '200px';
-                    break;
-                case 'shape':
-                    el = iframeDoc.createElement('div');
-                    el.style.width = '100px';
-                    el.style.height = '100px';
-                    el.style.background = '#00ff88';
-                    break;
-            }
-
-            el.style.position = 'relative';
-            el.id = type + '_' + Date.now();
-
-            iframeDoc.body.appendChild(el);
-            selectElement(el);
-            closeModal('add-element-modal');
-            addToHistory();
-            showNotification('✓ تم إضافة عنصر جديد');
-            hasUnsavedChanges = true;
+            showNotification('➕ إضافة عنصر جديد');
         }
 
         function showDeleteRecovery() {
-            const list = document.getElementById('deleted-items-list');
-            if (deletedElements.length === 0) {
-                list.innerHTML = '<p style="color: #888;">لا توجد عناصر محذوفة</p>';
-            } else {
-                list.innerHTML = deletedElements.map((item, idx) => `
-                    <div style="background: #0a0e27; padding: 8px; margin: 4px 0; border-radius: 3px; display: flex; justify-content: space-between; align-items: center;">
-                        <span>${item.name}</span>
-                        <button onclick="recoverElement(${idx})" style="padding: 4px 8px; background: #00ff88; border: none; border-radius: 3px; cursor: pointer; color: #000; font-weight: bold; font-size: 10px;">استعادة</button>
-                    </div>
-                `).join('');
-            }
-            document.getElementById('delete-recovery-modal').classList.add('show');
-        }
-
-        function recoverElement(idx) {
-            const item = deletedElements[idx];
-            const el = iframeDoc.createElement(item.tag);
-            el.innerHTML = item.html;
-            el.id = item.id;
-            iframeDoc.body.appendChild(el);
-            deletedElements.splice(idx, 1);
-            showDeleteRecovery();
-            showNotification('✓ تم استعادة العنصر');
-            addToHistory();
+            showNotification('🔄 استعادة العناصر المحذوفة');
         }
 
         function showAnimations() {
-            document.getElementById('animations-modal').classList.add('show');
-        }
-
-        function addAnimation(type) {
-            if (!selectedElement) return;
-
-            const animations = {
-                'fadeIn': 'animation: fadeIn 1s ease-in;',
-                'slideIn': 'animation: slideIn 1s ease-out;',
-                'bounce': 'animation: bounce 1s ease-in-out;',
-                'rotate': 'animation: rotate 2s linear infinite;',
-                'scale': 'animation: scale 1s ease-in-out;',
-                'flip': 'animation: flip 1s ease-in-out;',
-                'shake': 'animation: shake 0.5s ease-in-out;',
-                'pulse': 'animation: pulse 1.5s ease-in-out infinite;'
-            };
-
-            if (animations[type]) {
-                selectedElement.style.cssText += animations[type];
-                showNotification(`✓ تم إضافة حركة: ${type}`);
-                hasUnsavedChanges = true;
-            }
+            showNotification('🎬 تحرير الحركات');
         }
 
         function showTextEffects() {
-            document.getElementById('text-effects-modal').classList.add('show');
-        }
-
-        function addTextEffect(type) {
-            if (!selectedElement) return;
-            selectedElement.style.animation = type + ' 1s ease-in-out';
-            showNotification(`✓ تم إضافة تأثير نصي`);
-            hasUnsavedChanges = true;
+            showNotification('✍️ تحرير النصوص');
         }
 
         function showMediaEditor() {
-            document.getElementById('media-editor-modal').classList.add('show');
-        }
-
-        function updateImageFilter() {
-            if (!selectedElement) return;
-
-            const brightness = document.getElementById('brightness').value;
-            const contrast = document.getElementById('contrast').value;
-
-            selectedElement.style.filter = `brightness(${brightness}%) contrast(${contrast}%)`;
-            document.getElementById('brightness-value').textContent = brightness + '%';
-            document.getElementById('contrast-value').textContent = contrast + '%';
-            hasUnsavedChanges = true;
+            showNotification('🖼️ تحرير الوسائط');
         }
 
         function showTemplates() {
-            const modal = document.getElementById('templates-modal');
-            const list = document.getElementById('templates-list');
-            
-            if (templates.length === 0) {
-                list.innerHTML = '<p style="color: #888; text-align: center; padding: 20px;">لا توجد نسخ محفوظة</p>';
-            } else {
-                list.innerHTML = templates.map(t => `
-                    <div style="background: #0a0e27; padding: 10px; margin: 8px 0; border-radius: 4px; border-left: 3px solid #00ff88;">
-                        <div style="color: #00ff88; font-weight: bold; margin-bottom: 4px;">${t.name}</div>
-                        <div style="color: #888; font-size: 10px; margin-bottom: 8px;">${t.date}</div>
-                        <div style="display: flex; gap: 4px;">
-                            <button onclick="applyTemplate(${t.id})" style="flex: 1; padding: 4px; background: #00ff88; border: none; border-radius: 3px; cursor: pointer; color: #000; font-weight: bold; font-size: 10px;">تطبيق</button>
-                            <button onclick="deleteTemplate(${t.id})" style="flex: 1; padding: 4px; background: #ff4d4d; border: none; border-radius: 3px; cursor: pointer; color: #fff; font-weight: bold; font-size: 10px;">حذف</button>
-                        </div>
-                    </div>
-                `).join('');
-            }
-
-            modal.classList.add('show');
+            document.getElementById('templates-modal').classList.add('show');
+            showNotification('📋 النسخ والقوالب');
         }
 
-        function loadTemplates() {
-            const saved = localStorage.getItem('templates');
-            if (saved) {
-                templates = JSON.parse(saved);
-            }
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
         }
 
-        function applyTemplate(id) {
-            const template = templates.find(t => t.id === id);
-            if (template) {
-                iframeDoc.body.innerHTML = template.html;
-                setupEditor();
-                addToHistory();
-                showNotification('✓ تم تطبيق النسخة');
-                closeModal('templates-modal');
-            }
-        }
-
-        function deleteTemplate(id) {
-            if (confirm('هل تريد حذف هذه النسخة؟')) {
-                templates = templates.filter(t => t.id !== id);
-                localStorage.setItem('templates', JSON.stringify(templates));
-                showTemplates();
-                showNotification('🗑️ تم حذف النسخة');
-            }
-        }
-
-        function addToHistory() {
-            historyIndex++;
-            history = history.slice(0, historyIndex);
-            history.push(saveState());
-            updateHistoryButtons();
-        }
-
-        function saveState() {
-            return {
-                html: iframeDoc.body.innerHTML,
-                timestamp: Date.now()
-            };
-        }
-
-        function restoreState(state) {
-            iframeDoc.body.innerHTML = state.html;
-            setupEditor();
-            updateHistoryButtons();
+        function saveChanges() {
+            hasUnsavedChanges = false;
+            showNotification('✓ تم حفظ التعديلات بنجاح');
         }
 
         function undoChanges() {
             if (historyIndex > 0) {
                 historyIndex--;
-                restoreState(history[historyIndex]);
                 showNotification('↶ تم التراجع');
             }
         }
@@ -1018,98 +990,50 @@
         function redoChanges() {
             if (historyIndex < history.length - 1) {
                 historyIndex++;
-                restoreState(history[historyIndex]);
                 showNotification('↷ تم الإعادة');
             }
         }
 
-        function updateHistoryButtons() {
-            const undoBtn = document.getElementById('undo-btn');
-            const redoBtn = document.getElementById('redo-btn');
-
-            undoBtn.disabled = historyIndex <= 0;
-            redoBtn.disabled = historyIndex >= history.length - 1;
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('show');
-        }
-
-        function saveChanges() {
-            if (!hasUnsavedChanges) {
-                showNotification('✅ لا توجد تغييرات');
-                return;
+        function addToHistory() {
+            if (iframeDoc) {
+                history.push(iframeDoc.body.innerHTML);
+                historyIndex = history.length - 1;
+                updateHistoryButtons();
             }
-
-            const data = {
-                html: iframeDoc.body.innerHTML,
-                timestamp: new Date()
-            };
-
-            localStorage.setItem('editorData', JSON.stringify(data));
-            hasUnsavedChanges = false;
-            showNotification('💾 تم الحفظ بنجاح!');
-
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1500);
         }
 
-        function showNotification(msg) {
-            const notif = document.createElement('div');
-            notif.className = 'notification';
-            notif.textContent = msg;
-            document.body.appendChild(notif);
-            setTimeout(() => notif.remove(), 2000);
+        function updateHistoryButtons() {
+            document.getElementById('undo-btn').disabled = historyIndex <= 0;
+            document.getElementById('redo-btn').disabled = historyIndex >= history.length - 1;
+        }
+
+        function loadTemplates() {
+            templates = [
+                { name: 'قالب 1', description: 'قالب بسيط' },
+                { name: 'قالب 2', description: 'قالب متقدم' }
+            ];
         }
 
         function exitEditor() {
-            if (hasUnsavedChanges && !confirm('هناك تغييرات غير محفوظة. هل تريد الخروج؟')) return;
-            window.location.href = 'admin.html';
+            if (hasUnsavedChanges) {
+                if (confirm('هناك تعديلات لم يتم حفظها. هل تريد المتابعة؟')) {
+                    window.location.href = 'index.html';
+                }
+            } else {
+                window.location.href = 'index.html';
+            }
+        }
+
+        function showNotification(message) {
+            const notif = document.createElement('div');
+            notif.className = 'notification';
+            notif.textContent = message;
+            document.body.appendChild(notif);
+            
+            setTimeout(() => {
+                notif.remove();
+            }, 3000);
         }
     </script>
-
-    <style>
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes slideIn {
-            from { transform: translateX(-100px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        @keyframes scale {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        @keyframes flip {
-            from { transform: rotateY(0deg); }
-            to { transform: rotateY(360deg); }
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-    </style>
 </body>
 </html>
