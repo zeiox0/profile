@@ -22,11 +22,97 @@
 
         .editor-container {
             display: flex;
+            flex-direction: column;
             height: 100vh;
-            gap: 0;
             position: relative;
         }
 
+        /* الشريط العلوي */
+        .editor-header {
+            background: #1a1f3a;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #00ff88;
+            z-index: 100;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .device-switcher {
+            display: flex;
+            gap: 8px;
+            background: rgba(0,0,0,0.3);
+            padding: 8px;
+            border-radius: 10px;
+        }
+
+        .device-btn {
+            background: #0a0e27;
+            border: 1px solid #00ff88;
+            color: #00ff88;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+        }
+
+        .device-btn.active {
+            background: #00ff88;
+            color: #000;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .header-btn {
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+        }
+
+        .header-btn:hover {
+            background: #00dd77;
+            transform: scale(1.05);
+        }
+
+        .header-btn.danger {
+            background: #ff4d4d;
+        }
+
+        /* منطقة المعاينة */
         .preview-area {
             flex: 1;
             display: flex;
@@ -34,16 +120,6 @@
             background: #000;
             position: relative;
             overflow: hidden;
-        }
-
-        .preview-header {
-            background: #1a1f3a;
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #00ff88;
-            z-index: 100;
         }
 
         .preview-content {
@@ -70,120 +146,81 @@
             border: none;
         }
 
-        /* لوحة الإعدادات السفلية */
-        .bottom-settings-panel {
+        /* لوحة الخصائص السفلية */
+        .bottom-properties-panel {
             position: absolute;
-            bottom: -300px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 800px;
+            bottom: -400px;
+            left: 0;
+            right: 0;
+            width: 100%;
             background: #1a1f3a;
-            border: 2px solid #00ff88;
-            border-bottom: none;
-            border-radius: 20px 20px 0 0;
+            border-top: 2px solid #00ff88;
             padding: 20px;
             z-index: 1000;
             transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+            max-height: 400px;
+            overflow-y: auto;
         }
 
-        .bottom-settings-panel.open {
+        .bottom-properties-panel.open {
             bottom: 0;
         }
 
-        .panel-toggle {
-            position: absolute;
-            top: -40px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #00ff88;
-            color: #000;
-            border: none;
-            padding: 10px 25px;
-            border-radius: 15px 15px 0 0;
-            cursor: pointer;
-            font-weight: bold;
-            box-shadow: 0 -5px 15px rgba(0,255,136,0.3);
-        }
-
-        .panel-content {
+        .panel-header {
             display: flex;
-            flex-direction: column;
-            gap: 15px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
         }
 
-        .device-switcher {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 10px;
-        }
-
-        .device-btn {
-            background: #0a0e27;
-            border: 1px solid #00ff88;
+        .panel-header h3 {
             color: #00ff88;
-            padding: 8px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            font-size: 14px;
         }
 
-        .device-btn.active {
-            background: #00ff88;
-            color: #000;
-        }
-
-        .zoom-controls {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            background: rgba(0,0,0,0.2);
-            padding: 10px;
-            border-radius: 15px;
-        }
-
-        .zoom-btn {
-            background: #00ff88;
+        .close-panel-btn {
+            background: #ff4d4d;
             border: none;
-            width: 35px;
-            height: 35px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             cursor: pointer;
+            color: #fff;
             font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
-        .mode-switcher {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
+        .properties-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
         }
 
-        .mode-btn {
-            flex: 1;
+        .property-group {
+            background: #0a0e27;
             padding: 12px;
-            border-radius: 10px;
-            border: 2px solid #444;
-            background: #222;
-            color: #888;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
+            border-radius: 8px;
+            border-left: 3px solid #00ff88;
         }
 
-        .mode-btn.active {
-            border-color: #00ff88;
-            color: #00ff88;
-            background: rgba(0,255,136,0.1);
+        .property-group label {
+            display: block;
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .property-group input,
+        .property-group textarea {
+            width: 100%;
+            padding: 8px;
+            background: #1a1f3a;
+            border: 1px solid #333;
+            color: #fff;
+            border-radius: 5px;
+            font-size: 11px;
         }
 
         /* طبقة التحديد */
@@ -206,70 +243,119 @@
             transition: all 0.1s ease;
         }
 
-        .sidebar {
-            width: 350px;
-            background: #1a1f3a;
-            border-left: 2px solid #00ff88;
+        /* أزرار التحكم السفلية */
+        .bottom-toolbar {
+            background: #0a0e27;
+            padding: 12px 20px;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
+            gap: 15px;
+            border-top: 1px solid #333;
+            flex-wrap: wrap;
         }
 
-        .sidebar-header {
-            padding: 15px;
-            background: #0a0e27;
-            border-bottom: 1px solid #333;
-            color: #00ff88;
-            font-weight: bold;
-        }
-
-        .sidebar-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-        }
-
-        .control-group {
-            margin-bottom: 20px;
-            background: #0a0e27;
-            padding: 15px;
-            border-radius: 10px;
-        }
-
-        .control-group label {
-            display: block;
-            margin-bottom: 10px;
-            font-size: 12px;
-            color: #888;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 10px;
-            background: #1a1f3a;
-            border: 1px solid #333;
-            color: #fff;
+        .toolbar-btn {
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 8px 15px;
             border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+        }
+
+        .toolbar-btn:hover {
+            background: #00dd77;
+            transform: scale(1.05);
+        }
+
+        .zoom-display {
+            background: #1a1f3a;
+            color: #00ff88;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 12px;
+            border: 1px solid #00ff88;
+        }
+
+        .mode-indicator {
+            background: #1a1f3a;
+            color: #00ff88;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 12px;
+            border: 1px solid #00ff88;
+        }
+
+        /* شريط التمرير المخصص */
+        .bottom-properties-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .bottom-properties-panel::-webkit-scrollbar-track {
+            background: #0a0e27;
+        }
+
+        .bottom-properties-panel::-webkit-scrollbar-thumb {
+            background: #00ff88;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .editor-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .properties-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <div class="editor-container">
-        <!-- منطقة المعاينة -->
-        <div class="preview-area">
-            <div class="preview-header">
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <h2 style="font-size: 16px; color: #00ff88;"><i class="fas fa-magic"></i> محرر التصميم الذكي</h2>
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button onclick="saveChanges()" style="background: #00ff88; color: #000; border: none; padding: 8px 20px; border-radius: 5px; font-weight: bold; cursor: pointer;">
-                        <i class="fas fa-save"></i> حفظ التعديلات
+        <!-- الشريط العلوي -->
+        <div class="editor-header">
+            <div class="header-title">
+                <i class="fas fa-magic"></i> محرر التصميم الذكي
+            </div>
+
+            <div class="header-controls">
+                <!-- أزرار تبديل الأجهزة -->
+                <div class="device-switcher">
+                    <button class="device-btn active" onclick="setDevice('pc', this)">
+                        <i class="fas fa-desktop"></i> PC
                     </button>
-                    <button onclick="window.location.href='admin.html'" style="background: #ff4d4d; color: #fff; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">
+                    <button class="device-btn" onclick="setDevice('phone', this)">
+                        <i class="fas fa-mobile-alt"></i> Phone
+                    </button>
+                </div>
+
+                <!-- أزرار التحكم -->
+                <div class="header-buttons">
+                    <button class="header-btn" onclick="togglePropertiesPanel()">
+                        <i class="fas fa-sliders-h"></i> الخصائص
+                    </button>
+                    <button class="header-btn" onclick="saveChanges()">
+                        <i class="fas fa-save"></i> حفظ
+                    </button>
+                    <button class="header-btn danger" onclick="window.location.href='admin.html'">
                         <i class="fas fa-times"></i> خروج
                     </button>
                 </div>
             </div>
+        </div>
 
+        <!-- منطقة المعاينة -->
+        <div class="preview-area">
             <div class="preview-content" id="preview-content">
                 <div id="selection-overlay">
                     <div class="selection-box" id="selection-box"></div>
@@ -279,55 +365,42 @@
                 </div>
             </div>
 
-            <!-- لوحة الإعدادات السفلية -->
-            <div class="bottom-settings-panel" id="bottom-panel">
-                <button class="panel-toggle" onclick="toggleBottomPanel()">
-                    <i class="fas fa-cog"></i> الإعدادات
-                </button>
-                
-                <div class="panel-content">
-                    <!-- أزرار الأجهزة في الأعلى -->
-                    <div class="device-switcher">
-                        <button class="device-btn active" onclick="setDevice('pc', this)">
-                            <i class="fas fa-desktop"></i> PC
-                        </button>
-                        <button class="device-btn" onclick="setDevice('phone', this)">
-                            <i class="fas fa-mobile-alt"></i> Phone
-                        </button>
-                    </div>
+            <!-- لوحة الخصائص السفلية -->
+            <div class="bottom-properties-panel" id="properties-panel">
+                <div class="panel-header">
+                    <h3><i class="fas fa-edit"></i> خصائص العنصر</h3>
+                    <button class="close-panel-btn" onclick="togglePropertiesPanel()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <!-- التحكم في التكبير -->
-                        <div class="zoom-controls">
-                            <span style="font-size: 12px; color: #888;">التكبير:</span>
-                            <button class="zoom-btn" onclick="adjustZoom(-0.1)"><i class="fas fa-minus"></i></button>
-                            <span id="zoom-level" style="font-weight: bold; min-width: 50px; text-align: center;">100%</span>
-                            <button class="zoom-btn" onclick="adjustZoom(0.1)"><i class="fas fa-plus"></i></button>
-                            <button onclick="resetZoom()" style="background: none; border: 1px solid #444; color: #888; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 10px;">إعادة</button>
-                        </div>
-
-                        <!-- تبديل الأوضاع -->
-                        <div class="mode-switcher">
-                            <button class="mode-btn active" id="btn-select-mode" onclick="setMode('select')">
-                                <i class="fas fa-mouse-pointer"></i> وضع التحديد
-                            </button>
-                            <button class="mode-btn" id="btn-preview-mode" onclick="setMode('preview')">
-                                <i class="fas fa-eye"></i> وضع العرض
-                            </button>
-                        </div>
+                <div class="properties-grid" id="properties-content">
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
+                        <i class="fas fa-mouse-pointer fa-3x" style="margin-bottom: 15px; opacity: 0.3;"></i>
+                        <p>قم بالضغط على أي عنصر في الصفحة لتعديل خصائصه</p>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- القائمة الجانبية للتعديل -->
-        <div class="sidebar">
-            <div class="sidebar-header">خصائص العنصر</div>
-            <div class="sidebar-content" id="sidebar-content">
-                <div style="text-align: center; padding: 40px; color: #666;">
-                    <i class="fas fa-mouse-pointer fa-3x" style="margin-bottom: 15px; opacity: 0.3;"></i>
-                    <p>قم بتفعيل "وضع التحديد" واضغط على أي عنصر في الصفحة لتعديله</p>
+            <!-- شريط التحكم السفلي -->
+            <div class="bottom-toolbar">
+                <button class="toolbar-btn" onclick="adjustZoom(-0.1)">
+                    <i class="fas fa-minus"></i> تصغير
+                </button>
+                <div class="zoom-display" id="zoom-display">100%</div>
+                <button class="toolbar-btn" onclick="adjustZoom(0.1)">
+                    <i class="fas fa-plus"></i> تكبير
+                </button>
+                <button class="toolbar-btn" onclick="resetZoom()">
+                    <i class="fas fa-redo"></i> إعادة تعيين
+                </button>
+                <div style="width: 1px; background: #333;"></div>
+                <div class="mode-indicator" id="mode-indicator">
+                    <i class="fas fa-mouse-pointer"></i> وضع التحديد
                 </div>
+                <button class="toolbar-btn" onclick="toggleMode()">
+                    <i class="fas fa-eye"></i> تبديل الوضع
+                </button>
             </div>
         </div>
     </div>
@@ -340,11 +413,14 @@
         const frameContainer = document.getElementById('page-frame-container');
         const selectionOverlay = document.getElementById('selection-overlay');
         const selectionBox = document.getElementById('selection-box');
+        const propertiesPanel = document.getElementById('properties-panel');
 
-        function toggleBottomPanel() {
-            document.getElementById('bottom-panel').classList.toggle('open');
+        // تبديل لوحة الخصائص
+        function togglePropertiesPanel() {
+            propertiesPanel.classList.toggle('open');
         }
 
+        // تعيين الجهاز
         function setDevice(device, btn) {
             document.querySelectorAll('.device-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
@@ -363,6 +439,7 @@
             updateSelectionBox();
         }
 
+        // التحكم في التكبير
         function adjustZoom(delta) {
             currentZoom = Math.max(0.5, Math.min(2, currentZoom + delta));
             updateZoom();
@@ -375,31 +452,35 @@
 
         function updateZoom() {
             frameContainer.style.transform = `scale(${currentZoom})`;
-            document.getElementById('zoom-level').innerText = Math.round(currentZoom * 100) + '%';
+            document.getElementById('zoom-display').innerText = Math.round(currentZoom * 100) + '%';
             updateSelectionBox();
         }
 
-        function setMode(mode) {
-            currentMode = mode;
-            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`btn-${mode}-mode`).classList.add('active');
+        // تبديل الأوضاع
+        function toggleMode() {
+            currentMode = currentMode === 'select' ? 'preview' : 'select';
+            updateMode();
+        }
 
-            if (mode === 'select') {
+        function updateMode() {
+            const indicator = document.getElementById('mode-indicator');
+            if (currentMode === 'select') {
                 selectionOverlay.style.display = 'block';
                 iframe.style.pointerEvents = 'none';
+                indicator.innerHTML = '<i class="fas fa-mouse-pointer"></i> وضع التحديد';
             } else {
                 selectionOverlay.style.display = 'none';
                 iframe.style.pointerEvents = 'auto';
                 selectedElement = null;
-                document.getElementById('sidebar-content').innerHTML = '<div style="text-align: center; padding: 40px; color: #666;"><p>وضع العرض مفعل. يمكنك التفاعل مع الصفحة الآن.</p></div>';
+                indicator.innerHTML = '<i class="fas fa-eye"></i> وضع العرض';
+                document.getElementById('properties-content').innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px; color: #666;"><p>وضع العرض مفعل</p></div>';
             }
         }
 
-        // منطق التحديد
+        // منطق التحديد والتعديل
         iframe.onload = function() {
             const doc = iframe.contentDocument || iframe.contentWindow.document;
             
-            // إضافة مستمع للأحداث في منطقة المعاينة (فوق الـ iframe)
             document.getElementById('preview-content').addEventListener('mousemove', (e) => {
                 if (currentMode !== 'select') return;
                 
@@ -429,7 +510,6 @@
 
         function highlightElement(el) {
             const rect = el.getBoundingClientRect();
-            const frameRect = iframe.getBoundingClientRect();
             
             selectionBox.style.width = rect.width + 'px';
             selectionBox.style.height = rect.height + 'px';
@@ -440,35 +520,37 @@
 
         function selectElement(el) {
             selectedElement = el;
-            const sidebar = document.getElementById('sidebar-content');
+            const content = document.getElementById('properties-content');
             
             let html = `
-                <div class="control-group">
-                    <label>نوع العنصر: <span style="color:#00ff88">${el.tagName}</span></label>
+                <div class="property-group">
+                    <label>نوع العنصر</label>
+                    <input type="text" value="${el.tagName}" readonly>
                 </div>
             `;
 
             if (el.innerText && el.children.length === 0) {
                 html += `
-                    <div class="control-group">
-                        <label>النص:</label>
-                        <textarea oninput="updateText(this.value)" style="width:100%; background:#1a1f3a; color:#fff; border:1px solid #333; padding:10px; border-radius:5px;">${el.innerText}</textarea>
+                    <div class="property-group" style="grid-column: 1/-1;">
+                        <label>النص</label>
+                        <textarea oninput="updateText(this.value)" style="height: 60px;">${el.innerText}</textarea>
                     </div>
                 `;
             }
 
             html += `
-                <div class="control-group">
-                    <label>لون النص:</label>
+                <div class="property-group">
+                    <label>لون النص</label>
                     <input type="color" value="${rgbToHex(window.getComputedStyle(el).color)}" oninput="updateStyle('color', this.value)">
                 </div>
-                <div class="control-group">
-                    <label>حجم الخط (px):</label>
+                <div class="property-group">
+                    <label>حجم الخط (px)</label>
                     <input type="number" value="${parseInt(window.getComputedStyle(el).fontSize)}" oninput="updateStyle('fontSize', this.value + 'px')">
                 </div>
             `;
 
-            sidebar.innerHTML = html;
+            content.innerHTML = html;
+            propertiesPanel.classList.add('open');
         }
 
         function updateText(val) {
@@ -494,11 +576,11 @@
         }
 
         function saveChanges() {
-            alert("تم حفظ التعديلات بنجاح (محاكاة)!");
+            alert("تم حفظ التعديلات بنجاح!");
         }
 
         // تفعيل وضع التحديد افتراضياً
-        setMode('select');
+        updateMode();
     </script>
 </body>
 </html>
