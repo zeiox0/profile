@@ -424,43 +424,44 @@
                 <i class="fas fa-toolbox"></i> أدوات التحكم
             </div>
             <div class="sidebar-menu">
-                <div class="menu-item active" onclick="selectTool('select')">
+                <div class="menu-item active" id="select-tool" onclick="selectTool('select', this)">
                     <i class="fas fa-arrow-pointer"></i>
                     <span>تحديد</span>
                 </div>
-                <div class="menu-item" onclick="selectTool('add')">
+                <div class="menu-item" id="add-tool" onclick="selectTool('add', this)">
                     <i class="fas fa-plus"></i>
                     <span>إضافة عنصر</span>
                 </div>
-                <div class="menu-item" onclick="selectTool('text')">
+                <div class="menu-item" id="text-tool" onclick="selectTool('text', this)">
                     <i class="fas fa-font"></i>
                     <span>نصوص</span>
                 </div>
-                <div class="menu-item" onclick="selectTool('image')">
+                <div class="menu-item" id="image-tool" onclick="selectTool('image', this)">
                     <i class="fas fa-image"></i>
                     <span>الوسائط</span>
                 </div>
-                <div class="menu-item" onclick="selectTool('animation')">
+                <div class="menu-item" id="animation-tool" onclick="selectTool('animation', this)">
                     <i class="fas fa-film"></i>
                     <span>حركات</span>
                 </div>
-                <div class="menu-item" onclick="selectTool('effects')">
+                <div class="menu-item" id="effects-tool" onclick="selectTool('effects', this)">
                     <i class="fas fa-wand-magic-sparkles"></i>
                     <span>تأثيرات</span>
                 </div>
-                <div class="menu-item" onclick="selectTool('delete')">
+                <div class="menu-item" id="delete-tool" onclick="selectTool('delete', this)">
                     <i class="fas fa-trash"></i>
                     <span>حذف</span>
                 </div>
-                <div class="menu-item" onclick="selectTool('undo')">
+                <hr style="border: none; border-top: 1px solid #333; margin: 10px 0;">
+                <div class="menu-item" id="undo-tool" onclick="undoChanges()">
                     <i class="fas fa-undo"></i>
                     <span>تراجع</span>
                 </div>
-                <div class="menu-item" onclick="selectTool('redo')">
+                <div class="menu-item" id="redo-tool" onclick="redoChanges()">
                     <i class="fas fa-redo"></i>
                     <span>إعادة</span>
                 </div>
-                <div class="menu-item" onclick="selectTool('save')">
+                <div class="menu-item" id="save-tool" onclick="saveChanges()">
                     <i class="fas fa-save"></i>
                     <span>حفظ</span>
                 </div>
@@ -520,60 +521,71 @@
 
                 <div class="property-group">
                     <label class="property-label">الموضع X</label>
-                    <input type="number" id="pos-x" class="property-input" placeholder="0">
+                    <input type="number" id="pos-x" class="property-input" placeholder="0" onchange="updateElementPosition()">
                 </div>
 
                 <div class="property-group">
                     <label class="property-label">الموضع Y</label>
-                    <input type="number" id="pos-y" class="property-input" placeholder="0">
+                    <input type="number" id="pos-y" class="property-input" placeholder="0" onchange="updateElementPosition()">
                 </div>
 
                 <div class="property-group">
                     <label class="property-label">العرض</label>
-                    <input type="number" id="width" class="property-input" placeholder="100">
+                    <input type="number" id="width" class="property-input" placeholder="100" onchange="updateElementSize()">
                 </div>
 
                 <div class="property-group">
                     <label class="property-label">الارتفاع</label>
-                    <input type="number" id="height" class="property-input" placeholder="100">
+                    <input type="number" id="height" class="property-input" placeholder="100" onchange="updateElementSize()">
                 </div>
 
                 <div class="property-group">
                     <label class="property-label">الشفافية (%)</label>
-                    <input type="range" id="opacity" class="property-input" min="0" max="100" value="100" style="padding: 0; height: 6px;">
+                    <input type="range" id="opacity" class="property-input" min="0" max="100" value="100" style="padding: 0; height: 6px;" onchange="updateElementOpacity()">
                 </div>
 
                 <div class="property-group">
                     <label class="property-label">لون الخلفية</label>
-                    <input type="color" id="bg-color" class="property-input" value="#ffffff" style="height: 35px; cursor: pointer;">
+                    <input type="color" id="bg-color" class="property-input" value="#ffffff" style="height: 35px; cursor: pointer;" onchange="updateElementColor()">
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        // متغيرات التحكم
         let currentTool = 'select';
         let iframeDoc = null;
+        let selectedElement = null;
+        let history = [];
+        let historyIndex = -1;
+        let hasUnsavedChanges = false;
 
+        // تهيئة البرنامج عند التحميل
         window.onload = () => {
             const iframe = document.getElementById('page-iframe');
             iframe.onload = () => {
                 iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
                 initAudioSync();
+                addToHistory();
             };
         };
 
-        function selectTool(tool) {
+        // اختيار الأداة من الشريط الجانبي
+        function selectTool(tool, element) {
             currentTool = tool;
             
             // تحديث الأيقونة النشطة
             document.querySelectorAll('.menu-item').forEach(item => {
                 item.classList.remove('active');
             });
-            event.target.closest('.menu-item').classList.add('active');
+            if (element) element.classList.add('active');
 
             // تنفيذ الإجراء المناسب
             switch(tool) {
+                case 'select':
+                    showNotification('✓ وضع التحديد مفعل');
+                    break;
                 case 'add':
                     showNotification('✨ وضع إضافة العناصر مفعل');
                     break;
@@ -592,18 +604,99 @@
                 case 'delete':
                     showNotification('🗑️ وضع الحذف مفعل');
                     break;
-                case 'undo':
-                    showNotification('↶ تم التراجع');
-                    break;
-                case 'redo':
-                    showNotification('↷ تم الإعادة');
-                    break;
-                case 'save':
-                    saveChanges();
-                    break;
             }
         }
 
+        // التراجع عن التغييرات
+        function undoChanges() {
+            if (historyIndex > 0) {
+                historyIndex--;
+                restoreFromHistory();
+                showNotification('↶ تم التراجع');
+            } else {
+                showNotification('⚠️ لا يوجد تغييرات للتراجع عنها');
+            }
+        }
+
+        // إعادة التغييرات
+        function redoChanges() {
+            if (historyIndex < history.length - 1) {
+                historyIndex++;
+                restoreFromHistory();
+                showNotification('↷ تم الإعادة');
+            } else {
+                showNotification('⚠️ لا يوجد تغييرات للإعادة');
+            }
+        }
+
+        // حفظ التغييرات
+        function saveChanges() {
+            hasUnsavedChanges = false;
+            showNotification('✅ تم حفظ التعديلات بنجاح');
+            addToHistory();
+        }
+
+        // إضافة حالة للسجل
+        function addToHistory() {
+            if (iframeDoc) {
+                history = history.slice(0, historyIndex + 1);
+                history.push(iframeDoc.body.innerHTML);
+                historyIndex = history.length - 1;
+            }
+        }
+
+        // استعادة من السجل
+        function restoreFromHistory() {
+            if (history[historyIndex] && iframeDoc) {
+                iframeDoc.body.innerHTML = history[historyIndex];
+            }
+        }
+
+        // تحديث موضع العنصر
+        function updateElementPosition() {
+            if (selectedElement) {
+                const x = document.getElementById('pos-x').value;
+                const y = document.getElementById('pos-y').value;
+                selectedElement.style.left = x + 'px';
+                selectedElement.style.top = y + 'px';
+                hasUnsavedChanges = true;
+                showNotification('📍 تم تحديث الموضع');
+            }
+        }
+
+        // تحديث حجم العنصر
+        function updateElementSize() {
+            if (selectedElement) {
+                const width = document.getElementById('width').value;
+                const height = document.getElementById('height').value;
+                selectedElement.style.width = width + 'px';
+                selectedElement.style.height = height + 'px';
+                hasUnsavedChanges = true;
+                showNotification('📐 تم تحديث الحجم');
+            }
+        }
+
+        // تحديث شفافية العنصر
+        function updateElementOpacity() {
+            if (selectedElement) {
+                const opacity = document.getElementById('opacity').value;
+                selectedElement.style.opacity = opacity / 100;
+                hasUnsavedChanges = true;
+                showNotification('👁️ تم تحديث الشفافية');
+            }
+        }
+
+        // تحديث لون العنصر
+        function updateElementColor() {
+            if (selectedElement) {
+                const color = document.getElementById('bg-color').value;
+                selectedElement.style.backgroundColor = color;
+                hasUnsavedChanges = true;
+                showNotification('🎨 تم تحديث اللون');
+            }
+        }
+
+        // تبديل طريقة العرض
         function switchView(mode) {
             const frame = document.getElementById('device-frame');
             const label = document.getElementById('device-label');
@@ -613,13 +706,16 @@
                 frame.className = 'device-frame pc';
                 label.innerText = 'الشاشة الأمامية';
                 viewModeText.innerText = 'عرض: الشاشة الأمامية';
+                showNotification('💻 تم التبديل للشاشة الأمامية');
             } else {
                 frame.className = 'device-frame mobile';
                 label.innerText = 'الشاشة السفلية';
                 viewModeText.innerText = 'عرض: الشاشة السفلية';
+                showNotification('📱 تم التبديل للشاشة السفلية');
             }
         }
 
+        // مزامنة الصوت
         function initAudioSync() {
             const iframe = document.getElementById('page-iframe');
             const audio = iframe.contentDocument.getElementById('main-audio');
@@ -634,6 +730,7 @@
             }
         }
 
+        // البحث عن الصوت
         function seekAudio(val) {
             const iframe = document.getElementById('page-iframe');
             const audio = iframe.contentDocument.getElementById('main-audio');
@@ -642,6 +739,7 @@
             }
         }
 
+        // تحديث مستوى الصوت
         function updateEditorVolume(val) {
             const iframe = document.getElementById('page-iframe');
             const audio = iframe.contentDocument.getElementById('main-audio');
@@ -654,28 +752,36 @@
             else icon.className = 'fas fa-volume-up';
         }
 
+        // زيادة الصوت
         function increaseEditorVolume() {
             const slider = document.getElementById('editor-volume');
             let val = Math.min(100, parseInt(slider.value) + 10);
             slider.value = val;
             updateEditorVolume(val);
+            showNotification('🔊 تم زيادة الصوت');
         }
 
+        // تقليل الصوت
         function decreaseEditorVolume() {
             const slider = document.getElementById('editor-volume');
             let val = Math.max(0, parseInt(slider.value) - 10);
             slider.value = val;
             updateEditorVolume(val);
+            showNotification('🔉 تم تقليل الصوت');
         }
 
-        function saveChanges() {
-            showNotification('✅ تم حفظ التعديلات بنجاح');
-        }
-
+        // الخروج من المحرر
         function exitEditor() {
-            window.location.href = 'index.html';
+            if (hasUnsavedChanges) {
+                if (confirm('هناك تعديلات لم يتم حفظها. هل تريد المتابعة؟')) {
+                    window.location.href = 'index.html';
+                }
+            } else {
+                window.location.href = 'index.html';
+            }
         }
 
+        // عرض إشعار
         function showNotification(msg) {
             const n = document.createElement('div');
             n.className = 'notification';
