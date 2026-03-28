@@ -586,8 +586,8 @@
                 <div class="control-section">
                     <label class="control-label"><i class="fas fa-tv"></i> طريقة العرض</label>
                     <div class="view-tabs">
-                        <button class="view-tab active" onclick="switchView('pc')">💻 PC</button>
-                        <button class="view-tab" onclick="switchView('mobile')">📱 الهاتف</button>
+                        <button class="view-tab active" onclick="switchView('pc')">💻 الشاشة الأمامية</button>
+                        <button class="view-tab" onclick="switchView('mobile')">📱 الشاشة السفلية</button>
                     </div>
                 </div>
 
@@ -596,6 +596,23 @@
                     <label class="control-label"><i class="fas fa-mobile-alt"></i> معاينة الهاتف</label>
                     <div class="btn-group">
                         <button onclick="openFullscreenMobile()">📱 فتح الهاتف بالكامل</button>
+                    </div>
+                </div>
+
+                <!-- قسم التحكم في الصوت المتقدم -->
+                <div class="control-section">
+                    <label class="control-label"><i class="fas fa-volume-up"></i> التحكم في الصوت</label>
+                    <div class="slider-container">
+                        <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 4px;">
+                            <span>مستوى الصوت</span>
+                            <span id="volume-display">50%</span>
+                        </div>
+                        <input type="range" id="editor-volume" min="0" max="100" value="50" oninput="updateEditorVolume(this.value)">
+                    </div>
+                    <div class="btn-group" style="margin-top: 8px;">
+                        <button onclick="toggleEditorMute()"><i class="fas fa-volume-mute"></i> البحث عن الصوت</button>
+                        <button onclick="increaseEditorVolume()"><i class="fas fa-plus"></i> زيادة</button>
+                        <button onclick="decreaseEditorVolume()"><i class="fas fa-minus"></i> تقليل</button>
                     </div>
                 </div>
 
@@ -849,15 +866,15 @@
             
             if (view === 'pc') {
                 frame.classList.add('pc');
-                label.textContent = 'PC - 1024x600';
-                document.getElementById('view-mode').textContent = 'عرض: PC';
+                label.textContent = 'الشاشة الأمامية - 1024x600';
+                document.getElementById('view-mode').textContent = 'عرض: الشاشة الأمامية';
             } else {
                 frame.classList.add('mobile');
-                label.textContent = 'الهاتف - 375x667';
-                document.getElementById('view-mode').textContent = 'عرض: الهاتف';
+                label.textContent = 'الشاشة السفلية - 375x667';
+                document.getElementById('view-mode').textContent = 'عرض: الشاشة السفلية';
             }
 
-            showNotification(`✓ تم التبديل إلى عرض ${view === 'pc' ? 'PC' : 'الهاتف'}`);
+            showNotification(`✓ تم التبديل إلى عرض ${view === 'pc' ? 'الشاشة الأمامية' : 'الشاشة السفلية'}`);
         }
 
         function toggleBottomPanel() {
@@ -1025,6 +1042,41 @@
             } else {
                 window.location.href = 'index.html';
             }
+        }
+
+        function updateEditorVolume(val) {
+            document.getElementById('volume-display').textContent = val + '%';
+            const iframe = document.getElementById('page-iframe');
+            try {
+                const audio = iframe.contentDocument.getElementById('main-audio');
+                if (audio) audio.volume = val / 100;
+            } catch (e) {
+                console.log('Cannot access iframe audio');
+            }
+        }
+
+        function toggleEditorMute() {
+            const volumeSlider = document.getElementById('editor-volume');
+            if (volumeSlider.value === '0') {
+                volumeSlider.value = '50';
+            } else {
+                volumeSlider.value = '0';
+            }
+            updateEditorVolume(volumeSlider.value);
+        }
+
+        function increaseEditorVolume() {
+            const volumeSlider = document.getElementById('editor-volume');
+            let newVal = Math.min(100, parseInt(volumeSlider.value) + 10);
+            volumeSlider.value = newVal;
+            updateEditorVolume(newVal);
+        }
+
+        function decreaseEditorVolume() {
+            const volumeSlider = document.getElementById('editor-volume');
+            let newVal = Math.max(0, parseInt(volumeSlider.value) - 10);
+            volumeSlider.value = newVal;
+            updateEditorVolume(newVal);
         }
 
         function showNotification(message) {

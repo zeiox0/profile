@@ -67,6 +67,11 @@
                 </div>
             </div>
 
+            <!-- زر الانتقال للأسفل -->
+            <button class="scroll-down-btn" onclick="scrollToBottom()" title="الانتقال للأسفل">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+
             <!-- مشغل الموسيقى المتطور -->
             <div class="advanced-player glass">
                 <div class="player-left">
@@ -100,6 +105,35 @@
 
     <audio id="main-audio" preload="auto"></audio>
 
+    <script>
+        let enterPressed = false;
+        let canInteract = false;
+
+        // التحكم بزر Enter
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !canInteract) {
+                e.preventDefault();
+                handleEnter();
+                enterPressed = true;
+                canInteract = true;
+            }
+        });
+
+        // السماح بالتفاعل بعد الضغط على Enter
+        document.addEventListener('click', () => {
+            if (enterPressed) {
+                canInteract = true;
+            }
+        });
+
+        function scrollToBottom() {
+            const player = document.querySelector('.advanced-player');
+            if (player) {
+                player.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }
+        }
+    </script>
+
     <script src="config.js"></script>
     <script>
         let siteData = {};
@@ -111,12 +145,24 @@
         const mainContent = document.getElementById('main-content');
 
         function handleEnter() {
+            if (enterScreen.classList.contains('hidden')) return; // منع التفعيل المتكرر
+            
             enterScreen.classList.add('hidden');
             mainContent.classList.remove('blurred');
             isPlaying = true;
-            if (audioElem.src) audioElem.play().catch(e => console.log("Audio play failed:", e));
-            if (videoElem.src) videoElem.play().catch(e => console.log("Video play failed:", e));
-            setTimeout(() => enterScreen.style.display = 'none', 1000);
+            
+            // تشغيل الصوت والفيديو
+            if (audioElem.src) {
+                audioElem.play().catch(e => console.log("Audio play failed:", e));
+            }
+            if (videoElem.src) {
+                videoElem.play().catch(e => console.log("Video play failed:", e));
+            }
+            
+            // إخفاء شاشة الدخول بعد الانتقال
+            setTimeout(() => {
+                enterScreen.style.display = 'none';
+            }, 1000);
         }
 
         function loadData() {
@@ -317,6 +363,34 @@
         }
 
         window.onload = loadData;
+
+        // معالجات الكيبورد للتحكم في الصوت
+        document.addEventListener('keydown', (e) => {
+            if (canInteract && enterScreen.style.display === 'none') {
+                // التحكم في الصوت بالأسهم
+                if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    adjustVolume(5);
+                } else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    adjustVolume(-5);
+                } else if (e.key === ' ') {
+                    e.preventDefault();
+                    togglePlay();
+                }
+            }
+        });
+
+        function adjustVolume(delta) {
+            const currentVolume = audioElem.volume * 100;
+            const newVolume = Math.max(0, Math.min(100, currentVolume + delta));
+            audioElem.volume = newVolume / 100;
+            // تحديث شريط الصوت إذا كان موجوداً
+            const volumeSlider = document.getElementById('volume-slider');
+            if (volumeSlider) {
+                volumeSlider.value = newVolume;
+            }
+        }
     </script>
 </body>
 </html>
