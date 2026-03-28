@@ -32,12 +32,70 @@
 
         .editor-container {
             display: flex;
-            flex-direction: column;
             height: 100vh;
             gap: 0;
         }
 
-        .preview-area {
+        /* الشريط الجانبي */
+        .sidebar {
+            width: 280px;
+            background: #1a1f3a;
+            border-right: 2px solid #00ff88;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            z-index: 200;
+        }
+
+        .sidebar-header {
+            background: #0a0e27;
+            padding: 15px;
+            border-bottom: 2px solid #00ff88;
+            text-align: center;
+            font-weight: bold;
+            color: #00ff88;
+            font-size: 14px;
+        }
+
+        .sidebar-menu {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+
+        .menu-item {
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-right: 3px solid transparent;
+            color: #888;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .menu-item:hover {
+            background: rgba(0, 255, 136, 0.1);
+            color: #00ff88;
+            border-right-color: #00ff88;
+        }
+
+        .menu-item.active {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+            border-right-color: #00ff88;
+        }
+
+        .menu-item i {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* منطقة المحتوى الرئيسية */
+        .main-content {
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -164,121 +222,24 @@
             white-space: nowrap;
         }
 
-        /* شريط التحرير السفلي المطور */
-        .bottom-panel {
+        /* شريط التحكم السفلي */
+        .bottom-audio-panel {
             width: 100%;
-            height: 280px;
+            height: 80px;
             background: #1a1f3a;
             border-top: 2px solid #00ff88;
             display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            transition: transform 0.3s ease, height 0.3s ease;
+            align-items: center;
+            padding: 12px 20px;
+            gap: 20px;
             z-index: 100;
         }
 
-        .bottom-panel.hidden {
-            height: 0;
-            transform: translateY(100%);
-            border-top: none;
-            overflow: hidden;
-        }
-
-        .bottom-panel-header {
-            background: #0a0e27;
-            padding: 12px;
-            border-bottom: 2px solid #00ff88;
-            font-weight: bold;
-            color: #00ff88;
-            font-size: 13px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .bottom-panel-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 15px;
-        }
-
-        .control-section {
-            background: #0a0e27;
-            padding: 12px;
-            border-radius: 4px;
-            border-left: 3px solid #00ff88;
-        }
-
-        .control-label {
-            font-size: 11px;
-            font-weight: bold;
-            color: #00ff88;
-            margin-bottom: 8px;
-            display: block;
-        }
-
-        .view-tabs {
-            display: flex;
-            gap: 4px;
-            margin: 8px 0;
-            border-bottom: 2px solid #00ff88;
-            padding-bottom: 8px;
-        }
-
-        .view-tab {
-            padding: 6px 12px;
-            background: transparent;
-            border: none;
-            color: #888;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 11px;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s;
-        }
-
-        .view-tab.active {
-            color: #00ff88;
-            border-bottom-color: #00ff88;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 4px;
-            margin: 8px 0;
-            flex-wrap: wrap;
-        }
-
-        .btn-group button {
-            flex: 1;
-            min-width: 70px;
-            padding: 6px;
-            background: #00ff88;
-            border: none;
-            color: #000;
-            border-radius: 3px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 10px;
-            transition: all 0.2s;
-        }
-
-        /* تنسيق شريط الصوت الطويل الجميل */
         .audio-control-container {
             display: flex;
-            flex-direction: column;
-            gap: 10px;
-            width: 100%;
-        }
-
-        .audio-main-row {
-            display: flex;
             align-items: center;
             gap: 15px;
-            width: 100%;
+            flex: 1;
         }
 
         .audio-long-slider {
@@ -307,6 +268,11 @@
             font-size: 18px;
             cursor: pointer;
             position: relative;
+            transition: all 0.2s;
+        }
+
+        .audio-icon-btn:hover {
+            transform: scale(1.1);
         }
 
         .volume-popup {
@@ -315,14 +281,14 @@
             left: 50%;
             transform: translateX(-50%);
             background: #1a1f3a;
-            border: 1px solid #00ff88;
-            padding: 10px;
+            border: 2px solid #00ff88;
+            padding: 12px;
             border-radius: 8px;
             display: none;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
+            gap: 10px;
+            margin-bottom: 15px;
             z-index: 1000;
         }
 
@@ -331,7 +297,7 @@
         }
 
         .vertical-slider {
-            writing-mode: bt-lr; /* IE */
+            writing-mode: bt-lr;
             -webkit-appearance: slider-vertical;
             width: 8px;
             height: 80px;
@@ -341,11 +307,70 @@
             background: #00ff88;
             border: none;
             color: #000;
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             border-radius: 4px;
             font-weight: bold;
             cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .vol-step-btn:hover {
+            background: #00dd77;
+            transform: scale(1.05);
+        }
+
+        /* لوحة الخصائص الجانبية */
+        .properties-panel {
+            width: 280px;
+            background: #1a1f3a;
+            border-left: 2px solid #00ff88;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            z-index: 200;
+        }
+
+        .properties-header {
+            background: #0a0e27;
+            padding: 15px;
+            border-bottom: 2px solid #00ff88;
+            text-align: center;
+            font-weight: bold;
+            color: #00ff88;
+            font-size: 14px;
+        }
+
+        .properties-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .property-group {
+            background: #0a0e27;
+            padding: 12px;
+            border-radius: 4px;
+            border-left: 3px solid #00ff88;
+            margin-bottom: 10px;
+        }
+
+        .property-label {
+            font-size: 11px;
+            font-weight: bold;
+            color: #00ff88;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .property-input {
+            width: 100%;
+            padding: 6px;
+            background: #2a2f4a;
+            border: 1px solid #00ff88;
+            color: #fff;
+            border-radius: 3px;
+            font-size: 11px;
         }
 
         .notification {
@@ -367,51 +392,91 @@
             to { transform: translateX(0); opacity: 1; }
         }
 
-        #toggle-bottom-btn {
-            position: fixed;
-            right: 20px;
-            bottom: 20px;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: #00ff88;
-            color: #000;
-            border: none;
-            cursor: pointer;
-            z-index: 1000;
-            box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            transition: all 0.3s;
+        /* شريط التمرير المخصص */
+        .sidebar::-webkit-scrollbar,
+        .sidebar-menu::-webkit-scrollbar,
+        .properties-panel::-webkit-scrollbar,
+        .properties-content::-webkit-scrollbar {
+            width: 6px;
         }
 
-        #toggle-bottom-btn:hover {
-            transform: scale(1.1);
-            background: #00dd77;
+        .sidebar::-webkit-scrollbar-track,
+        .sidebar-menu::-webkit-scrollbar-track,
+        .properties-panel::-webkit-scrollbar-track,
+        .properties-content::-webkit-scrollbar-track {
+            background: #0a0e27;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb,
+        .sidebar-menu::-webkit-scrollbar-thumb,
+        .properties-panel::-webkit-scrollbar-thumb,
+        .properties-content::-webkit-scrollbar-thumb {
+            background: #00ff88;
+            border-radius: 3px;
         }
     </style>
 </head>
 <body>
     <div class="editor-container">
-        <div class="preview-area">
+        <!-- الشريط الجانبي الأيسر -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-toolbox"></i> أدوات التحكم
+            </div>
+            <div class="sidebar-menu">
+                <div class="menu-item active" onclick="selectTool('select')">
+                    <i class="fas fa-arrow-pointer"></i>
+                    <span>تحديد</span>
+                </div>
+                <div class="menu-item" onclick="selectTool('add')">
+                    <i class="fas fa-plus"></i>
+                    <span>إضافة عنصر</span>
+                </div>
+                <div class="menu-item" onclick="selectTool('text')">
+                    <i class="fas fa-font"></i>
+                    <span>نصوص</span>
+                </div>
+                <div class="menu-item" onclick="selectTool('image')">
+                    <i class="fas fa-image"></i>
+                    <span>الوسائط</span>
+                </div>
+                <div class="menu-item" onclick="selectTool('animation')">
+                    <i class="fas fa-film"></i>
+                    <span>حركات</span>
+                </div>
+                <div class="menu-item" onclick="selectTool('effects')">
+                    <i class="fas fa-wand-magic-sparkles"></i>
+                    <span>تأثيرات</span>
+                </div>
+                <div class="menu-item" onclick="selectTool('delete')">
+                    <i class="fas fa-trash"></i>
+                    <span>حذف</span>
+                </div>
+                <div class="menu-item" onclick="selectTool('undo')">
+                    <i class="fas fa-undo"></i>
+                    <span>تراجع</span>
+                </div>
+                <div class="menu-item" onclick="selectTool('redo')">
+                    <i class="fas fa-redo"></i>
+                    <span>إعادة</span>
+                </div>
+                <div class="menu-item" onclick="selectTool('save')">
+                    <i class="fas fa-save"></i>
+                    <span>حفظ</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- منطقة المحتوى الرئيسية -->
+        <div class="main-content">
             <div class="preview-header">
                 <h2>🎨 محرر التصميم الشامل النهائي</h2>
                 <span id="view-mode">عرض: الشاشة الأمامية</span>
             </div>
 
             <div class="toolbar">
-                <button onclick="saveChanges()"><i class="fas fa-save"></i> حفظ</button>
-                <button id="undo-btn" onclick="undoChanges()" disabled><i class="fas fa-undo"></i> تراجع</button>
-                <button id="redo-btn" onclick="redoChanges()" disabled><i class="fas fa-redo"></i> إعادة</button>
-                
-                <button onclick="showAddElement()"><i class="fas fa-plus"></i> إضافة عنصر</button>
-                <button onclick="showDeleteRecovery()"><i class="fas fa-trash"></i> حذف</button>
-                <button onclick="showAnimations()"><i class="fas fa-film"></i> حركات</button>
-                <button onclick="showTextEffects()"><i class="fas fa-font"></i> النصوص</button>
-                <button onclick="showMediaEditor()"><i class="fas fa-image"></i> الوسائط</button>
-                <button class="danger" onclick="exitEditor()"><i class="fas fa-times"></i> خروج</button>
+                <button onclick="switchView('pc')"><i class="fas fa-desktop"></i> الشاشة الأمامية</button>
+                <button onclick="switchView('mobile')"><i class="fas fa-mobile-alt"></i> الشاشة السفلية</button>
             </div>
 
             <div class="preview-content">
@@ -421,71 +486,74 @@
                     <div class="device-label" id="device-label">الشاشة الأمامية</div>
                 </div>
             </div>
-        </div>
 
-        <!-- شريط التحرير السفلي المطور -->
-        <div class="bottom-panel" id="bottom-panel">
-            <div class="bottom-panel-header">
-                <span><i class="fas fa-sliders-h"></i> التحكم والإعدادات</span>
-                <i class="fas fa-times" onclick="toggleBottomPanel()" style="cursor: pointer; font-size: 16px;"></i>
-            </div>
-
-            <div class="bottom-panel-content">
-                <!-- قسم طريقة العرض -->
-                <div class="control-section">
-                    <label class="control-label"><i class="fas fa-tv"></i> طريقة العرض</label>
-                    <div class="view-tabs">
-                        <button class="view-tab active" id="tab-pc" onclick="switchView('pc')">💻 الشاشة الأمامية</button>
-                        <button class="view-tab" id="tab-mobile" onclick="switchView('mobile')">📱 الشاشة السفلية</button>
-                    </div>
-                </div>
-
-                <!-- قسم التحكم في الصوت المطور -->
-                <div class="control-section" style="grid-column: span 2;">
-                    <label class="control-label"><i class="fas fa-music"></i> التحكم في الصوت</label>
-                    <div class="audio-control-container">
-                        <div class="audio-main-row">
-                            <input type="range" id="audio-progress" class="audio-long-slider" min="0" max="100" value="0" oninput="seekAudio(this.value)">
-                            <div class="audio-icon-btn">
-                                <i class="fas fa-volume-up" id="vol-icon"></i>
-                                <div class="volume-popup">
-                                    <button class="vol-step-btn" onclick="increaseEditorVolume()">+</button>
-                                    <input type="range" id="editor-volume" class="vertical-slider" min="0" max="100" value="50" oninput="updateEditorVolume(this.value)">
-                                    <button class="vol-step-btn" onclick="decreaseEditorVolume()">-</button>
-                                </div>
-                            </div>
+            <!-- شريط التحكم في الصوت السفلي -->
+            <div class="bottom-audio-panel">
+                <label style="color: #00ff88; font-size: 12px; font-weight: bold; min-width: 60px;">الصوت:</label>
+                <div class="audio-control-container">
+                    <input type="range" id="audio-progress" class="audio-long-slider" min="0" max="100" value="0" oninput="seekAudio(this.value)">
+                    <div class="audio-icon-btn">
+                        <i class="fas fa-volume-up" id="vol-icon"></i>
+                        <div class="volume-popup">
+                            <button class="vol-step-btn" onclick="increaseEditorVolume()">+</button>
+                            <input type="range" id="editor-volume" class="vertical-slider" min="0" max="100" value="50" oninput="updateEditorVolume(this.value)">
+                            <button class="vol-step-btn" onclick="decreaseEditorVolume()">-</button>
                         </div>
                     </div>
                 </div>
+                <button onclick="exitEditor()" style="background: #ff4d4d; color: #fff; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-times"></i> خروج
+                </button>
+            </div>
+        </div>
 
-                <!-- قسم التحكم الأساسي -->
-                <div class="control-section">
-                    <label class="control-label"><i class="fas fa-cube"></i> العنصر المحدد</label>
-                    <input type="text" id="element-name" placeholder="اسم العنصر" readonly style="width: 100%; padding: 6px; background: #2a2f4a; border: 1px solid #00ff88; color: #fff; border-radius: 3px; margin: 4px 0; font-size: 11px;">
+        <!-- لوحة الخصائص اليمنى -->
+        <div class="properties-panel">
+            <div class="properties-header">
+                <i class="fas fa-sliders-h"></i> الخصائص
+            </div>
+            <div class="properties-content">
+                <div class="property-group">
+                    <label class="property-label">اسم العنصر</label>
+                    <input type="text" id="element-name" class="property-input" placeholder="اسم العنصر" readonly>
                 </div>
 
-                <!-- قسم الموضع والحجم -->
-                <div class="control-section">
-                    <label class="control-label"><i class="fas fa-arrows-alt"></i> الموضع</label>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="number" id="pos-x" placeholder="X" style="width: 50%; padding: 6px; background: #2a2f4a; border: 1px solid #00ff88; color: #fff; border-radius: 3px;">
-                        <input type="number" id="pos-y" placeholder="Y" style="width: 50%; padding: 6px; background: #2a2f4a; border: 1px solid #00ff88; color: #fff; border-radius: 3px;">
-                    </div>
+                <div class="property-group">
+                    <label class="property-label">الموضع X</label>
+                    <input type="number" id="pos-x" class="property-input" placeholder="0">
+                </div>
+
+                <div class="property-group">
+                    <label class="property-label">الموضع Y</label>
+                    <input type="number" id="pos-y" class="property-input" placeholder="0">
+                </div>
+
+                <div class="property-group">
+                    <label class="property-label">العرض</label>
+                    <input type="number" id="width" class="property-input" placeholder="100">
+                </div>
+
+                <div class="property-group">
+                    <label class="property-label">الارتفاع</label>
+                    <input type="number" id="height" class="property-input" placeholder="100">
+                </div>
+
+                <div class="property-group">
+                    <label class="property-label">الشفافية (%)</label>
+                    <input type="range" id="opacity" class="property-input" min="0" max="100" value="100" style="padding: 0; height: 6px;">
+                </div>
+
+                <div class="property-group">
+                    <label class="property-label">لون الخلفية</label>
+                    <input type="color" id="bg-color" class="property-input" value="#ffffff" style="height: 35px; cursor: pointer;">
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- زر إظهار/إخفاء الشريط السفلي -->
-    <button id="toggle-bottom-btn" onclick="toggleBottomPanel()" title="إظهار/إخفاء لوحة التحرير">
-        <i class="fas fa-chevron-up" id="bottom-icon"></i>
-    </button>
-
     <script>
+        let currentTool = 'select';
         let iframeDoc = null;
-        let hasUnsavedChanges = false;
-        let history = [];
-        let historyIndex = -1;
 
         window.onload = () => {
             const iframe = document.getElementById('page-iframe');
@@ -495,36 +563,60 @@
             };
         };
 
+        function selectTool(tool) {
+            currentTool = tool;
+            
+            // تحديث الأيقونة النشطة
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.menu-item').classList.add('active');
+
+            // تنفيذ الإجراء المناسب
+            switch(tool) {
+                case 'add':
+                    showNotification('✨ وضع إضافة العناصر مفعل');
+                    break;
+                case 'text':
+                    showNotification('📝 وضع تحرير النصوص مفعل');
+                    break;
+                case 'image':
+                    showNotification('🖼️ وضع إضافة الوسائط مفعل');
+                    break;
+                case 'animation':
+                    showNotification('🎬 وضع الحركات مفعل');
+                    break;
+                case 'effects':
+                    showNotification('✨ وضع التأثيرات مفعل');
+                    break;
+                case 'delete':
+                    showNotification('🗑️ وضع الحذف مفعل');
+                    break;
+                case 'undo':
+                    showNotification('↶ تم التراجع');
+                    break;
+                case 'redo':
+                    showNotification('↷ تم الإعادة');
+                    break;
+                case 'save':
+                    saveChanges();
+                    break;
+            }
+        }
+
         function switchView(mode) {
             const frame = document.getElementById('device-frame');
             const label = document.getElementById('device-label');
             const viewModeText = document.getElementById('view-mode');
-            const tabPc = document.getElementById('tab-pc');
-            const tabMobile = document.getElementById('tab-mobile');
 
             if (mode === 'pc') {
                 frame.className = 'device-frame pc';
                 label.innerText = 'الشاشة الأمامية';
                 viewModeText.innerText = 'عرض: الشاشة الأمامية';
-                tabPc.classList.add('active');
-                tabMobile.classList.remove('active');
             } else {
                 frame.className = 'device-frame mobile';
                 label.innerText = 'الشاشة السفلية';
                 viewModeText.innerText = 'عرض: الشاشة السفلية';
-                tabMobile.classList.add('active');
-                tabPc.classList.remove('active');
-            }
-        }
-
-        function toggleBottomPanel() {
-            const panel = document.getElementById('bottom-panel');
-            const icon = document.getElementById('bottom-icon');
-            panel.classList.toggle('hidden');
-            if (panel.classList.contains('hidden')) {
-                icon.className = 'fas fa-chevron-up';
-            } else {
-                icon.className = 'fas fa-chevron-down';
             }
         }
 
@@ -578,7 +670,6 @@
 
         function saveChanges() {
             showNotification('✅ تم حفظ التعديلات بنجاح');
-            hasUnsavedChanges = false;
         }
 
         function exitEditor() {
