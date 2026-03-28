@@ -67,8 +67,8 @@
                 </div>
             </div>
 
-            <!-- زر الانتقال للأسفل -->
-            <button class="scroll-down-btn" onclick="scrollToBottom()" title="الانتقال للأسفل">
+            <!-- زر الانتقال للأسفل الكلاسيكي -->
+            <button class="scroll-down-btn classic" onclick="scrollToBottom()" title="الانتقال للأسفل">
                 <i class="fas fa-chevron-down"></i>
             </button>
 
@@ -109,28 +109,26 @@
         let enterPressed = false;
         let canInteract = false;
 
-        // التحكم بزر Enter
+        // التحكم بزر Enter في الكيبورد
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !canInteract) {
                 e.preventDefault();
                 handleEnter();
-                enterPressed = true;
-                canInteract = true;
             }
         });
 
-        // السماح بالتفاعل بعد الضغط على Enter
-        document.addEventListener('click', () => {
-            if (enterPressed) {
-                canInteract = true;
+        // الضغط في أي مكان لفتح الموقع بعد التفاعل الأول
+        document.addEventListener('click', (e) => {
+            if (!canInteract && !e.target.closest('.enter-btn-minimal')) {
+                handleEnter();
             }
         });
 
         function scrollToBottom() {
-            const player = document.querySelector('.advanced-player');
-            if (player) {
-                player.scrollIntoView({ behavior: 'smooth', block: 'end' });
-            }
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
         }
     </script>
 
@@ -145,11 +143,12 @@
         const mainContent = document.getElementById('main-content');
 
         function handleEnter() {
-            if (enterScreen.classList.contains('hidden')) return; // منع التفعيل المتكرر
+            if (canInteract) return;
             
             enterScreen.classList.add('hidden');
             mainContent.classList.remove('blurred');
             isPlaying = true;
+            canInteract = true;
             
             // تشغيل الصوت والفيديو
             if (audioElem.src) {
