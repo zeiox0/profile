@@ -257,7 +257,7 @@
             if (siteData.audios && siteData.audios.length > 0) {
                 const currentUrl = siteData.audios[currentAudioIndex] ? siteData.audios[currentAudioIndex].url : '';
                 if (!audioElem.src || audioElem.getAttribute('data-src') !== currentUrl) {
-                    loadAudio(0);
+                    loadAudio(currentAudioIndex);
                 }
             }
             
