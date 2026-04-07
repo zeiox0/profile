@@ -152,13 +152,18 @@
             isPlaying = true;
             canInteract = true;
             
-            // تفعيل AudioContext إذا كان موجوداً
+            // تهيئة وتفعيل AudioContext لضمان خروج الصوت
+            if (!window.audioCtx) {
+                initVisualizer();
+            }
             if (window.audioCtx && window.audioCtx.state === 'suspended') {
                 window.audioCtx.resume();
             }
             
-            // تشغيل الصوت والفيديو
+            // تشغيل الصوت والفيديو مع ضمان رفع الصوت وإلغاء الكتم
             if (aElem && aElem.src) {
+                aElem.muted = false;
+                aElem.volume = 1.0;
                 aElem.play().then(() => {
                     console.log("Audio started playing successfully");
                     const btn = document.getElementById('play-pause-btn');
@@ -359,6 +364,8 @@
         function togglePlay() {
             const btn = document.getElementById('play-pause-btn');
             if (audioElem.paused) {
+                audioElem.muted = false;
+                if (audioElem.volume < 0.1) audioElem.volume = 1.0;
                 audioElem.play().catch(e => console.log("Play failed:", e));
                 btn.innerHTML = '<i class="fas fa-pause"></i>';
             } else {
