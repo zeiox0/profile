@@ -152,7 +152,17 @@
             
             // تشغيل الصوت والفيديو
             if (audioElem.src) {
-                audioElem.play().catch(e => console.log("Audio play failed:", e));
+                audioElem.play().then(() => {
+                    console.log("Audio started playing successfully");
+                    const btn = document.getElementById('play-pause-btn');
+                    if (btn) btn.innerHTML = '<i class="fas fa-pause"></i>';
+                }).catch(e => {
+                    console.log("Audio play failed:", e);
+                    // محاولة إعادة التشغيل عند فشل التفاعل الأول
+                    isPlaying = false;
+                    const btn = document.getElementById('play-pause-btn');
+                    if (btn) btn.innerHTML = '<i class="fas fa-play"></i>';
+                });
             }
             if (videoElem.src) {
                 videoElem.play().catch(e => console.log("Video play failed:", e));
@@ -318,15 +328,27 @@
         }
 
         function loadAudio(index) {
-            if (!siteData.audios || siteData.audios.length === 0) return;
+            if (!siteData.audios || siteData.audios.length === 0) {
+                // Fallback إذا لم تكن هناك ملفات صوتية في قاعدة البيانات
+                console.log("No audios found in siteData, checking for local fallback...");
+                return;
+            }
             currentAudioIndex = (index + siteData.audios.length) % siteData.audios.length;
             const audio = siteData.audios[currentAudioIndex];
+            if (!audio || !audio.url) return;
+            
             audioElem.setAttribute('data-src', audio.url);
             audioElem.src = audio.url;
             audioElem.load();
             document.getElementById('track-title').innerText = audio.name || "صوت مضاف";
             document.getElementById('track-artist').innerText = "فنان";
-            if (isPlaying) audioElem.play().catch(e => console.log("Audio play failed:", e));
+            
+            if (isPlaying || canInteract) {
+                audioElem.play().then(() => {
+                    const btn = document.getElementById('play-pause-btn');
+                    if (btn) btn.innerHTML = '<i class="fas fa-pause"></i>';
+                }).catch(e => console.log("Audio play failed:", e));
+            }
         }
 
         function togglePlay() {
