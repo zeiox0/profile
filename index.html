@@ -152,9 +152,16 @@
             isPlaying = true;
             canInteract = true;
             
-            // تهيئة وتفعيل AudioContext لضمان خروج الصوت
-            if (!window.audioCtx) {
-                initVisualizer();
+            // تهيئة وتفعيل AudioContext فوراً لضمان خروج الصوت
+            try {
+                if (!window.audioCtx) {
+                    initVisualizer();
+                }
+                if (window.audioCtx && window.audioCtx.state === 'suspended') {
+                    window.audioCtx.resume();
+                }
+            } catch (e) {
+                console.log("AudioContext init failed:", e);
             }
             if (window.audioCtx && window.audioCtx.state === 'suspended') {
                 window.audioCtx.resume();
