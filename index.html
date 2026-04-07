@@ -137,40 +137,44 @@
         let siteData = {};
         let currentAudioIndex = 0;
         let isPlaying = false;
-        const audioElem = document.getElementById('main-audio');
-        const videoElem = document.getElementById('bg-video');
-        const enterScreen = document.getElementById('enter-screen');
-        const mainContent = document.getElementById('main-content');
-
+        // تم نقل المتغيرات إلى index.js لتجنب التعارض
+        
         function handleEnter() {
             if (canInteract) return;
             
-            enterScreen.classList.add('hidden');
-            mainContent.classList.remove('blurred');
+            const eScreen = document.getElementById('enter-screen');
+            const mContent = document.getElementById('main-content');
+            const aElem = document.getElementById('main-audio');
+            const vElem = document.getElementById('bg-video');
+            
+            eScreen.classList.add('hidden');
+            mContent.classList.remove('blurred');
             isPlaying = true;
             canInteract = true;
             
+            // تفعيل AudioContext إذا كان موجوداً
+            if (window.audioCtx && window.audioCtx.state === 'suspended') {
+                window.audioCtx.resume();
+            }
+            
             // تشغيل الصوت والفيديو
-            if (audioElem.src) {
-                audioElem.play().then(() => {
+            if (aElem && aElem.src) {
+                aElem.play().then(() => {
                     console.log("Audio started playing successfully");
                     const btn = document.getElementById('play-pause-btn');
                     if (btn) btn.innerHTML = '<i class="fas fa-pause"></i>';
                 }).catch(e => {
                     console.log("Audio play failed:", e);
-                    // محاولة إعادة التشغيل عند فشل التفاعل الأول
                     isPlaying = false;
-                    const btn = document.getElementById('play-pause-btn');
-                    if (btn) btn.innerHTML = '<i class="fas fa-play"></i>';
                 });
             }
-            if (videoElem.src) {
-                videoElem.play().catch(e => console.log("Video play failed:", e));
+            if (vElem && vElem.src) {
+                vElem.play().catch(e => console.log("Video play failed:", e));
             }
             
             // إخفاء شاشة الدخول بعد الانتقال
             setTimeout(() => {
-                enterScreen.style.display = 'none';
+                eScreen.style.display = 'none';
             }, 1000);
         }
 
@@ -280,11 +284,11 @@
             if (visualizerInited) return;
             const canvas = document.getElementById('audio-visualizer');
             const ctx = canvas.getContext('2d');
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const analyser = audioCtx.createAnalyser();
-            const source = audioCtx.createMediaElementSource(audioElem);
+            window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const analyser = window.audioCtx.createAnalyser();
+            const source = window.audioCtx.createMediaElementSource(document.getElementById('main-audio'));
             source.connect(analyser);
-            analyser.connect(audioCtx.destination);
+            analyser.connect(window.audioCtx.destination);
             analyser.fftSize = 256;
             const bufferLength = analyser.frequencyBinCount;
             const dataArray = new Uint8Array(bufferLength);
@@ -311,12 +315,13 @@
             
             // تفعيل AudioContext عند أول تفاعل
             document.addEventListener('click', () => {
-                if (audioCtx.state === 'suspended') audioCtx.resume();
+                if (window.audioCtx && window.audioCtx.state === 'suspended') window.audioCtx.resume();
             }, { once: true });
         }
 
         function showAvatarAsBg(profile, bgImage, noMedia) {
-            videoElem.style.display = 'none';
+            const vElem = document.getElementById('bg-video');
+            if (vElem) vElem.style.display = 'none';
             if (profile.avatar) {
                 bgImage.style.display = 'block';
                 bgImage.style.backgroundImage = `url('${profile.avatar}')`;

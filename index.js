@@ -6,7 +6,7 @@ let isPlaying = false;
 let widgets = [];
 let draggedWidget = null;
 
-const audioElem = document.getElementById('main-audio') || document.createElement('audio');
+const audioElem = document.getElementById('main-audio');
 const videoElem = document.getElementById('bg-video');
 const enterScreen = document.getElementById('enter-screen');
 const mainContent = document.getElementById('main-content');
