@@ -137,7 +137,12 @@
         let siteData = {};
         let currentAudioIndex = 0;
         let isPlaying = false;
-        // تم نقل المتغيرات إلى index.js لتجنب التعارض
+        
+        // تعريف المتغيرات الأساسية بشكل عالمي لضمان عمل جميع الوظائف
+        const audioElem = document.getElementById('main-audio');
+        const videoElem = document.getElementById('bg-video');
+        const enterScreen = document.getElementById('enter-screen');
+        const mainContent = document.getElementById('main-content');
         
         function handleEnter() {
             if (canInteract) return;

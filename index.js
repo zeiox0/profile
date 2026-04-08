@@ -6,10 +6,11 @@ let isPlaying = false;
 let widgets = [];
 let draggedWidget = null;
 
-const audioElem = document.getElementById('main-audio');
-const videoElem = document.getElementById('bg-video');
-const enterScreen = document.getElementById('enter-screen');
-const mainContent = document.getElementById('main-content');
+// تم نقل المتغيرات إلى index.html لضمان توفرها لجميع السكريبتات بشكل عالمي
+// const audioElem = document.getElementById('main-audio');
+// const videoElem = document.getElementById('bg-video');
+// const enterScreen = document.getElementById('enter-screen');
+// const mainContent = document.getElementById('main-content');
 
 // ========== تهيئة الصفحة ==========
 function initPage() {
