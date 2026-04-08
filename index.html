@@ -196,9 +196,8 @@
         }
 
         function loadData() {
-            const database = window.db || (typeof db !== 'undefined' ? db : null);
-            if (!database) return setTimeout(loadData, 500);
-            database.collection('siteData').doc('config').onSnapshot((doc) => {
+            if (typeof db === 'undefined') return setTimeout(loadData, 500);
+            db.collection('siteData').doc('config').onSnapshot((doc) => {
                 if (doc.exists) {
                     siteData = doc.data();
                     updateUI();

@@ -16,13 +16,14 @@ const supabaseConfig = {
 };
 
 // تهيئة فايربيس
+let db, auth, storage;
 if (typeof firebase !== 'undefined') {
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
-    window.db = firebase.firestore();
-    window.auth = firebase.auth();
-    window.storage = firebase.storage();
+    db = firebase.firestore();
+    auth = firebase.auth();
+    storage = firebase.storage();
     console.log("Firebase initialized");
 }
 
