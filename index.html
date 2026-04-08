@@ -162,14 +162,18 @@
                 if (!window.audioCtx) {
                     initVisualizer();
                 }
-                if (window.audioCtx && window.audioCtx.state === 'suspended') {
-                    window.audioCtx.resume();
+                // تفعيل AudioContext بشكل فوري
+                if (window.audioCtx) {
+                    if (window.audioCtx.state === 'suspended') {
+                        window.audioCtx.resume().then(() => {
+                            console.log('AudioContext resumed successfully');
+                        }).catch(e => {
+                            console.log('AudioContext resume failed:', e);
+                        });
+                    }
                 }
             } catch (e) {
                 console.log("AudioContext init failed:", e);
-            }
-            if (window.audioCtx && window.audioCtx.state === 'suspended') {
-                window.audioCtx.resume();
             }
             
             // تشغيل الصوت والفيديو مع ضمان رفع الصوت وإلغاء الكتم
@@ -301,11 +305,33 @@
             if (visualizerInited) return;
             const canvas = document.getElementById('audio-visualizer');
             const ctx = canvas.getContext('2d');
-            window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // إنشاء AudioContext وتفعيله فوراً
+            if (!window.audioCtx) {
+                window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            
+            // تفعيل AudioContext إذا كان معلقاً
+            if (window.audioCtx.state === 'suspended') {
+                window.audioCtx.resume().catch(e => console.log('AudioContext resume failed:', e));
+            }
+            
             const analyser = window.audioCtx.createAnalyser();
-            const source = window.audioCtx.createMediaElementSource(document.getElementById('main-audio'));
-            source.connect(analyser);
-            analyser.connect(window.audioCtx.destination);
+            const audioElement = document.getElementById('main-audio');
+            
+            // التأكد من أن الصوت متصل بشكل صحيح
+            let source;
+            try {
+                source = window.audioCtx.createMediaElementSource(audioElement);
+                source.connect(analyser);
+                analyser.connect(window.audioCtx.destination);
+                console.log('Audio source connected successfully');
+            } catch (e) {
+                console.log('Audio source connection error:', e);
+                // إذا كان الصوت متصلاً بالفعل، استخدم الـ analyser مباشرة
+                analyser.connect(window.audioCtx.destination);
+            }
+            
             analyser.fftSize = 256;
             const bufferLength = analyser.frequencyBinCount;
             const dataArray = new Uint8Array(bufferLength);
@@ -329,11 +355,7 @@
             canvas.height = 150;
             draw();
             visualizerInited = true;
-            
-            // تفعيل AudioContext عند أول تفاعل
-            document.addEventListener('click', () => {
-                if (window.audioCtx && window.audioCtx.state === 'suspended') window.audioCtx.resume();
-            }, { once: true });
+            console.log('Visualizer initialized successfully');
         }
 
         function showAvatarAsBg(profile, bgImage, noMedia) {
